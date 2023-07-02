@@ -22,5 +22,6 @@ fn main() {
         println!("{key}: {value}");
     }
     // println!("{:?}", registry::REGISTER_BY_INT.len());
-    println!("{}", registry::is_register("$t0"))
+    println!("{}", registry::is_register("$t0"));
+    println!("{}", registry::is_register("$53"));
 }

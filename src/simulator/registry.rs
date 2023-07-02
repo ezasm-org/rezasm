@@ -6,40 +6,22 @@ const REGISTERS_COUNT: usize = 54;
 
 lazy_static! {
     pub static ref REGISTER_BY_STRING: HashMap<String, usize> = {
-        let mut temp_map: HashMap<&String, usize> = HashMap::new();
+        let mut temp_map: HashMap<String, usize> = HashMap::new();
 
-        for (i, reg) in [
-            BASE_REGISTERS.as_slice(),
-            SAVED_REGISTERS.as_slice(),
-            TEMPORARY_REGISTERS.as_slice(),
-            FLOAT_SAVED_REGISTERS.as_slice(),
-            FLOAT_TEMPORARY_REGISTERS.as_slice(),
-            SPECIAL_REGISTERS.as_slice(),
-        ]
-        .concat()
+        for (i, reg) in ALL_REGISTERS
         .iter()
         .enumerate()
         {
-            temp_map.insert(&reg.to_string(), i + temp_map.len());
+            temp_map.insert(reg.to_string(), i);
         }
         temp_map
     };
-    pub static ref REGISTER_BY_NUMBER: HashMap<usize, &'static str> = {
-        let mut temp_map: HashMap<usize, &str> = HashMap::new();
+    pub static ref REGISTER_BY_NUMBER: HashMap<usize, String> = {
+        let mut temp_map: HashMap<usize, String> = HashMap::new();
 
-        for (i, reg) in [
-            BASE_REGISTERS.as_slice(),
-            SAVED_REGISTERS.as_slice(),
-            TEMPORARY_REGISTERS.as_slice(),
-            FLOAT_SAVED_REGISTERS.as_slice(),
-            FLOAT_TEMPORARY_REGISTERS.as_slice(),
-            SPECIAL_REGISTERS.as_slice(),
-        ]
-        .concat()
-        .iter()
-        .enumerate()
+        for (i, reg) in ALL_REGISTERS.iter().enumerate()
         {
-            temp_map.insert(i + temp_map.len(), reg.to_owned());
+            temp_map.insert(i, reg.to_string());
         }
         temp_map
     };
@@ -115,7 +97,11 @@ pub const FLOAT_TEMPORARY_REGISTERS: [&str; 10] =
 
 pub const LO: &str = "LO"; // Special "LOW" register to store the lower part of a multiplication
 pub const HI: &str = "HI"; // Special "HIGH" register to store the higher part of a multiplication
-pub const SPECIAL_REGISTERS: &[&str; 2] = &[LO, HI];
+pub const SPECIAL_REGISTERS: [&str; 2] = [LO, HI];
+
+pub const ALL_REGISTERS: [&str ; 54] = [ZERO, PID, FID, PC, SP, RA, A0, A1, A2, R0, R1, R2, S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, FS0, FS1, FS2, FS3, FS4, FS5, FS6, FS7, FS8, FS9, FT0, FT1, FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI];
+
+
 
 pub fn is_register(register: &str) -> bool {
     if register.len() < 1 {
@@ -125,6 +111,8 @@ pub fn is_register(register: &str) -> bool {
     if register.starts_with("$") {
         temp = &register[1..];
     }
+    let binding = temp.to_uppercase();
+    temp = binding.as_str();
 
     let number: usize = match usize::from_str(temp) {
         Ok(x) => x,
