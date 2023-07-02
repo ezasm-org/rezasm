@@ -8,10 +8,7 @@ lazy_static! {
     pub static ref REGISTER_BY_STRING: HashMap<String, usize> = {
         let mut temp_map: HashMap<String, usize> = HashMap::new();
 
-        for (i, reg) in ALL_REGISTERS
-        .iter()
-        .enumerate()
-        {
+        for (i, reg) in ALL_REGISTERS.iter().enumerate() {
             temp_map.insert(reg.to_string(), i);
         }
         temp_map
@@ -19,8 +16,7 @@ lazy_static! {
     pub static ref REGISTER_BY_NUMBER: HashMap<usize, String> = {
         let mut temp_map: HashMap<usize, String> = HashMap::new();
 
-        for (i, reg) in ALL_REGISTERS.iter().enumerate()
-        {
+        for (i, reg) in ALL_REGISTERS.iter().enumerate() {
             temp_map.insert(i, reg.to_string());
         }
         temp_map
@@ -99,9 +95,11 @@ pub const LO: &str = "LO"; // Special "LOW" register to store the lower part of 
 pub const HI: &str = "HI"; // Special "HIGH" register to store the higher part of a multiplication
 pub const SPECIAL_REGISTERS: [&str; 2] = [LO, HI];
 
-pub const ALL_REGISTERS: [&str ; 54] = [ZERO, PID, FID, PC, SP, RA, A0, A1, A2, R0, R1, R2, S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, FS0, FS1, FS2, FS3, FS4, FS5, FS6, FS7, FS8, FS9, FT0, FT1, FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI];
-
-
+pub const ALL_REGISTERS: [&str; 54] = [
+    ZERO, PID, FID, PC, SP, RA, A0, A1, A2, R0, R1, R2, S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, T0,
+    T1, T2, T3, T4, T5, T6, T7, T8, T9, FS0, FS1, FS2, FS3, FS4, FS5, FS6, FS7, FS8, FS9, FT0, FT1,
+    FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI,
+];
 
 pub fn is_register(register: &str) -> bool {
     if register.len() < 1 {
