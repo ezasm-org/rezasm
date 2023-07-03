@@ -1,7 +1,7 @@
 use std::num::ParseIntError;
 use regex::Regex;
 
-use crate::simulator::registry;
+use crate::{simulator::registry, error::EzasmError};
 
 pub enum EZNumber {
     Decimal(String),
@@ -41,26 +41,31 @@ pub fn get_number_type(text: String) -> EZNumber {
     }
 }
 
-pub fn text_to_integer(num: EZNumber) -> Result<i64, ParseIntError> {
+pub fn text_to_integer(num: EZNumber) -> Result<i64, EzasmError> {
     match num {
-        EZNumber::Hexadecimal(s) => i64::from_str_radix(s.replace("0x", "").as_str(), 16),
-        EZNumber::Binary(s) => i64::from_str_radix(s.replace("0b", "").as_str(), 2),
-        EZNumber::Decimal(s) => i64::from_str_radix(s.as_str(), 10),
+        EZNumber::Hexadecimal(s) => i64::from_str_radix(s.replace("0x", "").as_str(), 16).map_err(EzasmError::from),
+        EZNumber::Binary(s) => i64::from_str_radix(s.replace("0b", "").as_str(), 2).map_err(EzasmError::from),
+        EZNumber::Decimal(s) => i64::from_str_radix(s.as_str(), 10).map_err(EzasmError::from),
     }
 }
 
-pub fn text_to_float(num: EZNumber) -> f64 {
+pub fn text_to_float(num: EZNumber) -> Result<f64, EzasmError>{
     match num {
         EZNumber::Hexadecimal(s) => parse_float_string(&s.replace("0x", ""), 16u8),
         EZNumber::Binary(s) => parse_float_string(&s.replace("0b", ""), 2u8),
-        EZNumber::Decimal(s) => Some(s.parse::<f64>().unwrap()),
+        EZNumber::Decimal(s) => {
+            let k = s.parse::<f64>();
+            match k {
+                Ok(x) => Ok(x),
+                Err(e) => Err(EzasmError::from(e)),
+            }
+        },
     }
-    .unwrap()
 }
 
-pub fn parse_float_string(string: &String, base: u8) -> Option<f64> {
+pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> {
     if string.find(".") != string.rfind(".") {
-        return None;
+        return Err(EzasmError::ParserError);
     }
     let mut number = string.as_str();
 
@@ -74,7 +79,7 @@ pub fn parse_float_string(string: &String, base: u8) -> Option<f64> {
         None => 0,
         Some(first) => match i64::from_str_radix(first, base as u32) {
             Ok(i) => i,
-            Err(_) => return None,
+            Err(_) => return Err(EzasmError::ParserError),
         },
     };
     let mut tail = String::new();
@@ -84,7 +89,7 @@ pub fn parse_float_string(string: &String, base: u8) -> Option<f64> {
             tail = last.parse().unwrap();
             match i64::from_str_radix(last, base as u32) {
                 Ok(i) => i,
-                Err(_) => return None,
+                Err(_) => return Err(EzasmError::ParserError),
             }
         }
     };
@@ -99,7 +104,7 @@ pub fn parse_float_string(string: &String, base: u8) -> Option<f64> {
         result *= -1f64;
     };
 
-    Some(result)
+    Ok(result)
 }
 
 pub fn is_label(token: &String) -> bool {
@@ -125,6 +130,10 @@ pub fn looks_like_dereference(token: &String) -> bool {
     //unwrap below should never panic because the pattern is hardcoded
     let pattern = Regex::new("^(-?\\d+)?\\(\\$.+\\)$").unwrap();
     pattern.is_match(token)
+}
+
+pub fn looks_like_immediate(token: &String) -> bool {
+    true
 }
 
 
@@ -168,3 +177,4 @@ pub fn tokenize_line(text: &String) -> Vec<String> {
 
     tokens
 }
+

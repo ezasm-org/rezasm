@@ -7,6 +7,7 @@ use crate::parser::lexer::{
 use crate::simulator::registry;
 mod parser;
 mod simulator;
+mod error;
 
 fn main() {
     println!(
@@ -22,5 +23,5 @@ fn main() {
         println!("{key}: {value}");
     }
     // println!("{:?}", registry::REGISTER_BY_INT.len());
-    println!("{:?}", lexer::is_register(&"$55".to_string()));
+    println!("{:?}", lexer::is_register(&"$5".to_string()));
 }
