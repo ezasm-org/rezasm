@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::num::ParseIntError;
 use std::str::FromStr;
 
 const REGISTERS_COUNT: usize = 54;
@@ -99,22 +98,22 @@ pub const ALL_REGISTERS: [&str; 54] = [
     ZERO, PID, FID, PC, SP, RA, A0, A1, A2, R0, R1, R2, S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, T0,
     T1, T2, T3, T4, T5, T6, T7, T8, T9, FS0, FS1, FS2, FS3, FS4, FS5, FS6, FS7, FS8, FS9, FT0, FT1,
     FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI,
-];
+]; // Is this the right order? I don't know
+//TODO above
 
-pub fn is_register(register: &str) -> bool {
+pub fn is_valid_register(register: &String) -> bool {
     if register.len() < 1 {
         return false;
     }
-    let mut temp = register;
+    let mut temp = register.clone();
     if register.starts_with("$") {
-        temp = &register[1..];
+        temp.remove(0);
     }
-    let binding = temp.to_uppercase();
-    temp = binding.as_str();
+    temp = temp.to_uppercase();
 
-    let number: usize = match usize::from_str(temp) {
+    let number: usize = match usize::from_str(temp.as_str()) {
         Ok(x) => x,
         Err(_) => REGISTERS_COUNT + 1,
     };
-    REGISTER_BY_STRING.contains_key(&temp.to_string()) || REGISTER_BY_NUMBER.contains_key(&number)
+    REGISTER_BY_STRING.contains_key(&temp) || REGISTER_BY_NUMBER.contains_key(&number)
 }

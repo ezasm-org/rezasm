@@ -2,7 +2,7 @@
 extern crate lazy_static;
 
 use crate::parser::lexer::{
-    get_number_type, is_label, is_register, parse_float_string, text_to_float, tokenize_line,
+    get_number_type, is_label, is_register, parse_float_string, text_to_float, tokenize_line, self,
 };
 use crate::simulator::registry;
 mod parser;
@@ -22,6 +22,5 @@ fn main() {
         println!("{key}: {value}");
     }
     // println!("{:?}", registry::REGISTER_BY_INT.len());
-    println!("{}", registry::is_register("$t0"));
-    println!("{}", registry::is_register("$53"));
+    println!("{:?}", lexer::is_register(&"$55".to_string()));
 }

@@ -1,4 +1,7 @@
 use std::num::ParseIntError;
+use regex::Regex;
+
+use crate::simulator::registry;
 
 pub enum EZNumber {
     Decimal(String),
@@ -115,8 +118,15 @@ pub fn looks_like_label_reference(token: &String) -> bool {
 }
 
 pub fn is_register(token: &String) -> bool {
-    token.starts_with("$") && token.len() > 1
+    token.starts_with("$") && token.len() > 1 && registry::is_valid_register(token)
 }
+
+pub fn looks_like_dereference(token: &String) -> bool {
+    //unwrap below should never panic because the pattern is hardcoded
+    let pattern = Regex::new("^(-?\\d+)?\\(\\$.+\\)$").unwrap();
+    pattern.is_match(token)
+}
+
 
 pub fn tokenize_line(text: &String) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
