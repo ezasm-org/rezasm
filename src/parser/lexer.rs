@@ -79,7 +79,7 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> 
         None => 0,
         Some(first) => match i64::from_str_radix(first, base as u32) {
             Ok(i) => i,
-            Err(_) => return Err(EzasmError::ParserError),
+            Err(e) => return Err(EzasmError::from(e)),
         },
     };
     let mut tail = String::new();
@@ -89,7 +89,7 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> 
             tail = last.parse().unwrap();
             match i64::from_str_radix(last, base as u32) {
                 Ok(i) => i,
-                Err(_) => return Err(EzasmError::ParserError),
+                Err(e) => return Err(EzasmError::from(e)),
             }
         }
     };
@@ -133,8 +133,18 @@ pub fn looks_like_dereference(token: &String) -> bool {
 }
 
 pub fn looks_like_immediate(token: &String) -> bool {
-    true
+    !token.is_empty() && is_numeric(token)
 }
+
+// Regex matching sucks, the way it was done in the original sucks way more though 
+pub fn is_numeric(token: &String) -> bool{
+    let binary_pattern = Regex::new("0b[10]+\\.?[01]*").unwrap();
+    let hex_pattern = Regex::new("0x[\\d|a-f]+\\.?[\\d|a-f]*").unwrap();
+    let decimal_pattern = Regex::new("[\\d]+\\.?[\\d]*").unwrap();
+    let lower = token.to_lowercase();
+    binary_pattern.is_match(lower.as_str()) || hex_pattern.is_match(lower.as_str()) || decimal_pattern.is_match(lower.as_str())
+}
+
 
 
 pub fn tokenize_line(text: &String) -> Vec<String> {
