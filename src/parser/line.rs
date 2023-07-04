@@ -1,4 +1,38 @@
-enum Line {
-    Instruction(Vec<String>),
+use crate::error::EzasmError;
+use crate::parser::lexer::*;
+
+pub enum Line {
+    Instruction(String, Vec<Token>),
     Label(String),
+}
+
+impl Line {
+    pub fn new(instruction: &String, args: Vec<String>) -> Result<Self, EzasmError>{
+        if is_label(instruction) {
+            //cloning here might not be ideal long term.
+            return Ok(Line::Label(instruction[0..instruction.len()-1].to_string()));
+        }else if !is_instruction(instruction) {
+            return Err(EzasmError::ParserError);
+        }
+
+        let mut args_out: Vec::<Token> = Vec::new();
+        for arg in args {
+            if looks_like_string_immediate(&arg) {
+                args_out.push(Token::StringImmediate(arg));
+            }else if looks_like_dereference(&arg) {
+                args_out.push(Token::Dereference(arg));
+            }else if looks_like_character_immediate(&arg) {
+                match get_character_immediate(&arg) {
+                    Ok(c) => args_out.push(Token::CharacterImmediate(c)),
+                    Err(_) => return Err(EzasmError::ParserError),
+                }
+            }else if looks_like_numerical_immediate(&arg){
+                match text_to_number(arg){
+                    Ok(i) => args_out.push(Token::NumericalImmediate(i)),
+                    Err(_) => return Err(EzasmError::ParserError),
+                }
+            }
+        }
+        Ok(Line::Label("".to_string()))
+    }
 }

@@ -1,5 +1,6 @@
 use std::num::ParseIntError;
 use regex::Regex;
+use crate::parser::line::*;
 
 use crate::{simulator::registry, error::EzasmError};
 
@@ -32,7 +33,7 @@ impl From<f64> for EZNumber {
 pub enum Token {
     Instruction(String),
     NumericalImmediate(EZNumber),
-    CharacterImmediate(String),
+    CharacterImmediate(char),
     StringImmediate(String),
     Register(String),
     Dereference(String),
@@ -69,8 +70,8 @@ pub fn get_number_type(text: String) -> EZNumberFormat {
     }
 }
 
-pub fn text_to_number(num: EZNumberFormat) -> Result<EZNumber, EzasmError> {
-    match num {
+pub fn text_to_number(token: String) -> Result<EZNumber, EzasmError> {
+    match get_number_type(token) {
         EZNumberFormat::Hexadecimal(s) => i64::from_str_radix(s.replace("0x", "").as_str(), 16).map_err(EzasmError::from).map(EZNumber::from),
         EZNumberFormat::Binary(s) => i64::from_str_radix(s.replace("0b", "").as_str(), 2).map_err(EzasmError::from).map(EZNumber::from),
         EZNumberFormat::Decimal(s) => i64::from_str_radix(s.as_str(), 10).map_err(EzasmError::from).map(EZNumber::from),
@@ -199,6 +200,20 @@ pub fn get_character_immediate(token: &String) -> Result<char, EzasmError> {
     }
 }
 
+pub fn parse_line(line: &String, line_number: &i32) -> Option<Result<Line, EzasmError>> {
+    let tokens = tokenize_line(line);
+
+    if tokens.len() == 0 {
+        return None
+    }
+    
+    let args = &tokens[1..];
+
+
+
+    Some(Ok(Line::Label("".to_string())))
+}
+
 pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
     if token.len() < 2 {
         return Err(EzasmError::ParserError);
@@ -237,6 +252,11 @@ pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
         }
     }
     Ok(result.to_string())
+}
+
+pub fn is_instruction(token: &String) -> bool {
+    return true;
+    //TODO implement
 }
 
 // Regex matching sucks, the way it was done in the original sucks way more though 
