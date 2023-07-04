@@ -199,6 +199,46 @@ pub fn get_character_immediate(token: &String) -> Result<char, EzasmError> {
     }
 }
 
+pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
+    if token.len() < 2 {
+        return Err(EzasmError::ParserError);
+    }
+
+    let chars_full = token.chars();
+    let mut tmp = token.clone();
+    tmp.remove(0);
+    tmp.push('\0');
+    let chars_zip = tmp.chars();
+
+    let mut result = "".to_string();
+    let mut last_character: Option<char> = None;
+    for (current, next) in chars_full.zip(chars_zip) {
+        match last_character {
+            Some('\\') => {
+                last_character = Some(current);
+                continue;
+            },
+            _ => {},
+        }
+        if current == '\\'{
+                match next {
+                    't' => result.push('\t'),
+                    'n' => result.push('\n'),
+                    'r' => result.push('\r'),
+                    '\'' => result.push('\''),
+                    '"' => result.push('"'),
+                    '\\' => result.push('\\'),
+                    _ => return Err(EzasmError::ParserError),
+                }
+                last_character = Some('\\');
+        }else{
+            result.push(current);
+            last_character = Some(current);
+        }
+    }
+    Ok(result.to_string())
+}
+
 // Regex matching sucks, the way it was done in the original sucks way more though 
 pub fn is_numeric(token: &String) -> bool{
     let binary_pattern = Regex::new("0b[10]+\\.?[01]*").unwrap();
