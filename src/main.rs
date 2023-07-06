@@ -9,6 +9,7 @@ use crate::simulator::registry;
 mod parser;
 mod simulator;
 mod error;
+mod instructions;
 
 fn main() {
     println!(

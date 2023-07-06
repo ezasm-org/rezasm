@@ -31,6 +31,12 @@ impl Line {
                     Ok(i) => args_out.push(Token::NumericalImmediate(i)),
                     Err(_) => return Err(EzasmError::ParserError),
                 }
+            }else if is_register(&arg){
+                args_out.push(Token::Register(arg));
+            }else if is_label(&arg) {
+                args_out.push(Token::Label(arg));
+            }else{
+                return Err(EzasmError::ParserError);
             }
         }
         Ok(Line::Label("".to_string()))
