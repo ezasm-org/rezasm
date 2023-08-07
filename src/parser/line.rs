@@ -1,6 +1,7 @@
 use crate::error::EzasmError;
 use crate::parser::lexer::*;
 
+#[derive(Debug)]
 pub enum Line {
     Instruction(String, Vec<Token>),
     Label(String),

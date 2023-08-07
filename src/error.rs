@@ -4,6 +4,10 @@ use std::num::{ParseFloatError, ParseIntError};
 #[derive(Debug)]
 pub enum EzasmError {
     ParserError,
+    SimualtorError,
+    ReadOutOfBoundsError(usize),
+    WriteOutOfBoundsError(usize),
+    WriteToReadOnlyError(usize),
 }
 
 impl From<ParseFloatError> for EzasmError {

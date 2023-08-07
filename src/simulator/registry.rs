@@ -1,3 +1,6 @@
+use crate::simulator::memory::WordSize;
+use crate::simulator::register::Register;
+use crate::util::raw_data::RawData;
 use bimap::BiMap;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -86,12 +89,11 @@ pub const LO: &str = "LO"; // Special "LOW" register to store the lower part of 
 pub const HI: &str = "HI"; // Special "HIGH" register to store the higher part of a multiplication
 pub const SPECIAL_REGISTERS: [&str; 2] = [LO, HI];
 
-pub const ALL_REGISTERS: [&str; 54] = [
+pub const ALL_REGISTERS: [&str; REGISTERS_COUNT] = [
     ZERO, PID, FID, PC, SP, RA, A0, A1, A2, R0, R1, R2, S0, S1, S2, S3, S4, S5, S6, S7, S8, S9, T0,
     T1, T2, T3, T4, T5, T6, T7, T8, T9, FS0, FS1, FS2, FS3, FS4, FS5, FS6, FS7, FS8, FS9, FT0, FT1,
     FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI,
-]; // Is this the right order? I don't know
-   //TODO above
+];
 
 pub fn is_valid_register(register: &String) -> bool {
     if register.len() < 1 {
@@ -108,4 +110,39 @@ pub fn is_valid_register(register: &String) -> bool {
         Err(_) => REGISTERS_COUNT + 1,
     };
     REGISTERS_MAP.contains_left(&temp) || REGISTERS_MAP.contains_right(&number)
+}
+
+#[derive(Debug)]
+pub struct Registry {
+    word_size: WordSize,
+    registers: Vec<Register>,
+}
+
+impl Registry {
+    pub fn new(word_size: &WordSize) -> Registry {
+        let mut registers: Vec<Register> = Vec::new();
+        for index in 0..REGISTERS_COUNT {
+            registers.push(Register::new(word_size));
+        }
+        Registry {
+            word_size: word_size.clone(),
+            registers,
+        }
+    }
+
+    pub fn reset(&mut self) {
+        for register in self.registers.iter_mut() {
+            register.set_data(RawData::empty_data(&self.word_size))
+        }
+    }
+
+    pub fn get_register_by_number(&mut self, register: usize) -> &mut Register {
+        assert!(register < REGISTERS_COUNT);
+        &mut self.registers[register]
+    }
+
+    pub fn get_register(&mut self, register: &String) -> &mut Register {
+        assert!(is_valid_register(register));
+        self.get_register_by_number(*REGISTERS_MAP.get_by_left(register).unwrap())
+    }
 }

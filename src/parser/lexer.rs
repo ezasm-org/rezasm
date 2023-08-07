@@ -31,6 +31,7 @@ impl From<f64> for EZNumber {
     }
 }
 
+#[derive(Debug)]
 pub enum Token {
     Instruction(String),
     NumericalImmediate(EZNumber),
@@ -110,30 +111,31 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> 
         negative = true;
     }
 
-    let whole: i64 = match number.split(".").max() {
+    let whole: i64 = match number.split(".").nth(0) {
         None => 0,
         Some(first) => match i64::from_str_radix(first, base as u32) {
             Ok(i) => i,
             Err(e) => return Err(EzasmError::from(e)),
         },
     };
+
     let mut tail = String::new();
-    let mantissa: i64 = match number.split(".").min() {
+    let mantissa: i64 = match number.split(".").nth(1) {
         None => 0,
         Some(last) => {
-            tail = last.parse().unwrap();
-            match i64::from_str_radix(last, base as u32) {
-                Ok(i) => i,
-                Err(e) => return Err(EzasmError::from(e)),
+            tail = String::from(last.trim_end_matches('0'));
+            if tail.len() == 0 {
+                0
+            } else {
+                match i64::from_str_radix(&tail, base as u32) {
+                    Ok(i) => i,
+                    Err(e) => return Err(EzasmError::from(e)),
+                }
             }
         }
     };
 
-    let mut result = if tail.len() == 0 {
-        whole as f64 + (mantissa as f64)
-    } else {
-        whole as f64 + (mantissa as f64) / f64::powi(base as f64, tail.len() as i32)
-    };
+    let mut result = (whole as f64) + (mantissa as f64) / f64::powi(base as f64, tail.len() as i32);
 
     if negative {
         result *= -1f64;
