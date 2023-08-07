@@ -6,21 +6,18 @@ use std::vec::IntoIter;
 #[derive(Debug)]
 pub struct RawData {
     pub data: Vec<u8>,
-    pub word_size: WordSize,
 }
 
 impl RawData {
     pub fn empty_data(size: &WordSize) -> RawData {
         RawData {
             data: vec![0; size.value()],
-            word_size: size.clone(),
         }
     }
 
     pub fn new(data: &[u8]) -> RawData {
         RawData {
             data: data.to_vec(),
-            word_size: WordSize::from(data.len()),
         }
     }
 
@@ -30,7 +27,7 @@ impl RawData {
 
     pub fn int_value(&self) -> i64 {
         let mut buffer = ByteBuffer::from(self.data.clone());
-        match self.word_size {
+        match WordSize::from(self.data.len()) {
             WordSize::Four => buffer.read_i32().unwrap() as i64,
             WordSize::Eight => buffer.read_i64().unwrap(),
             WordSize::Error => 0i64,
@@ -39,7 +36,7 @@ impl RawData {
 
     pub fn float_value(&self) -> f64 {
         let mut buffer = ByteBuffer::from(self.data.clone());
-        match self.word_size {
+        match WordSize::from(self.data.len()) {
             WordSize::Four => buffer.read_f32().unwrap() as f64,
             WordSize::Eight => buffer.read_f64().unwrap(),
             WordSize::Error => 0f64,
@@ -55,7 +52,6 @@ impl RawData {
         };
         RawData {
             data: buffer.into_vec(),
-            word_size: size.clone(),
         }
     }
 
@@ -68,7 +64,6 @@ impl RawData {
         };
         RawData {
             data: buffer.into_vec(),
-            word_size: size.clone(),
         }
     }
 }
@@ -79,7 +74,6 @@ impl From<i64> for RawData {
         buffer.write_i64(value);
         RawData {
             data: buffer.into_vec(),
-            word_size: WordSize::Eight,
         }
     }
 }
@@ -90,15 +84,15 @@ impl From<i32> for RawData {
         buffer.write_i32(value);
         RawData {
             data: buffer.into_vec(), //TODO unwrap
-            word_size: WordSize::Four,
         }
     }
 }
 
 impl Into<i64> for RawData {
     fn into(self) -> i64 {
+        let size = WordSize::from(self.data.len());
         let mut buffer = ByteBuffer::from(self.data);
-        match self.word_size {
+        match size {
             WordSize::Four => buffer.read_i32().unwrap() as i64,
             WordSize::Eight => buffer.read_i64().unwrap(),
             WordSize::Error => 0i64,
@@ -112,7 +106,6 @@ impl From<f64> for RawData {
         buffer.write_f64(value);
         RawData {
             data: buffer.into_vec(), //TODO unwrap
-            word_size: WordSize::Eight,
         }
     }
 }
@@ -123,15 +116,15 @@ impl From<f32> for RawData {
         buffer.write_f32(value);
         RawData {
             data: buffer.into_vec(), //TODO unwrap
-            word_size: WordSize::Four,
         }
     }
 }
 
 impl Into<f64> for RawData {
     fn into(self) -> f64 {
+        let size = WordSize::from(self.data.len());
         let mut buffer = ByteBuffer::from(self.data);
-        match self.word_size {
+        match size {
             WordSize::Four => buffer.read_f32().unwrap() as f64,
             WordSize::Eight => buffer.read_f64().unwrap(),
             WordSize::Error => 0f64,
