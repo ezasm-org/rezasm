@@ -1,5 +1,3 @@
 pub mod input_target;
 
-pub trait Target {
-
-}
+pub trait Target {}

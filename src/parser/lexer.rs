@@ -1,8 +1,8 @@
-use std::num::ParseIntError;
-use regex::Regex;
 use crate::parser::line::*;
+use regex::Regex;
+use std::num::ParseIntError;
 
-use crate::{simulator::registry, error::EzasmError};
+use crate::{error::EzasmError, simulator::registry};
 
 pub enum EZNumberFormat {
     Decimal(String),
@@ -13,6 +13,7 @@ pub enum EZNumberFormat {
     BinaryFloat(String),
 }
 
+#[derive(Debug)]
 pub enum EZNumber {
     Integer(i64),
     Float(f64),
@@ -55,13 +56,13 @@ pub fn all_alphanumeric_underscore(text: &str) -> bool {
 }
 
 pub fn get_number_type(text: String) -> EZNumberFormat {
-    if text.contains('.'){
+    if text.contains('.') {
         match text {
-            s if s.starts_with("0x") || s.starts_with("-0x") => EZNumberFormat::Hexadecimal(s),
-            s if s.starts_with("0b") || s.starts_with("-0b") => EZNumberFormat::Binary(s),
-            s => EZNumberFormat::Decimal(s),
+            s if s.starts_with("0x") || s.starts_with("-0x") => EZNumberFormat::HexadecimalFloat(s),
+            s if s.starts_with("0b") || s.starts_with("-0b") => EZNumberFormat::BinaryFloat(s),
+            s => EZNumberFormat::DecimalFloat(s),
         }
-    }else{
+    } else {
         match text {
             s if s.starts_with("0x") || s.starts_with("-0x") => EZNumberFormat::Hexadecimal(s),
             s if s.starts_with("0b") || s.starts_with("-0b") => EZNumberFormat::Binary(s),
@@ -72,11 +73,21 @@ pub fn get_number_type(text: String) -> EZNumberFormat {
 
 pub fn text_to_number(token: String) -> Result<EZNumber, EzasmError> {
     match get_number_type(token) {
-        EZNumberFormat::Hexadecimal(s) => i64::from_str_radix(s.replace("0x", "").as_str(), 16).map_err(EzasmError::from).map(EZNumber::from),
-        EZNumberFormat::Binary(s) => i64::from_str_radix(s.replace("0b", "").as_str(), 2).map_err(EzasmError::from).map(EZNumber::from),
-        EZNumberFormat::Decimal(s) => i64::from_str_radix(s.as_str(), 10).map_err(EzasmError::from).map(EZNumber::from),
-        EZNumberFormat::HexadecimalFloat(s) => parse_float_string(&s.replace("0x", ""), 16u8).map(EZNumber::from),
-        EZNumberFormat::BinaryFloat(s) => parse_float_string(&s.replace("0b", ""), 2u8).map(EZNumber::from),
+        EZNumberFormat::Hexadecimal(s) => i64::from_str_radix(s.replace("0x", "").as_str(), 16)
+            .map_err(EzasmError::from)
+            .map(EZNumber::from),
+        EZNumberFormat::Binary(s) => i64::from_str_radix(s.replace("0b", "").as_str(), 2)
+            .map_err(EzasmError::from)
+            .map(EZNumber::from),
+        EZNumberFormat::Decimal(s) => i64::from_str_radix(s.as_str(), 10)
+            .map_err(EzasmError::from)
+            .map(EZNumber::from),
+        EZNumberFormat::HexadecimalFloat(s) => {
+            parse_float_string(&s.replace("0x", ""), 16u8).map(EZNumber::from)
+        }
+        EZNumberFormat::BinaryFloat(s) => {
+            parse_float_string(&s.replace("0b", ""), 2u8).map(EZNumber::from)
+        }
         EZNumberFormat::DecimalFloat(s) => {
             let k = s.parse::<f64>();
             match k {
@@ -172,30 +183,28 @@ pub fn get_character_immediate(token: &String) -> Result<char, EzasmError> {
     if token.len() == 3 {
         //unwrap should never fail do to length check
         return Ok(token.chars().nth(1).unwrap());
-    }else if token.len() == 4{
+    } else if token.len() == 4 {
         //TODO consider reworking this part of the program as it is not at feature parity with main
         let mut temp = token.clone();
         temp.pop();
-        if token.chars().nth(1).unwrap() != '\\'{
+        if token.chars().nth(1).unwrap() != '\\' {
             return Err(EzasmError::ParserError);
         }
         match temp.pop() {
             None => Err(EzasmError::ParserError),
-            Some(c) => {
-                match c {
-                    't' => Ok('\t'),
-                    'n' => Ok('\n'),
-                    'r' => Ok('\r'),
-                    '\'' => Ok('\''),
-                    '"' => Ok('\"'),
-                    '\\' => Ok('\\'),
-                    _ => Err(EzasmError::ParserError)
-                }
-            }
+            Some(c) => match c {
+                't' => Ok('\t'),
+                'n' => Ok('\n'),
+                'r' => Ok('\r'),
+                '\'' => Ok('\''),
+                '"' => Ok('\"'),
+                '\\' => Ok('\\'),
+                _ => Err(EzasmError::ParserError),
+            },
         }
-    }else if token.len() < 3 {
-        return Err(EzasmError::ParserError)
-    }else{
+    } else if token.len() < 3 {
+        return Err(EzasmError::ParserError);
+    } else {
         Err(EzasmError::ParserError)
     }
 }
@@ -204,12 +213,10 @@ pub fn parse_line(line: &String, line_number: &i32) -> Option<Result<Line, Ezasm
     let tokens = tokenize_line(line);
 
     if tokens.len() == 0 {
-        return None
+        return None;
     }
-    
+
     let args = &tokens[1..];
-
-
 
     Some(Ok(Line::Label("".to_string())))
 }
@@ -232,21 +239,21 @@ pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
             Some('\\') => {
                 last_character = Some(current);
                 continue;
-            },
-            _ => {},
+            }
+            _ => {}
         }
-        if current == '\\'{
-                match next {
-                    't' => result.push('\t'),
-                    'n' => result.push('\n'),
-                    'r' => result.push('\r'),
-                    '\'' => result.push('\''),
-                    '"' => result.push('"'),
-                    '\\' => result.push('\\'),
-                    _ => return Err(EzasmError::ParserError),
-                }
-                last_character = Some('\\');
-        }else{
+        if current == '\\' {
+            match next {
+                't' => result.push('\t'),
+                'n' => result.push('\n'),
+                'r' => result.push('\r'),
+                '\'' => result.push('\''),
+                '"' => result.push('"'),
+                '\\' => result.push('\\'),
+                _ => return Err(EzasmError::ParserError),
+            }
+            last_character = Some('\\');
+        } else {
             result.push(current);
             last_character = Some(current);
         }
@@ -259,16 +266,16 @@ pub fn is_instruction(token: &String) -> bool {
     //TODO implement
 }
 
-// Regex matching sucks, the way it was done in the original sucks way more though 
-pub fn is_numeric(token: &String) -> bool{
+// Regex matching sucks, the way it was done in the original sucks way more though
+pub fn is_numeric(token: &String) -> bool {
     let binary_pattern = Regex::new("0b[10]+\\.?[01]*").unwrap();
     let hex_pattern = Regex::new("0x[\\d|a-f]+\\.?[\\d|a-f]*").unwrap();
     let decimal_pattern = Regex::new("[\\d]+\\.?[\\d]*").unwrap();
     let lower = token.to_lowercase();
-    binary_pattern.is_match(lower.as_str()) || hex_pattern.is_match(lower.as_str()) || decimal_pattern.is_match(lower.as_str())
+    binary_pattern.is_match(lower.as_str())
+        || hex_pattern.is_match(lower.as_str())
+        || decimal_pattern.is_match(lower.as_str())
 }
-
-
 
 pub fn tokenize_line(text: &String) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
@@ -310,4 +317,3 @@ pub fn tokenize_line(text: &String) -> Vec<String> {
 
     tokens
 }
-

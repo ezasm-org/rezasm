@@ -1,22 +1,14 @@
+use bimap::BiMap;
 use std::collections::HashMap;
 use std::str::FromStr;
 
 const REGISTERS_COUNT: usize = 54;
 
 lazy_static! {
-    pub static ref REGISTER_BY_STRING: HashMap<String, usize> = {
-        let mut temp_map: HashMap<String, usize> = HashMap::new();
-
+    pub static ref REGISTERS_MAP: BiMap<String, usize> = {
+        let mut temp_map: BiMap<String, usize> = BiMap::new();
         for (i, reg) in ALL_REGISTERS.iter().enumerate() {
             temp_map.insert(reg.to_string(), i);
-        }
-        temp_map
-    };
-    pub static ref REGISTER_BY_NUMBER: HashMap<usize, String> = {
-        let mut temp_map: HashMap<usize, String> = HashMap::new();
-
-        for (i, reg) in ALL_REGISTERS.iter().enumerate() {
-            temp_map.insert(i, reg.to_string());
         }
         temp_map
     };
@@ -99,7 +91,7 @@ pub const ALL_REGISTERS: [&str; 54] = [
     T1, T2, T3, T4, T5, T6, T7, T8, T9, FS0, FS1, FS2, FS3, FS4, FS5, FS6, FS7, FS8, FS9, FT0, FT1,
     FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI,
 ]; // Is this the right order? I don't know
-//TODO above
+   //TODO above
 
 pub fn is_valid_register(register: &String) -> bool {
     if register.len() < 1 {
@@ -115,5 +107,5 @@ pub fn is_valid_register(register: &String) -> bool {
         Ok(x) => x,
         Err(_) => REGISTERS_COUNT + 1,
     };
-    REGISTER_BY_STRING.contains_key(&temp) || REGISTER_BY_NUMBER.contains_key(&number)
+    REGISTERS_MAP.contains_left(&temp) || REGISTERS_MAP.contains_right(&number)
 }
