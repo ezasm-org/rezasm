@@ -36,8 +36,8 @@ impl Line {
                 }
             } else if is_register(&arg) {
                 args_out.push(Token::Register(arg));
-            } else if is_label(&arg) {
-                args_out.push(Token::Label(arg));
+            } else if looks_like_label_reference(&arg) {
+                args_out.push(Token::LabelReference(arg));
             } else {
                 return Err(EzasmError::ParserError);
             }

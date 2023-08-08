@@ -33,14 +33,12 @@ impl From<f64> for EZNumber {
 
 #[derive(Debug)]
 pub enum Token {
-    Instruction(String),
     NumericalImmediate(EZNumber),
     CharacterImmediate(char),
     StringImmediate(String),
     Register(String),
     Dereference(String),
     LabelReference(String),
-    Label(String),
 }
 
 pub fn is_alphanumeric_underscore(c: &char) -> bool {

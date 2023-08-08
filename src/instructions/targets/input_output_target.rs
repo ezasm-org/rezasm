@@ -53,11 +53,15 @@ impl InputOutputTarget {
         }
     }
 
-    pub fn new_dereference(&self, simulator: Simulator, register: &String, offset: i64) -> Result<InputOutputTarget, EzasmError> {
+    pub fn new_dereference(register: &String) -> Result<InputOutputTarget, EzasmError> {
+        registry::get_register_number(register).map(|r| InputOutputTarget::DereferenceInputOutput(r, 0))
+    }
+
+    pub fn new_dereference_offset(register: &String, offset: i64) -> Result<InputOutputTarget, EzasmError> {
         registry::get_register_number(register).map(|r| InputOutputTarget::DereferenceInputOutput(r, offset))
     }
 
-    pub fn new_register(&self, simulator: Simulator, register: &String) -> Result<InputOutputTarget, EzasmError> {
+    pub fn new_register(register: &String) -> Result<InputOutputTarget, EzasmError> {
         registry::get_register_number(register).map(|r| InputOutputTarget::RegisterInputOutput(r))
     }
 }

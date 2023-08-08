@@ -16,15 +16,15 @@ pub enum InputTarget {
 }
 
 impl InputTarget {
-    fn new_immediate(data: RawData) -> InputTarget {
+    pub fn new_immediate(data: RawData) -> InputTarget {
         Self::ImmediateInput(data)
     }
     
-    fn new_label_reference(data: &String) -> InputTarget {
+    pub fn new_label_reference(data: &String) -> InputTarget {
         Self::LabelReferenceInput(data.clone())
     }
 
-    fn new_string(data: &String) -> InputTarget {
+    pub fn new_string(data: &String) -> InputTarget {
         Self::StringInput(data.clone())
     }
 }
