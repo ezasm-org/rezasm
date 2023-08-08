@@ -1,38 +1,42 @@
-use crate::{instructions::targets::Target, util::raw_data::{self, RawData}, simulator::memory::WordSize};
+use crate::{instructions::targets::Target, util::raw_data::{self, RawData}};
+use crate::error::EzasmError;
+use crate::simulation::simulator::Simulator;
+use crate::util::word_size::WordSize;
 
-pub trait InputTarget: Target {
-    fn get(&self) -> &RawData;
+pub trait Input: Target {
+    fn get(&self, simulator: Simulator) -> Result<RawData, EzasmError>;
 }
 
-impl<T: InputTarget> Target for T {}
+impl<T: Input> Target for T {}
 
-pub enum InputTargets {
+pub enum InputTarget {
     ImmediateInput(RawData),
     LabelReferenceInput(String),
     StringInput(String),
 }
 
-impl InputTargets {
-    fn new_immediate(data: RawData) -> InputTargets {
+impl InputTarget {
+    fn new_immediate(data: RawData) -> InputTarget {
         Self::ImmediateInput(data)
     }
     
-    fn new_label_reference(data: &String) -> InputTargets {
+    fn new_label_reference(data: &String) -> InputTarget {
         Self::LabelReferenceInput(data.clone())
     }
 
-    fn new_string(data: &String) -> InputTargets {
+    fn new_string(data: &String) -> InputTarget {
         Self::StringInput(data.clone())
     }
 }
 
-impl InputTarget for InputTargets {
-    fn get(&self) -> &RawData {
-        //TODO implement proper getters for the string variants
+impl Input for InputTarget {
+    fn get(&self, simulator: Simulator) -> Result<RawData, EzasmError> {
         match self {
-            InputTargets::ImmediateInput(v) => v,
-            InputTargets::LabelReferenceInput(s) => &RawData::empty_data(&WordSize::Four),
-            InputTargets::StringInput(s) => &RawData::empty_data(&WordSize::Four),
+            InputTarget::ImmediateInput(x) => Ok(x.clone()),
+            InputTarget::LabelReferenceInput(s) => simulator.get_label_line_number(s)
+                                                                .map(|x| {RawData::from_int(x.clone(), simulator.get_word_size())}),
+            InputTarget::StringInput(s) => simulator.get_memory().get_string_immediate_address(s)
+                                                                         .map(|x| {x.clone()}),
         }
     }
 }

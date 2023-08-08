@@ -8,6 +8,8 @@ pub enum EzasmError {
     ReadOutOfBoundsError(usize),
     WriteOutOfBoundsError(usize),
     WriteToReadOnlyError(usize),
+    InvalidProgramCounterError(i64),
+    NonExistantLabelError(String),
 }
 
 impl From<ParseFloatError> for EzasmError {

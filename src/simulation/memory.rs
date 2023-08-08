@@ -1,39 +1,13 @@
 use crate::error::EzasmError;
-use crate::simulator::memory::WordSize::{Eight, Error, Four};
+use crate::simulation::memory::WordSize::{Eight, Error, Four};
 use crate::util::raw_data::RawData;
 use std::collections::HashMap;
+use crate::util::word_size::{DEFAULT_WORD_SIZE, WordSize};
 
 pub const DEFAULT_MEMORY_WORDS: usize = 0x20_0000;
 
 const DEFAULT_OFFSET: usize = 0x1_0000;
 const DEFAULT_STRING_OFFSET: usize = 0x1_0000;
-
-pub const DEFAULT_WORD_SIZE: WordSize = WordSize::Four;
-
-#[derive(Debug, Copy, Clone)]
-pub enum WordSize {
-    Four,
-    Eight,
-    Error,
-}
-
-impl WordSize {
-    pub fn value(&self) -> usize {
-        match &self {
-            Four => 4,
-            Eight => 8,
-            Error => 0,
-        }
-    }
-
-    pub fn from(size: usize) -> WordSize {
-        match size {
-            4 => Four,
-            8 => Eight,
-            _ => Error,
-        }
-    }
-}
 
 #[derive(Debug)]
 pub struct Memory {
@@ -52,14 +26,14 @@ pub struct Memory {
 
 impl Memory {
     pub fn new() -> Memory {
-        Memory::new_sized(&DEFAULT_WORD_SIZE)
+        Memory::new_sized(&DEFAULT_WORD_SIZE, DEFAULT_MEMORY_WORDS)
     }
 
-    pub fn new_sized(size: &WordSize) -> Memory {
-        let word_size = size.clone();
+    pub fn new_sized(word_size: &WordSize, memory_size: usize) -> Memory {
+        let word_size = word_size.clone();
         let offset_bytes = word_size.value() * (DEFAULT_OFFSET + DEFAULT_STRING_OFFSET);
         let disallowed_bytes = word_size.value() * DEFAULT_OFFSET;
-        let memory_size = offset_bytes + DEFAULT_MEMORY_WORDS * word_size.value();
+        let memory_size = offset_bytes + memory_size * word_size.value();
 
         Memory {
             word_size,

@@ -1,8 +1,9 @@
-use crate::simulator::memory::WordSize;
-use crate::simulator::register::Register;
+use crate::util::word_size::WordSize;
+use crate::simulation::register::Register;
 use crate::util::raw_data::RawData;
 use bimap::BiMap;
 use std::collections::HashMap;
+use std::ops::Index;
 use std::str::FromStr;
 
 const REGISTERS_COUNT: usize = 54;
@@ -136,13 +137,31 @@ impl Registry {
         }
     }
 
-    pub fn get_register_by_number(&mut self, register: usize) -> &mut Register {
+    pub fn get_register_by_number(&self, register: usize) -> &Register {
+        assert!(register < REGISTERS_COUNT);
+        &self.registers[register]
+    }
+
+    pub fn get_register_by_number_mut(&mut self, register: usize) -> &mut Register {
         assert!(register < REGISTERS_COUNT);
         &mut self.registers[register]
     }
 
-    pub fn get_register(&mut self, register: &String) -> &mut Register {
-        assert!(is_valid_register(register));
+    pub fn get_register(&self, register: &String) -> &Register {
+        assert!(is_valid_register(register)); //TODO what
         self.get_register_by_number(*REGISTERS_MAP.get_by_left(register).unwrap())
+    }
+
+    pub fn get_register_mut(&mut self, register: &String) -> &mut Register {
+        assert!(is_valid_register(register)); //TODO what
+        self.get_register_by_number_mut(*REGISTERS_MAP.get_by_left(register).unwrap())
+    }
+
+    pub fn get_pc(&self) -> &Register {
+        self.get_register_by_number(3)
+    }
+
+    pub fn get_pc_mut(&mut self) -> &mut Register {
+        self.get_register_by_number_mut(3)
     }
 }

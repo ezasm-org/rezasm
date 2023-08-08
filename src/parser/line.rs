@@ -44,4 +44,20 @@ impl Line {
         }
         Ok(Line::Label("".to_string()))
     }
+
+    pub fn get_string_immediates(&self) -> Vec<&String> {
+        match self {
+            Line::Instruction(_, args) => {
+                let mut string_immediates = Vec::new();
+                for arg in args {
+                    match arg {
+                        Token::StringImmediate(s) => string_immediates.push(s),
+                        _ => {},
+                    }
+                }
+                string_immediates
+            },
+            _ => Vec::new(),
+        }
+    }
 }

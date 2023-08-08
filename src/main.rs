@@ -9,18 +9,20 @@ use crate::parser::lexer::{
     self, get_character_immediate, get_number_type, is_label, is_register, parse_float_string,
     text_to_number, tokenize_line,
 };
-use crate::simulator::memory;
-use crate::simulator::memory::{Memory, WordSize};
-use crate::simulator::registry;
-use crate::simulator::registry::Registry;
+use crate::simulation::memory;
+use crate::simulation::memory::{Memory};
+use crate::simulation::registry;
+use crate::simulation::registry::Registry;
 use crate::util::raw_data::RawData;
 use std::f64::NAN;
+use crate::util::word_size::WordSize;
 
 mod error;
 mod instructions;
 mod parser;
-mod simulator;
+mod simulation;
 mod util;
+
 
 fn main() {
     println!("{:?}", tokenize_line(&String::from("add $t0 1 2 # hello there")));
@@ -37,7 +39,7 @@ fn main() {
     ); // Should be 100
 
     let mut registry: Registry = Registry::new(&word_size);
-    registry.get_register(&String::from("T0")).set_data(RawData::from_int(255, &word_size));
+    registry.get_register_mut(&String::from("T0")).set_data(RawData::from_int(255, &word_size));
     println!("{:?}", registry.get_register(&String::from("T0")).get_data().int_value()); // Should be 255
 
     println!("{:?}", text_to_number(String::from("0x0010.8000")).unwrap()); // Should be Float(16.5)

@@ -1,5 +1,5 @@
 use crate::error::EzasmError;
-use crate::simulator::memory::WordSize;
+use crate::util::word_size::WordSize;
 use bytebuffer::ByteBuffer;
 use std::vec::IntoIter;
 
@@ -128,6 +128,14 @@ impl Into<f64> for RawData {
             WordSize::Four => buffer.read_f32().unwrap() as f64,
             WordSize::Eight => buffer.read_f64().unwrap(),
             WordSize::Error => 0f64,
+        }
+    }
+}
+
+impl Clone for RawData {
+    fn clone(&self) -> Self {
+        RawData {
+            data: self.data.clone()
         }
     }
 }
