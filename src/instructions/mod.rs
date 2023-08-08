@@ -1,1 +1,1 @@
-mod targets;
+pub mod targets;

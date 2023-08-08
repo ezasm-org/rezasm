@@ -14,8 +14,13 @@ use crate::simulation::memory::{Memory};
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
 use crate::util::raw_data::RawData;
-use std::f64::NAN;
 use crate::util::word_size::WordSize;
+use crate::instructions::targets::*;
+use crate::instructions::targets::input_output_target::{InputOutput, InputOutputTarget};
+use crate::instructions::targets::input_target::{Input, InputTarget};
+use crate::instructions::targets::output_target::Output;
+use crate::simulation::register::Register;
+use crate::simulation::simulator::Simulator;
 
 mod error;
 mod instructions;
@@ -39,11 +44,17 @@ fn main() {
     ); // Should be 100
 
     let mut registry: Registry = Registry::new(&word_size);
-    registry.get_register_mut(&String::from("T0")).set_data(RawData::from_int(255, &word_size));
-    println!("{:?}", registry.get_register(&String::from("T0")).get_data().int_value()); // Should be 255
+    registry.get_register_mut(&String::from("T0")).unwrap().set_data(RawData::from_int(255, &word_size));
+    println!("{:?}", registry.get_register(&String::from("T0")).unwrap().get_data().int_value()); // Should be 255
 
     println!("{:?}", text_to_number(String::from("0x0010.8000")).unwrap()); // Should be Float(16.5)
 
     let k = RawData::from(0.1f64);
     println!("{}", <RawData as Into<f64>>::into(k));
+
+    let mut sim: Simulator = Simulator::new();
+
+    let mut z: Box<dyn InputOutput> = Box::new(InputOutputTarget::RegisterInputOutput(0usize));
+    z.set(&mut sim, RawData::from(123.5f32)).unwrap();
+    println!("{:?}", z.get(&sim).unwrap().float_value());
 }

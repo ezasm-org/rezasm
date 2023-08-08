@@ -4,7 +4,7 @@ use crate::simulation::simulator::Simulator;
 use crate::util::word_size::WordSize;
 
 pub trait Input: Target {
-    fn get(&self, simulator: Simulator) -> Result<RawData, EzasmError>;
+    fn get(&self, simulator: &Simulator) -> Result<RawData, EzasmError>;
 }
 
 impl<T: Input> Target for T {}
@@ -30,7 +30,7 @@ impl InputTarget {
 }
 
 impl Input for InputTarget {
-    fn get(&self, simulator: Simulator) -> Result<RawData, EzasmError> {
+    fn get(&self, simulator: &Simulator) -> Result<RawData, EzasmError> {
         match self {
             InputTarget::ImmediateInput(x) => Ok(x.clone()),
             InputTarget::LabelReferenceInput(s) => simulator.get_label_line_number(s)

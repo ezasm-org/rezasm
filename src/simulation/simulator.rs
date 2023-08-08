@@ -37,7 +37,7 @@ impl Simulator {
 
     fn initialize(&mut self) {
         self.registry
-            .get_register_mut(&String::from(registry::SP))
+            .get_register_mut(&String::from(registry::SP)).unwrap()
             .set_data(RawData::from_int(self.memory.initial_stack_pointer() as i64, &self.word_size));
     }
 
@@ -91,6 +91,18 @@ impl Simulator {
 
     pub fn get_registers(&self) -> &Registry {
         &self.registry
+    }
+
+    pub fn get_word_size_mut(&mut self) -> &mut WordSize {
+        &mut self.word_size
+    }
+
+    pub fn get_memory_mut(&mut self) -> &mut Memory {
+        &mut self.memory
+    }
+
+    pub fn get_registers_mut(&mut self) -> &mut Registry {
+        &mut self.registry
     }
 
     pub fn end_pc(&self) -> usize {

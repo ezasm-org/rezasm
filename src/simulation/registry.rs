@@ -5,6 +5,7 @@ use bimap::BiMap;
 use std::collections::HashMap;
 use std::ops::Index;
 use std::str::FromStr;
+use crate::error::EzasmError;
 
 const REGISTERS_COUNT: usize = 54;
 
@@ -96,6 +97,10 @@ pub const ALL_REGISTERS: [&str; REGISTERS_COUNT] = [
     FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI,
 ];
 
+pub fn get_register_number(register: &String) -> Result<usize, EzasmError> {
+    ALL_REGISTERS.iter().position(|r| {r == &register.as_str()}).ok_or(EzasmError::SimualtorError) //TODO Register specific error name
+}
+
 pub fn is_valid_register(register: &String) -> bool {
     if register.len() < 1 {
         return false;
@@ -137,31 +142,35 @@ impl Registry {
         }
     }
 
-    pub fn get_register_by_number(&self, register: usize) -> &Register {
-        assert!(register < REGISTERS_COUNT);
-        &self.registers[register]
+    pub fn get_register_by_number(&self, register: usize) -> Result<&Register, EzasmError> {
+        if register >= REGISTERS_COUNT {
+            Err(EzasmError::SimualtorError) // TODO name this
+        } else {
+            Ok(&self.registers[register])
+        }
     }
 
-    pub fn get_register_by_number_mut(&mut self, register: usize) -> &mut Register {
-        assert!(register < REGISTERS_COUNT);
-        &mut self.registers[register]
+    pub fn get_register_by_number_mut(&mut self, register: usize) -> Result<&mut Register, EzasmError> {
+        if register >= REGISTERS_COUNT {
+            Err(EzasmError::SimualtorError) // TODO name this
+        } else {
+            Ok(&mut self.registers[register])
+        }
     }
 
-    pub fn get_register(&self, register: &String) -> &Register {
-        assert!(is_valid_register(register)); //TODO what
+    pub fn get_register(&self, register: &String) -> Result<&Register, EzasmError> {
         self.get_register_by_number(*REGISTERS_MAP.get_by_left(register).unwrap())
     }
 
-    pub fn get_register_mut(&mut self, register: &String) -> &mut Register {
-        assert!(is_valid_register(register)); //TODO what
+    pub fn get_register_mut(&mut self, register: &String) -> Result<&mut Register, EzasmError> {
         self.get_register_by_number_mut(*REGISTERS_MAP.get_by_left(register).unwrap())
     }
 
     pub fn get_pc(&self) -> &Register {
-        self.get_register_by_number(3)
+        self.get_register_by_number(3).unwrap()
     }
 
     pub fn get_pc_mut(&mut self) -> &mut Register {
-        self.get_register_by_number_mut(3)
+        self.get_register_by_number_mut(3).unwrap()
     }
 }
