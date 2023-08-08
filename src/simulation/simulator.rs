@@ -46,7 +46,12 @@ impl Simulator {
     }
 
     fn get_target(&self, token: &Token) -> Result<Box<dyn Target>, EzasmError>{
-        match token {
+        Ok(Box::new(match token {
+            Token::LabelReference(r) => InputTarget::new_label_reference(r),
+            Token::NumericalImmediate(EZNumber::Float(f)) => InputTarget::new_immediate(RawData::from_float(f.clone(), &self.word_size)),
+            Token::NumericalImmediate(EZNumber::Integer(i)) => InputTarget::new_immediate(RawData::from_int(i.clone(), &self.word_size)),
+            Token::StringImmediate(s) => InputTarget::new_string(s),
+            Token::CharacterImmediate(c) => InputTarget::new_immediate(RawData::from_int(c.clone() as i64, &self.word_size)),
             Token::Register(r) =>
                 return Ok(Box::new(match InputOutputTarget::new_register(r){
                     Ok(t) => t,
@@ -57,15 +62,6 @@ impl Simulator {
                     Ok(t) => t,
                     Err(e) => return Err(e),
                 })),
-            _ => {},
-        };
-        Ok(Box::new(match token {
-            Token::LabelReference(r) => InputTarget::new_label_reference(r),
-            Token::NumericalImmediate(EZNumber::Float(f)) => InputTarget::new_immediate(RawData::from_float(f.clone(), &self.word_size)),
-            Token::NumericalImmediate(EZNumber::Integer(i)) => InputTarget::new_immediate(RawData::from_int(i.clone(), &self.word_size)),
-            Token::StringImmediate(s) => InputTarget::new_string(s),
-            Token::CharacterImmediate(c) => InputTarget::new_immediate(RawData::from_int(c.clone() as i64, &self.word_size)),
-            _ => return Err(EzasmError::SimualtorError) //TODO ought to be internal error
         }))
     }
 
