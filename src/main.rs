@@ -44,8 +44,8 @@ fn main() {
     ); // Should be 100
 
     let mut registry: Registry = Registry::new(&word_size);
-    registry.get_register_mut(&String::from("T0")).unwrap().set_data(RawData::from_int(255, &word_size));
-    println!("{:?}", registry.get_register(&String::from("T0")).unwrap().get_data().int_value()); // Should be 255
+    registry.get_register_mut(&String::from(registry::T0)).unwrap().set_data(RawData::from_int(255, &word_size));
+    println!("{:?}", registry.get_register(&String::from(registry::T0)).unwrap().get_data().int_value()); // Should be 255
 
     println!("{:?}", text_to_number(String::from("0x0010.8000")).unwrap()); // Should be Float(16.5)
 
