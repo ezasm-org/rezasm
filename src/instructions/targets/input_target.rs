@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use crate::{instructions::targets::Target, util::raw_data::{self, RawData}};
 use crate::error::EzasmError;
 use crate::simulation::simulator::Simulator;
@@ -7,7 +9,11 @@ pub trait Input: Target {
     fn get(&self, simulator: &Simulator) -> Result<RawData, EzasmError>;
 }
 
-impl<T: Input> Target for T {}
+impl<T: Input + 'static> Target for T {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
 pub enum InputTarget {
     ImmediateInput(RawData),
@@ -37,6 +43,16 @@ impl Input for InputTarget {
                                                                 .map(|x| {RawData::from_int(x.clone(), simulator.get_word_size())}),
             InputTarget::StringInput(s) => simulator.get_memory().get_string_immediate_address(s)
                                                                          .map(|x| {x.clone()}),
+        }
+    }
+}
+
+impl Clone for InputTarget {
+    fn clone(&self) -> Self {
+        match self {
+            Self::ImmediateInput(d) => Self::ImmediateInput(d.clone()),
+            Self::LabelReferenceInput(s) => Self::LabelReferenceInput(s.clone()),
+            Self::StringInput(s) => Self::StringInput(s.clone()),
         }
     }
 }

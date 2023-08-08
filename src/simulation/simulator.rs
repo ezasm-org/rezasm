@@ -65,6 +65,13 @@ impl Simulator {
         }))
     }
 
+    pub fn downcast<T: Clone + 'static>(&self, target: Box<dyn Target>) -> Result<T, EzasmError> {
+        (*target).as_any()
+                                .downcast_ref::<T>()
+                                .ok_or(EzasmError::SimualtorError)
+                                .map(|k| {k.clone()})
+    }
+
     pub fn reset_data(&mut self) {
         self.memory.reset();
         self.registry.reset();

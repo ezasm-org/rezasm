@@ -54,7 +54,8 @@ fn main() {
 
     let mut sim: Simulator = Simulator::new();
 
-    let mut z: Box<dyn InputOutput> = Box::new(InputOutputTarget::RegisterInputOutput(0usize));
-    z.set(&mut sim, RawData::from(123.5f32)).unwrap();
-    println!("{:?}", z.get(&sim).unwrap().float_value());
+    let z: Box<dyn Target> = Box::new(InputOutputTarget::RegisterInputOutput(0usize));
+    let mut h = sim.downcast::<InputOutputTarget>(z).unwrap();
+    h.set(&mut sim, RawData::from(123.5f32)).unwrap();
+    println!("{:?}", h.get(&sim).unwrap().float_value());
 }

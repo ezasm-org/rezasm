@@ -15,6 +15,15 @@ pub enum InputOutputTarget {
     RegisterInputOutput(usize),
 }
 
+impl Clone for InputOutputTarget {
+   fn clone(&self) -> Self {
+       match self{
+           Self::DereferenceInputOutput(i, j) => Self::DereferenceInputOutput(i.clone(), j.clone()),
+           Self::RegisterInputOutput(i) => Self::RegisterInputOutput(i.clone()),
+       }
+   }
+}
+
 impl InputOutput for InputOutputTarget {}
 
 impl Input for InputOutputTarget {
