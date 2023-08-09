@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use crate::error::EzasmError;
+use crate::instructions::instruction::ArgumentType;
 use crate::instructions::targets::Target;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
@@ -45,27 +46,27 @@ impl Simulator {
             .set_data(RawData::from_int(self.memory.initial_stack_pointer() as i64, &self.word_size));
     }
 
-    fn get_target(&self, token: &Token) -> Result<Box<dyn Target>, EzasmError>{
-        Ok(Box::new(match token {
+    pub fn get_target(&self, token: &Token) -> Result<ArgumentType, EzasmError> {
+        Ok(ArgumentType::Input(match token {
             Token::LabelReference(r) => InputTarget::new_label_reference(r),
             Token::NumericalImmediate(EZNumber::Float(f)) => InputTarget::new_immediate(RawData::from_float(f.clone(), &self.word_size)),
             Token::NumericalImmediate(EZNumber::Integer(i)) => InputTarget::new_immediate(RawData::from_int(i.clone(), &self.word_size)),
             Token::StringImmediate(s) => InputTarget::new_string(s),
             Token::CharacterImmediate(c) => InputTarget::new_immediate(RawData::from_int(c.clone() as i64, &self.word_size)),
             Token::Register(r) =>
-                return Ok(Box::new(match InputOutputTarget::new_register(r){
+                return Ok(ArgumentType::InputOutput(match InputOutputTarget::new_register(r) {
                     Ok(t) => t,
                     Err(e) => return Err(e),
                 })),
             Token::Dereference(r) => 
-                return Ok(Box::new(match InputOutputTarget::new_dereference(r){
+                return Ok(ArgumentType::InputOutput(match InputOutputTarget::new_dereference(r) {
                     Ok(t) => t,
                     Err(e) => return Err(e),
                 })),
         }))
     }
 
-    pub fn downcast<T: Clone + 'static>(&self, target: Box<dyn Target>) -> Result<T, EzasmError> {
+    pub fn downcast<T: Clone + 'static>(&self, target: &Box<dyn Target>) -> Result<T, EzasmError> {
         (*target).as_any()
                                 .downcast_ref::<T>()
                                 .ok_or(EzasmError::SimualtorError)

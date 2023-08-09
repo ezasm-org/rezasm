@@ -15,6 +15,7 @@ impl<T: Input + 'static> Target for T {
     }
 }
 
+#[derive(Debug)]
 pub enum InputTarget {
     ImmediateInput(RawData),
     LabelReferenceInput(String),

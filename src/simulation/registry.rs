@@ -98,7 +98,7 @@ pub const ALL_REGISTERS: [&str; REGISTERS_COUNT] = [
 ];
 
 pub fn get_register_number(register: &String) -> Result<usize, EzasmError> {
-    ALL_REGISTERS.iter().position(|r| {r == &register.as_str()}).ok_or(EzasmError::SimualtorError) //TODO Register specific error name
+    REGISTERS_MAP.get_by_left(register[1..].to_uppercase().as_str()).map(|r| {r.clone()}).ok_or(EzasmError::SimualtorError)
 }
 
 pub fn is_valid_register(register: &String) -> bool {
@@ -163,7 +163,7 @@ impl Registry {
     }
 
     pub fn get_register_mut(&mut self, register: &String) -> Result<&mut Register, EzasmError> {
-        self.get_register_by_number_mut(*REGISTERS_MAP.get_by_left(register).unwrap())
+        self.get_register_by_number_mut(*REGISTERS_MAP.get_by_left(&register.to_uppercase()).unwrap())
     }
 
     pub fn get_pc(&self) -> &Register {

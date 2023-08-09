@@ -218,7 +218,7 @@ pub fn parse_line(line: &String, line_number: &i32) -> Option<Result<Line, Ezasm
 
     let args = &tokens[1..];
 
-    Some(Ok(Line::Label("".to_string())))
+    Some(Line::new(&tokens[0], args.to_vec()))
 }
 
 pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
@@ -268,9 +268,9 @@ pub fn is_instruction(token: &String) -> bool {
 
 // Regex matching sucks, the way it was done in the original sucks way more though
 pub fn is_numeric(token: &String) -> bool {
-    let binary_pattern = Regex::new("0b[10]+\\.?[01]*").unwrap();
-    let hex_pattern = Regex::new("0x[\\d|a-f]+\\.?[\\d|a-f]*").unwrap();
-    let decimal_pattern = Regex::new("[\\d]+\\.?[\\d]*").unwrap();
+    let binary_pattern = Regex::new("^0b[10]+\\.?[01]*$").unwrap();
+    let hex_pattern = Regex::new("^0x[\\d|a-f]+\\.?[\\d|a-f]*$").unwrap();
+    let decimal_pattern = Regex::new("^[\\d]+\\.?[\\d]*$").unwrap();
     let lower = token.to_lowercase();
     binary_pattern.is_match(lower.as_str())
         || hex_pattern.is_match(lower.as_str())
