@@ -53,11 +53,11 @@ impl Line {
                 for arg in args {
                     match arg {
                         Token::StringImmediate(s) => string_immediates.push(s),
-                        _ => {},
+                        _ => {}
                     }
                 }
                 string_immediates
-            },
+            }
             _ => Vec::new(),
         }
     }

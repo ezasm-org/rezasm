@@ -1,4 +1,3 @@
-
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 

@@ -135,7 +135,7 @@ impl Into<f64> for RawData {
 impl Clone for RawData {
     fn clone(&self) -> Self {
         RawData {
-            data: self.data.clone()
+            data: self.data.clone(),
         }
     }
 }

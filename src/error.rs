@@ -5,6 +5,7 @@ use std::num::{ParseFloatError, ParseIntError};
 pub enum EzasmError {
     ParserError,
     SimualtorError,
+    InvalidArguments,
     ReadOutOfBoundsError(usize),
     WriteOutOfBoundsError(usize),
     WriteToReadOnlyError(usize),

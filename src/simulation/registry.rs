@@ -1,11 +1,11 @@
-use crate::util::word_size::WordSize;
+use crate::error::EzasmError;
 use crate::simulation::register::Register;
 use crate::util::raw_data::RawData;
+use crate::util::word_size::WordSize;
 use bimap::BiMap;
 use std::collections::HashMap;
 use std::ops::Index;
 use std::str::FromStr;
-use crate::error::EzasmError;
 
 const REGISTERS_COUNT: usize = 54;
 
@@ -98,7 +98,10 @@ pub const ALL_REGISTERS: [&str; REGISTERS_COUNT] = [
 ];
 
 pub fn get_register_number(register: &String) -> Result<usize, EzasmError> {
-    REGISTERS_MAP.get_by_left(register[1..].to_uppercase().as_str()).map(|r| {r.clone()}).ok_or(EzasmError::SimualtorError)
+    REGISTERS_MAP
+        .get_by_left(register[1..].to_uppercase().as_str())
+        .map(|r| r.clone())
+        .ok_or(EzasmError::SimualtorError)
 }
 
 pub fn is_valid_register(register: &String) -> bool {
@@ -150,7 +153,10 @@ impl Registry {
         }
     }
 
-    pub fn get_register_by_number_mut(&mut self, register: usize) -> Result<&mut Register, EzasmError> {
+    pub fn get_register_by_number_mut(
+        &mut self,
+        register: usize,
+    ) -> Result<&mut Register, EzasmError> {
         if register >= REGISTERS_COUNT {
             Err(EzasmError::SimualtorError) // TODO name this
         } else {
@@ -163,7 +169,9 @@ impl Registry {
     }
 
     pub fn get_register_mut(&mut self, register: &String) -> Result<&mut Register, EzasmError> {
-        self.get_register_by_number_mut(*REGISTERS_MAP.get_by_left(&register.to_uppercase()).unwrap())
+        self.get_register_by_number_mut(
+            *REGISTERS_MAP.get_by_left(&register.to_uppercase()).unwrap(),
+        )
     }
 
     pub fn get_pc(&self) -> &Register {
