@@ -1,9 +1,8 @@
-use crate::error::EzasmError;
-use crate::instructions::targets::input_output_target::{InputOutput, InputOutputTarget};
+use std::any::TypeId;
+
+use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::{Input, InputTarget};
 use crate::instructions::targets::Target;
-use std::any::{Any, TypeId};
-use std::iter::zip;
 
 #[derive(Debug)]
 pub enum ArgumentType {

@@ -1,7 +1,6 @@
-use crate::parser::line::*;
 use regex::Regex;
-use std::num::ParseIntError;
 
+use crate::parser::line::*;
 use crate::{error::EzasmError, simulation::registry};
 
 pub enum EZNumberFormat {

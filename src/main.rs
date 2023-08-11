@@ -1,27 +1,18 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-#[macro_use]
 extern crate lazy_static;
 
-use crate::error::EzasmError;
 use crate::instructions::argument_type::ArgumentType;
-use crate::instructions::instruction::{test_instruction, Instruction, TInstructionFunction};
-use crate::instructions::targets::input_output_target::{InputOutput, InputOutputTarget};
-use crate::instructions::targets::input_target::{Input, InputTarget};
-use crate::instructions::targets::output_target::Output;
-use crate::instructions::targets::*;
+use crate::instructions::instruction::{test_instruction, Instruction};
 use crate::parser::lexer::{text_to_number, tokenize_line};
 use crate::parser::line::Line;
-use crate::simulation::memory;
 use crate::simulation::memory::Memory;
-use crate::simulation::register::Register;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
 use crate::simulation::simulator::Simulator;
 use crate::util::raw_data::RawData;
-use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
-use std::any::TypeId;
+use crate::util::word_size::DEFAULT_WORD_SIZE;
 
 mod error;
 mod instructions;

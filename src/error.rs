@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::num::{ParseFloatError, ParseIntError};
 
 #[derive(Debug)]

@@ -1,10 +1,7 @@
 use crate::error::EzasmError;
-use crate::instructions::targets::input_target::{Input, InputTarget};
+use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::output_target::Output;
-use crate::instructions::targets::Target;
-use crate::simulation::register::Register;
 use crate::simulation::registry;
-use crate::simulation::registry::Registry;
 use crate::simulation::simulator::Simulator;
 use crate::util::raw_data::RawData;
 

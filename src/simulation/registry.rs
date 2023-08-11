@@ -1,11 +1,12 @@
+use std::str::FromStr;
+
+use bimap::BiMap;
+use lazy_static::lazy_static;
+
 use crate::error::EzasmError;
 use crate::simulation::register::Register;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
-use bimap::BiMap;
-use std::collections::HashMap;
-use std::ops::Index;
-use std::str::FromStr;
 
 const REGISTERS_COUNT: usize = 54;
 

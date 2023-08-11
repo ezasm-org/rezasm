@@ -1,14 +1,8 @@
 use std::any::Any;
-use std::cell::RefCell;
-use std::rc::Rc;
 
 use crate::error::EzasmError;
 use crate::simulation::simulator::Simulator;
-use crate::util::word_size::WordSize;
-use crate::{
-    instructions::targets::Target,
-    util::raw_data::{self, RawData},
-};
+use crate::{instructions::targets::Target, util::raw_data::RawData};
 
 pub trait Input: Target {
     fn get(&self, simulator: &Simulator) -> Result<RawData, EzasmError>;

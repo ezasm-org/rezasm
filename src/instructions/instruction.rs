@@ -1,17 +1,13 @@
+use std::any::TypeId;
+use std::iter::zip;
+
 use crate::error::EzasmError;
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::argument_type::Downcast;
-use crate::instructions::targets::input_output_target::{InputOutput, InputOutputTarget};
+use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::{Input, InputTarget};
 use crate::instructions::targets::output_target::Output;
-use crate::instructions::targets::Target;
-use crate::parser::line::Line;
 use crate::simulation::simulator::Simulator;
-use std::any::TypeId;
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::iter::zip;
-use std::rc::Rc;
 
 pub type TInstructionFunction =
     dyn FnMut(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), EzasmError>;

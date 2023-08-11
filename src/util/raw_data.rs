@@ -1,7 +1,6 @@
-use crate::error::EzasmError;
-use crate::util::word_size::WordSize;
 use bytebuffer::ByteBuffer;
-use std::vec::IntoIter;
+
+use crate::util::word_size::WordSize;
 
 #[derive(Debug)]
 pub struct RawData {

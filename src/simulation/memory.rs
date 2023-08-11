@@ -1,8 +1,8 @@
+use std::collections::HashMap;
+
 use crate::error::EzasmError;
-use crate::simulation::memory::WordSize::{Eight, Error, Four};
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
-use std::collections::HashMap;
 
 pub const DEFAULT_MEMORY_WORDS: usize = 0x20_0000;
 
