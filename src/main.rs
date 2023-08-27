@@ -5,7 +5,7 @@ extern crate lazy_static;
 
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction::{test_instruction, Instruction};
-use crate::instructions::instruction_field::{Subclass, SubclassFactory};
+use crate::instructions::instruction_field::{Subclass, SubclassFactory, test_instruction_field_macro};
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::{EZNumber, text_to_number, tokenize_line};
@@ -30,6 +30,7 @@ fn main() {
     test_registry();
     test_instruction_macro();
     test_subclasses();
+    println!("{:?}", test_instruction_field_macro());
 }
 
 fn test_tokenize_line() {

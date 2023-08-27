@@ -1,4 +1,5 @@
 use std::any::TypeId;
+use std::fmt::{Arguments, Debug, Formatter};
 use std::iter::zip;
 
 use crate::error::EzasmError;
@@ -17,7 +18,20 @@ pub struct Instruction {
     function: Box<TInstructionFunction>,
 }
 
+impl Debug for Instruction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(std::format!("{:?}", self.types).as_str())
+    }
+}
+
 impl Instruction {
+
+    pub fn new(types: Vec<TypeId>, function: Box<TInstructionFunction>) -> Self {
+        Instruction {
+            types,
+            function
+        }
+    }
     pub fn get_types(&self) -> &Vec<TypeId> {
         &self.types
     }
@@ -30,8 +44,8 @@ impl Instruction {
 macro_rules! instruction {
     ($name:ident, |$simulator_name:ident: $simulator_type:ty, $($names:ident: $types:ty),*| -> ($return_type:ty) $func:tt) =>
     ({
-        let mut v: Vec<TypeId> = Vec::new();
-        $(v.push(TypeId::of::<&mut $types>());)*
+        let mut types_list: Vec<TypeId> = Vec::new();
+        $(types_list.push(TypeId::of::<&mut $types>());)*
         let function = |$simulator_name: $simulator_type, types: &Vec<TypeId>, arguments: &Vec<ArgumentType>| -> Result<$return_type, EzasmError> {
             if matches_argument_types(&types, &arguments) {
                 let mut counter: usize = 0;
@@ -46,14 +60,11 @@ macro_rules! instruction {
             }
         };
 
-        Instruction {
-            types: v,
-            function: Box::new(function)
-        }
+        Instruction::new(types_list, Box::new(function))
     });
 }
 
-fn matches_argument_types(target: &Vec<TypeId>, attempt: &Vec<ArgumentType>) -> bool {
+pub fn matches_argument_types(target: &Vec<TypeId>, attempt: &Vec<ArgumentType>) -> bool {
     if target.len() != attempt.len() {
         false
     } else {
