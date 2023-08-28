@@ -56,21 +56,25 @@ macro_rules! instruction_field {
         $(types_list.push(TypeId::of::<&mut $types>());)*
         $(subtypes_list.push(SubclassFactory::<$types>::subclasses());)*
 
-        let mut all_possible_lists: Vec<Vec<TypeId>> = Vec::new();
-        for (index, type_element_list) in subtypes_list.iter().enumerate() {
-            for (type_element_index, type_element) in type_element_list.iter().enumerate() {
-                // TODO make this create [[combination1], [combination2], ...]
-                // [] -> [[1]] -> [[1,2], [1, 3]] -> [[1, 2, 4], [1, 3, 4], [1, 2, 5], [1, 3, 5]]
-                match all_possible_lists.get(index) {
-                    Some(_) => {
-                        all_possible_lists.get_mut(index).unwrap().push(type_element.clone())
-                    },
-                    None => {
-                        all_possible_lists.push(vec![type_element.clone()]);
-                    }
+        let mut all_possible_lists: Vec<Vec<TypeId>> = vec![Vec::new()];
+        for type_element_list in subtypes_list.iter() {
+        let initial_lists_state = all_possible_lists.clone();
+        for (type_element_index, type_element) in type_element_list.iter().enumerate() {
+            if type_element_index > 0 {
+                // Append a copy of the initial state, each with the next type appended to them
+                for list in initial_lists_state.iter() {
+                    let mut list = list.clone();
+                    list.push(type_element.clone());
+                    all_possible_lists.push(list);
+                }
+            } else {
+                // Only happens for the first element
+                for list in all_possible_lists.iter_mut() {
+                    list.push(type_element.clone());
                 }
             }
         }
+    }
 
         let mut instruction_field_vec: Vec<Instruction> = Vec::new();
         for permutation in all_possible_lists {
