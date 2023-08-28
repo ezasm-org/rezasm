@@ -6,12 +6,11 @@ use crate::error::EzasmError;
 use crate::instructions::argument_type::ArgumentType;
 use crate::simulation::simulator::Simulator;
 
-pub type TInstructionFunction =
-    dyn FnMut(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), EzasmError>;
+pub type TInstructionFunction = fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), EzasmError>;
 
 pub struct Instruction {
     types: Vec<TypeId>,
-    function: Box<TInstructionFunction>,
+    function: TInstructionFunction,
 }
 
 impl Debug for Instruction {
@@ -22,7 +21,7 @@ impl Debug for Instruction {
 
 impl Instruction {
 
-    pub fn new(types: Vec<TypeId>, function: Box<TInstructionFunction>) -> Self {
+    pub fn new(types: Vec<TypeId>, function: TInstructionFunction) -> Self {
         Instruction {
             types,
             function
@@ -32,10 +31,8 @@ impl Instruction {
         &self.types
     }
 
-    pub fn get_function(&self) -> Box<TInstructionFunction> {
-        unsafe {
-            (((&self.function) as *const Box<TInstructionFunction>) as *mut Box<TInstructionFunction>).clone().read()
-        }
+    pub fn get_function(&self) -> &TInstructionFunction {
+        &self.function
     }
 }
 

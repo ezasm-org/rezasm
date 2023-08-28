@@ -113,7 +113,7 @@ macro_rules! instruction_field {
         use crate::instructions::targets::input_output_target::InputOutputTarget;
         use crate::instructions::targets::input_target::InputTarget;
         use crate::instructions::instruction_field::InstructionField;
-
+        use crate::simulation::simulator::Simulator;
 
         $(types_list.push(TypeId::of::<&mut $types>());)*
         $(subtypes_list.push(SubclassFactory::<$types>::subclasses());)*
@@ -140,7 +140,7 @@ macro_rules! instruction_field {
 
         let mut instruction_field_vec: Vec<Instruction> = Vec::new();
         for permutation in all_possible_lists {
-            let function = |$simulator_name: $simulator_type, types: &Vec<TypeId>, arguments: &Vec<ArgumentType>| -> Result<$return_type, EzasmError> {
+            fn $name($simulator_name: $simulator_type, types: &Vec<TypeId>, arguments: &Vec<ArgumentType>) -> Result<$return_type, EzasmError> {
                 if matches_argument_types(&types, &arguments) {
                     let mut _counter: usize = 0;
                     $(
@@ -153,8 +153,8 @@ macro_rules! instruction_field {
                 } else {
                     return Err(EzasmError::InvalidArguments)
                 }
-            };
-            instruction_field_vec.push(Instruction::new(permutation, Box::new(function)));
+            }
+            instruction_field_vec.push(Instruction::new(permutation, $name));
         }
 
         InstructionField::new(types_list, instruction_field_vec, std::stringify!($name).to_string())

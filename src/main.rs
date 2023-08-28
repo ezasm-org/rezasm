@@ -7,6 +7,7 @@ use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction_field::{InstructionField, Subclass, SubclassFactory};
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
+use crate::instructions::implementation::arithmetic_instructions;
 use crate::parser::lexer::{EZNumber, text_to_number, tokenize_line};
 use crate::parser::line::Line;
 use crate::simulation::memory::Memory;
@@ -86,11 +87,11 @@ pub fn test_subclasses() {
 }
 
 pub fn test_instruction_field_macro() {
-    let add: InstructionField = instruction_field!(add, |simulator: &mut Simulator, x: InputOutputTarget, y: InputTarget, z: InputTarget| -> (()) {
-        let k =
-            (y.get(&simulator).unwrap().int_value() + z.get(simulator).unwrap().int_value()).into();
-        let _ = x.set(simulator, k);
-    });
+    // let add: InstructionField = instruction_field!(add, |simulator: &mut Simulator, x: InputOutputTarget, y: InputTarget, z: InputTarget| -> (()) {
+    //     let k =
+    //         (y.get(&simulator).unwrap().int_value() + z.get(simulator).unwrap().int_value()).into();
+    //     let _ = x.set(simulator, k);
+    // });
 
     let mut simulator: Simulator = Simulator::new();
 
@@ -109,7 +110,7 @@ pub fn test_instruction_field_macro() {
         .map(|k| simulator.get_target(k).unwrap())
         .collect();
 
-    match add.call_instruction_function(&mut simulator, &targets) {
+    match arithmetic_instructions::add.call_instruction_function(&mut simulator, &targets) {
         Ok(_) => {
             assert_eq!(simulator.get_registers().get_register(&registry::T0.to_string()).unwrap().get_data().int_value(), 121);
             println!("Instruction Fields work")
