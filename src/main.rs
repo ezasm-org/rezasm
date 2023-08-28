@@ -4,8 +4,7 @@
 extern crate lazy_static;
 
 use crate::instructions::argument_type::ArgumentType;
-use crate::instructions::instruction::{test_instruction, Instruction};
-use crate::instructions::instruction_field::{Subclass, SubclassFactory, test_instruction_field_macro};
+use crate::instructions::instruction_field::{InstructionField, Subclass, SubclassFactory};
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::{EZNumber, text_to_number, tokenize_line};
@@ -28,9 +27,8 @@ fn main() {
     test_text_to_number();
     test_memory();
     test_registry();
-    test_instruction_macro();
     test_subclasses();
-    println!("{:?}", test_instruction_field_macro());
+    test_instruction_field_macro();
 }
 
 fn test_tokenize_line() {
@@ -79,36 +77,46 @@ fn test_registry() {
     println!("Registry works");
 }
 
-fn test_instruction_macro() {
-    let mut simulator: Simulator = Simulator::new();
-
-    let line: Line = Line::new(
-        &String::from("add"),
-        ["$T0".to_string(), "100".to_string(), "21".to_string()].to_vec(),
-    )
-    .unwrap();
-    let args = match line {
-        Line::Instruction(_, args) => args,
-        _ => Vec::new(),
-    };
-
-    let mut targets: Vec<ArgumentType> = args
-        .iter()
-        .map(|k| simulator.get_target(k).unwrap())
-        .collect();
-    let mut instruction: Instruction = test_instruction();
-    let instruction_types = instruction.get_types().clone();
-    let instruction_function = instruction.get_function();
-    match (*instruction_function)(&mut simulator, &instruction_types, &mut targets) {
-        Ok(_) => println!("Instruction macros work"),
-        Err(x) => println!("{:?}", x),
-    };
-}
-
 pub fn test_subclasses() {
     let input_subclasses = SubclassFactory::<InputTarget>::subclasses();
     let input_output_subclasses = SubclassFactory::<InputOutputTarget>::subclasses();
     let input_output_typeid = input_output_subclasses.get(0).unwrap();
     assert!(input_subclasses.contains(input_output_typeid));
     println!("Subclasses work")
+}
+
+pub fn test_instruction_field_macro() {
+    let add: InstructionField = instruction_field!(add, |simulator: &mut Simulator, x: InputOutputTarget, y: InputTarget, z: InputTarget| -> (()) {
+        let k =
+            (y.get(&simulator).unwrap().int_value() + z.get(simulator).unwrap().int_value()).into();
+        let _ = x.set(simulator, k);
+    });
+
+    let mut simulator: Simulator = Simulator::new();
+
+    let line: Line = Line::new(
+        &String::from("add"),
+        ["$T0".to_string(), "100".to_string(), "21".to_string()].to_vec(),
+    )
+        .unwrap();
+    let args = match line {
+        Line::Instruction(_, args) => args,
+        _ => Vec::new(),
+    };
+
+    let targets: Vec<ArgumentType> = args
+        .iter()
+        .map(|k| simulator.get_target(k).unwrap())
+        .collect();
+
+    match add.call_instruction_function(&mut simulator, &targets) {
+        Ok(_) => {
+            assert_eq!(simulator.get_registers().get_register(&registry::T0.to_string()).unwrap().get_data().int_value(), 121);
+            println!("Instruction Fields work")
+        },
+        Err(e) => {
+            println!("{:?}", e);
+            assert!(false);
+        }
+    }
 }

@@ -82,7 +82,7 @@ impl From<i32> for RawData {
         let mut buffer = ByteBuffer::new();
         buffer.write_i32(value);
         RawData {
-            data: buffer.into_vec(), //TODO unwrap
+            data: buffer.into_vec(),
         }
     }
 }
@@ -104,7 +104,7 @@ impl From<f64> for RawData {
         let mut buffer = ByteBuffer::new();
         buffer.write_f64(value);
         RawData {
-            data: buffer.into_vec(), //TODO unwrap
+            data: buffer.into_vec(),
         }
     }
 }
@@ -114,7 +114,7 @@ impl From<f32> for RawData {
         let mut buffer = ByteBuffer::new();
         buffer.write_f32(value);
         RawData {
-            data: buffer.into_vec(), //TODO unwrap
+            data: buffer.into_vec(),
         }
     }
 }
