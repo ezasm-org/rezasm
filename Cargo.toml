@@ -4,8 +4,13 @@ version = "0.2.0"
 edition = "2021"
 
 [dependencies]
+ezasm-core = { path = "ezasm-core", version = "0.1.0" }
+ezasm-macro = { path = "ezasm-macro", version = "0.1.0" }
+
 lazy_static = "1.4.0"
 regex = "1.8.1"
 bimap = "0.6.3"
 bytebuffer = "2.1.0"
 
+[workspace]
+members = ["ezasm-core", "ezasm-macro"]

@@ -3,25 +3,22 @@
 
 extern crate lazy_static;
 
-use crate::instructions::argument_type::ArgumentType;
-use crate::instructions::instruction_field::{InstructionField, Subclass, SubclassFactory};
-use crate::instructions::targets::input_output_target::InputOutputTarget;
-use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::implementation::arithmetic_instructions;
-use crate::parser::lexer::{EZNumber, text_to_number, tokenize_line};
-use crate::parser::line::Line;
-use crate::simulation::memory::Memory;
-use crate::simulation::registry;
-use crate::simulation::registry::Registry;
-use crate::simulation::simulator::Simulator;
-use crate::util::raw_data::RawData;
-use crate::util::word_size::DEFAULT_WORD_SIZE;
+extern crate ezasm_core;
+extern crate ezasm_macro;
 
-mod error;
-mod instructions;
-mod parser;
-mod simulation;
-mod util;
+use ezasm_core::instructions::argument_type::ArgumentType;
+use ezasm_core::instructions::instruction_field::{InstructionField, Subclass, SubclassFactory};
+use ezasm_core::instructions::targets::input_output_target::InputOutputTarget;
+use ezasm_core::instructions::targets::input_target::InputTarget;
+use ezasm_core::instructions::implementation::arithmetic_instructions;
+use ezasm_core::parser::lexer::{EZNumber, text_to_number, tokenize_line};
+use ezasm_core::parser::line::Line;
+use ezasm_core::simulation::memory::Memory;
+use ezasm_core::simulation::registry;
+use ezasm_core::simulation::registry::Registry;
+use ezasm_core::simulation::simulator::Simulator;
+use ezasm_core::util::raw_data::RawData;
+use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 
 fn main() {
     test_tokenize_line();
@@ -87,12 +84,6 @@ pub fn test_subclasses() {
 }
 
 pub fn test_instruction_field_macro() {
-    // let add: InstructionField = instruction_field!(add, |simulator: &mut Simulator, x: InputOutputTarget, y: InputTarget, z: InputTarget| -> (()) {
-    //     let k =
-    //         (y.get(&simulator).unwrap().int_value() + z.get(simulator).unwrap().int_value()).into();
-    //     let _ = x.set(simulator, k);
-    // });
-
     let mut simulator: Simulator = Simulator::new();
 
     let line: Line = Line::new(

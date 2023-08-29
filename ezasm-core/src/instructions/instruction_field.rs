@@ -115,7 +115,7 @@ macro_rules! instruction_field {
         use crate::instructions::instruction_field::InstructionField;
         use crate::simulation::simulator::Simulator;
 
-        $(types_list.push(TypeId::of::<&mut $types>());)*
+        $(types_list.push(TypeId::of::<$types>());)*
         $(subtypes_list.push(SubclassFactory::<$types>::subclasses());)*
 
         let mut all_possible_lists: Vec<Vec<TypeId>> = vec![Vec::new()];

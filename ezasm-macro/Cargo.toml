@@ -1,0 +1,14 @@
+[package]
+name = "ezasm-macro"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+proc-macro = true
+path = "src/lib.rs"
+
+[dependencies]
+ezasm-core = { path = "../ezasm-core", version = "*" }
+
+quote = "1.0.33"
+syn = { version = "2.0.29", features = ["full", "extra-traits"] }

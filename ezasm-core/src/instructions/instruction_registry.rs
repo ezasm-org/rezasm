@@ -1,13 +1,21 @@
 use std::collections::HashMap;
+use lazy_static::lazy_static;
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction::Instruction;
 use crate::instructions::instruction_field::InstructionField;
 
-struct InstructionRegistry {
+pub struct InstructionRegistry {
     instructions: HashMap<String, Vec<InstructionField>>,
 }
 
 impl InstructionRegistry {
+
+    pub fn new() -> InstructionRegistry {
+        InstructionRegistry {
+            instructions: HashMap::new(),
+        }
+    }
+
     pub fn register_instruction(&mut self, instruction: InstructionField) {
         match self.instructions.get_mut(instruction.name()) {
             None => self.instructions.insert(instruction.name().to_string(), vec![instruction]),
@@ -32,4 +40,8 @@ impl InstructionRegistry {
             }
         }
     }
+}
+
+lazy_static! {
+    pub static ref INSTRUCTIONS: InstructionRegistry = InstructionRegistry::new();
 }
