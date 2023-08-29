@@ -1,16 +1,16 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-extern crate lazy_static;
+mod instructions;
 
+extern crate lazy_static;
 extern crate ezasm_core;
 extern crate ezasm_macro;
 
 use ezasm_core::instructions::argument_type::ArgumentType;
-use ezasm_core::instructions::instruction_field::{InstructionField, Subclass, SubclassFactory};
+use ezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
 use ezasm_core::instructions::targets::input_output_target::InputOutputTarget;
 use ezasm_core::instructions::targets::input_target::InputTarget;
-use ezasm_core::instructions::implementation::arithmetic_instructions;
 use ezasm_core::parser::lexer::{EZNumber, text_to_number, tokenize_line};
 use ezasm_core::parser::line::Line;
 use ezasm_core::simulation::memory::Memory;
@@ -19,6 +19,7 @@ use ezasm_core::simulation::registry::Registry;
 use ezasm_core::simulation::simulator::Simulator;
 use ezasm_core::util::raw_data::RawData;
 use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
+use crate::instructions::implementation::arithmetic_instructions;
 
 fn main() {
     test_tokenize_line();

@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 use crate::simulation::simulator::Simulator;
 use crate::{instructions::targets::Target, util::raw_data::RawData};
 

@@ -1,8 +1,8 @@
 use lazy_static::lazy_static;
-use crate::instruction_field;
-use crate::instructions::instruction_field::InstructionField;
-use crate::simulation::simulator::Simulator;
-use crate::util::raw_data::RawData;
+use ezasm_core::instruction_field;
+use ezasm_core::instructions::instruction_field::InstructionField;
+use ezasm_core::simulation::simulator::Simulator;
+use ezasm_core::util::raw_data::RawData;
 
 lazy_static! {
     pub static ref add: InstructionField = instruction_field!(add, |simulator: &mut Simulator, output: InputOutputTarget, input1: InputTarget, input2: InputTarget| -> (()) {

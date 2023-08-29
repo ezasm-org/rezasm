@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;

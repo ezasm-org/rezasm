@@ -13,13 +13,13 @@ pub enum EzasmError {
 }
 
 impl From<ParseFloatError> for EzasmError {
-    fn from(err: ParseFloatError) -> Self {
+    fn from(_err: ParseFloatError) -> Self {
         EzasmError::ParserError
     }
 }
 
 impl From<ParseIntError> for EzasmError {
-    fn from(err: ParseIntError) -> Self {
+    fn from(_err: ParseIntError) -> Self {
         EzasmError::ParserError
     }
 }

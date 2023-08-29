@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
 

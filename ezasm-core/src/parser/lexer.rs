@@ -1,7 +1,8 @@
 use regex::Regex;
 
 use crate::parser::line::*;
-use crate::{error::EzasmError, simulation::registry};
+use crate::simulation::registry;
+use crate::util::error::EzasmError;
 
 pub enum EZNumberFormat {
     Decimal(String),

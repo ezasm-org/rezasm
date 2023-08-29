@@ -1,4 +1,4 @@
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 use crate::parser::lexer::*;
 
 #[derive(Debug)]

@@ -2,7 +2,7 @@ use std::any::TypeId;
 use std::fmt::{Debug, Formatter};
 use std::iter::zip;
 
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 use crate::instructions::argument_type::ArgumentType;
 use crate::simulation::simulator::Simulator;
 

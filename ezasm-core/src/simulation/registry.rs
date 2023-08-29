@@ -3,7 +3,7 @@ use std::str::FromStr;
 use bimap::BiMap;
 use lazy_static::lazy_static;
 
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 use crate::simulation::register::Register;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
@@ -131,7 +131,7 @@ pub struct Registry {
 impl Registry {
     pub fn new(word_size: &WordSize) -> Registry {
         let mut registers: Vec<Register> = Vec::new();
-        for index in 0..REGISTERS_COUNT {
+        for _ in 0..REGISTERS_COUNT {
             registers.push(Register::new(word_size));
         }
         Registry {

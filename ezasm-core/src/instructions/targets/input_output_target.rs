@@ -1,4 +1,4 @@
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::output_target::Output;
 use crate::simulation::registry;
@@ -19,7 +19,7 @@ impl Input for InputOutputTarget {
     fn get(&self, simulator: &Simulator) -> Result<RawData, EzasmError> {
         let data = self.register_data(simulator);
         match self {
-            InputOutputTarget::DereferenceInputOutput(input, x) => simulator.get_memory().read(
+            InputOutputTarget::DereferenceInputOutput(_, x) => simulator.get_memory().read(
                 (match data {
                     Ok(x) => x,
                     Err(error) => return Err(error),
@@ -27,7 +27,7 @@ impl Input for InputOutputTarget {
                 .int_value()
                     + x) as usize,
             ),
-            InputOutputTarget::RegisterInputOutput(r) => data,
+            InputOutputTarget::RegisterInputOutput(_r) => data,
         }
     }
 }
@@ -35,7 +35,7 @@ impl Input for InputOutputTarget {
 impl Output for InputOutputTarget {
     fn set(&mut self, simulator: &mut Simulator, data: RawData) -> Result<(), EzasmError> {
         match self {
-            InputOutputTarget::DereferenceInputOutput(r, x) => simulator
+            InputOutputTarget::DereferenceInputOutput(r, _) => simulator
                 .get_registers_mut()
                 .get_register_by_number_mut(r.clone())
                 .map(|r| r.set_data(data)),

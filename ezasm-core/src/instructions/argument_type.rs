@@ -40,7 +40,7 @@ impl ArgumentType {
 
     pub fn get_input(&self) -> Option<Box<&InputTarget>> {
         match self {
-            ArgumentType::InputOutput(x) => return None,
+            ArgumentType::InputOutput(_) => return None,
             ArgumentType::Input(x) => Some(Box::new(x)),
         }
     }
@@ -48,13 +48,13 @@ impl ArgumentType {
     pub fn get_input_output(&self) -> Option<Box<&InputOutputTarget>> {
         match self {
             ArgumentType::InputOutput(x) => Some(Box::new(x)),
-            ArgumentType::Input(x) => return None,
+            ArgumentType::Input(_) => return None,
         }
     }
 
     pub fn into_input(self) -> Option<Box<InputTarget>> {
         match self {
-            ArgumentType::InputOutput(x) => return None,
+            ArgumentType::InputOutput(_) => return None,
             ArgumentType::Input(x) => Some(Box::new(x)),
         }
     }
@@ -62,7 +62,7 @@ impl ArgumentType {
     pub fn into_input_output(self) -> Option<Box<InputOutputTarget>> {
         match self {
             ArgumentType::InputOutput(x) => Some(Box::new(x)),
-            ArgumentType::Input(x) => return None,
+            ArgumentType::Input(_) => return None,
         }
     }
 

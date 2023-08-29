@@ -1,7 +1,7 @@
 use std::any::TypeId;
 use std::iter::zip;
 use std::marker::PhantomData;
-use crate::error::EzasmError;
+use crate::util::error::EzasmError;
 
 use crate::instructions::instruction::Instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
@@ -103,17 +103,17 @@ macro_rules! instruction_field {
         #[allow(unused_assignments)]
 
         use std::any::TypeId;
-        use crate::error::EzasmError;
-        use crate::instructions::instruction_field::{Subclass, SubclassFactory};
-        use crate::instructions::instruction::{Instruction, matches_argument_types};
-        use crate::instructions::targets::input_target::Input;
-        use crate::instructions::targets::output_target::Output;
-        use crate::instructions::argument_type::ArgumentType;
-        use crate::instructions::argument_type::Downcast;
-        use crate::instructions::targets::input_output_target::InputOutputTarget;
-        use crate::instructions::targets::input_target::InputTarget;
-        use crate::instructions::instruction_field::InstructionField;
-        use crate::simulation::simulator::Simulator;
+        use ezasm_core::util::error::EzasmError;
+        use ezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
+        use ezasm_core::instructions::instruction::{Instruction, matches_argument_types};
+        use ezasm_core::instructions::targets::input_target::Input;
+        use ezasm_core::instructions::targets::output_target::Output;
+        use ezasm_core::instructions::argument_type::ArgumentType;
+        use ezasm_core::instructions::argument_type::Downcast;
+        use ezasm_core::instructions::targets::input_output_target::InputOutputTarget;
+        use ezasm_core::instructions::targets::input_target::InputTarget;
+        use ezasm_core::instructions::instruction_field::InstructionField;
+        use ezasm_core::simulation::simulator::Simulator;
 
         $(types_list.push(TypeId::of::<$types>());)*
         $(subtypes_list.push(SubclassFactory::<$types>::subclasses());)*

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use lazy_static::lazy_static;
-use crate::instructions::argument_type::ArgumentType;
-use crate::instructions::instruction::Instruction;
-use crate::instructions::instruction_field::InstructionField;
+use ezasm_core::instructions::argument_type::ArgumentType;
+use ezasm_core::instructions::instruction::Instruction;
+use ezasm_core::instructions::instruction_field::InstructionField;
 
 pub struct InstructionRegistry {
     instructions: HashMap<String, Vec<InstructionField>>,
