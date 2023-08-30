@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 
 mod instructions;
+mod util;
 
 extern crate ezasm_core;
 extern crate ezasm_macro;
@@ -20,14 +21,19 @@ use ezasm_core::simulation::simulator::Simulator;
 use ezasm_core::util::raw_data::RawData;
 use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use ezasm_macro::instruction;
+use util::cli;
+
+
 
 fn main() {
-    test_tokenize_line();
-    test_text_to_number();
-    test_memory();
-    test_registry();
-    test_subclasses();
-    test_proc_macro();
+    let args = cli::get_args();
+
+    // test_tokenize_line();
+    // test_text_to_number();
+    // test_memory();
+    // test_registry();
+    // test_subclasses();
+    // test_proc_macro();
 }
 
 fn test_tokenize_line() {
