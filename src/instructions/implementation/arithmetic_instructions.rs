@@ -4,7 +4,7 @@ use ezasm_macro::instruction;
 use lazy_static::lazy_static;
 
 lazy_static! {
-    pub static ref add: InstructionField =
+    pub static ref ADD: InstructionField =
         instruction!(add, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget,
@@ -14,7 +14,7 @@ lazy_static! {
             let k = value1 + value2;
             output.set(simulator, RawData::from_int(k, simulator.get_word_size()))
         });
-    pub static ref sub: InstructionField =
+    pub static ref SUB: InstructionField =
         instruction!(sub, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget,
@@ -24,7 +24,7 @@ lazy_static! {
             let k = value1 - value2;
             output.set(simulator, RawData::from_int(k, simulator.get_word_size()))
         });
-    pub static ref mul: InstructionField =
+    pub static ref MUL: InstructionField =
         instruction!(mul, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget,
@@ -34,7 +34,7 @@ lazy_static! {
             let k = value1 * value2;
             output.set(simulator, RawData::from_int(k, simulator.get_word_size()))
         });
-    pub static ref div: InstructionField =
+    pub static ref DIV: InstructionField =
         instruction!(div, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget,

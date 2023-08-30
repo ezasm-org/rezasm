@@ -2,6 +2,7 @@
 #![allow(unused_variables)]
 
 mod instructions;
+mod util;
 
 extern crate ezasm_core;
 extern crate ezasm_macro;
@@ -20,9 +21,13 @@ use ezasm_core::simulation::simulator::Simulator;
 use ezasm_core::util::raw_data::RawData;
 use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use ezasm_macro::instruction;
+
 use crate::instructions::implementation::arithmetic_instructions::register_instructions;
+use crate::util::cli;
 
 fn main() {
+    let args = cli::get_args();
+
     register_instructions();
     test_tokenize_line();
     test_text_to_number();
