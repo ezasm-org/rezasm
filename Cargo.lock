@@ -128,26 +128,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 
 [[package]]
-name = "ezasm-core"
-version = "0.1.0"
-dependencies = [
- "bimap",
- "bytebuffer",
- "lazy_static",
- "regex",
-]
-
-[[package]]
-name = "ezasm-macro"
-version = "0.1.0"
-dependencies = [
- "ezasm-core",
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
 name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -213,10 +193,30 @@ dependencies = [
  "bimap",
  "bytebuffer",
  "clap",
- "ezasm-core",
- "ezasm-macro",
  "lazy_static",
  "regex",
+ "rezasm-core",
+ "rezasm-macro",
+]
+
+[[package]]
+name = "rezasm-core"
+version = "0.1.0"
+dependencies = [
+ "bimap",
+ "bytebuffer",
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
+name = "rezasm-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "rezasm-core",
+ "syn",
 ]
 
 [[package]]

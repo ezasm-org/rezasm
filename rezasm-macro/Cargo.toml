@@ -1,5 +1,5 @@
 [package]
-name = "ezasm-macro"
+name = "rezasm-macro"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,7 +8,7 @@ proc-macro = true
 path = "src/lib.rs"
 
 [dependencies]
-ezasm-core = { path = "../ezasm-core", version = "*" }
+rezasm-core = { path = "../rezasm-core", version = "*" }
 
 quote = "1.0.33"
 proc-macro2 = "1.0.66"

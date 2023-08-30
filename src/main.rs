@@ -4,26 +4,23 @@
 mod instructions;
 mod util;
 
-extern crate ezasm_core;
-extern crate ezasm_macro;
+extern crate rezasm_core;
+extern crate rezasm_macro;
 extern crate lazy_static;
 
-use ezasm_core::instructions::argument_type::ArgumentType;
-use ezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
-use ezasm_core::instructions::targets::input_output_target::InputOutputTarget;
-use ezasm_core::instructions::targets::input_target::InputTarget;
-use ezasm_core::parser::lexer::{text_to_number, tokenize_line, EZNumber, parse_line};
-use ezasm_core::parser::line::Line;
-use ezasm_core::simulation::memory::Memory;
-use ezasm_core::simulation::registry;
-use ezasm_core::simulation::registry::Registry;
-use ezasm_core::simulation::simulator::Simulator;
-use ezasm_core::util::raw_data::RawData;
-use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
-use ezasm_macro::instruction;
-use util::cli;
-
-
+use rezasm_core::instructions::argument_type::ArgumentType;
+use rezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
+use rezasm_core::instructions::targets::input_output_target::InputOutputTarget;
+use rezasm_core::instructions::targets::input_target::InputTarget;
+use rezasm_core::parser::lexer::{text_to_number, tokenize_line, EZNumber, parse_line};
+use rezasm_core::parser::line::Line;
+use rezasm_core::simulation::memory::Memory;
+use rezasm_core::simulation::registry;
+use rezasm_core::simulation::registry::Registry;
+use rezasm_core::simulation::simulator::Simulator;
+use rezasm_core::util::raw_data::RawData;
+use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
+use rezasm_macro::instruction;
 
 use crate::instructions::implementation::arithmetic_instructions::register_instructions;
 use crate::util::cli;

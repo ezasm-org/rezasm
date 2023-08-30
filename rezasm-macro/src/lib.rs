@@ -150,7 +150,7 @@ pub fn instruction(_input: TokenStream) -> TokenStream {
 
     for (permutation, field) in zip(possible_output_permutations.clone(), argument_names_repeat) {
         function_declarations.push(proc_macro2::TokenStream::from(quote! {
-            fn #parsed_name (#simulator_name: &mut ezasm_core::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<ezasm_core::instructions::argument_type::ArgumentType>) -> Result<(), ezasm_core::util::error::EzasmError> {
+            fn #parsed_name (#simulator_name: &mut rezasm_core::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<rezasm_core::instructions::argument_type::ArgumentType>) -> Result<(), rezasm_core::util::error::EzasmError> {
                 let mut _counter: usize = 0;
                 #(let mut #field: #permutation = arguments[_counter].downcast::<#permutation>().unwrap().clone(); _counter += 1;)*
                 #function_body
@@ -160,18 +160,18 @@ pub fn instruction(_input: TokenStream) -> TokenStream {
 
     let tokens = quote! {
         {
-            use ezasm_core::instructions::argument_type::Downcast;
-            use ezasm_core::instructions::targets::input_target::{Input, InputTarget};
-            use ezasm_core::instructions::targets::input_output_target::{InputOutput, InputOutputTarget};
-            use ezasm_core::instructions::targets::output_target::Output;
-            use ezasm_core::util::raw_data::RawData;
+            use rezasm_core::instructions::argument_type::Downcast;
+            use rezasm_core::instructions::targets::input_target::{Input, InputTarget};
+            use rezasm_core::instructions::targets::input_output_target::{InputOutput, InputOutputTarget};
+            use rezasm_core::instructions::targets::output_target::Output;
+            use rezasm_core::util::raw_data::RawData;
             let mut instruction_field_types: Vec<std::any::TypeId> = vec![#(std::any::TypeId::of::<#argument_types>(),)*];
-            let mut instructions: Vec<ezasm_core::instructions::instruction::Instruction> = Vec::new();
+            let mut instructions: Vec<rezasm_core::instructions::instruction::Instruction> = Vec::new();
             #({
                 #function_declarations;
-                instructions.push(ezasm_core::instructions::instruction::Instruction::new(vec![#(std::any::TypeId::of::<#possible_output_permutations>(),)*], #function_name_repeat));
+                instructions.push(rezasm_core::instructions::instruction::Instruction::new(vec![#(std::any::TypeId::of::<#possible_output_permutations>(),)*], #function_name_repeat));
             })*
-            ezasm_core::instructions::instruction_field::InstructionField::new(instruction_field_types, instructions, stringify!(#parsed_name).to_string())
+            rezasm_core::instructions::instruction_field::InstructionField::new(instruction_field_types, instructions, stringify!(#parsed_name).to_string())
         }
     };
 
