@@ -110,10 +110,10 @@ pub fn test_proc_macro() {
         .map(|k| simulator.get_target(k).unwrap())
         .collect();
 
-    instruction!(foo, |simulator: Simulator,
-                       x: InputOutputTarget,
-                       y: InputTarget,
-                       z: InputTarget| {
+    let foo = instruction!(foo, |simulator: Simulator,
+                                 x: InputOutputTarget,
+                                 y: InputTarget,
+                                 z: InputTarget| {
         let sum = y.get(simulator)?.int_value() + z.get(simulator)?.int_value();
         let _ = x.set(simulator, RawData::from(sum));
         Ok(())

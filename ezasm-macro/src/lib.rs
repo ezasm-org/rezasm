@@ -23,7 +23,7 @@ pub fn instruction(_input: TokenStream) -> TokenStream {
     let mut cloned_input = _input.clone().into_iter();
 
     if cloned_input.size_hint().0 < 3 {
-        error!("Not enough arguments, expected 2: `instruction! (name, |arguments|) -> () {...}`");
+        error!("Not enough arguments, expected 2: `instruction! (name, |arguments| {...})`");
     }
 
     let first: TokenStream = TokenStream::from(cloned_input.nth(0).unwrap());
@@ -38,14 +38,34 @@ pub fn instruction(_input: TokenStream) -> TokenStream {
     let function_closure: ExprClosure = parse_macro_input!(closure_stream as syn::ExprClosure);
     let parsed_name: proc_macro2::TokenStream = function_name.to_token_stream();
 
+    let mut simulator_name: proc_macro2::TokenStream = "".to_token_stream();
     let mut argument_types: Vec<TypePath> = Vec::new();
     let mut argument_names: Vec<PatIdent> = Vec::new();
+
+    if function_closure.inputs.iter().size_hint().0 == 0 {
+        error!("Expected Simulator variable as the first argument in closure capture group");
+    }
+
     for (index, argument) in function_closure.inputs.iter().enumerate() {
         match argument {
             Pat::Type(x) => match x.ty.deref() {
                 Type::Path(type_path) => {
                     if index == 0 {
-                        assert_eq!(type_path.path.get_ident().unwrap().to_string(), "Simulator");
+                        if match type_path.path.get_ident() {
+                            None => error!(
+                                "Expected Simulator type identity, not a path to a type identity"
+                            ),
+                            Some(x) => x.to_string(),
+                        } != "Simulator"
+                        {
+                            error!("Expected Simulator variable as the first argument in closure capture group");
+                        }
+                        match x.pat.deref() {
+                            Pat::Ident(name_identity) => {
+                                simulator_name = name_identity.to_token_stream();
+                            }
+                            _ => error!("Expected valid variable name"),
+                        }
                     } else {
                         match type_path.path.get_ident() {
                             None => {
@@ -130,11 +150,7 @@ pub fn instruction(_input: TokenStream) -> TokenStream {
 
     for (permutation, field) in zip(possible_output_permutations.clone(), argument_names_repeat) {
         function_declarations.push(proc_macro2::TokenStream::from(quote! {
-            fn #parsed_name (simulator: &mut Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<ArgumentType>) -> Result<(), ezasm_core::util::error::EzasmError> {
-                use ezasm_core::instructions::argument_type::Downcast;
-                use ezasm_core::instructions::targets::input_target::Input;
-                use ezasm_core::instructions::targets::input_output_target::InputOutput;
-                use ezasm_core::instructions::targets::output_target::Output;
+            fn #parsed_name (#simulator_name: &mut ezasm_core::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<ezasm_core::instructions::argument_type::ArgumentType>) -> Result<(), ezasm_core::util::error::EzasmError> {
                 let mut _counter: usize = 0;
                 #(let mut #field: #permutation = arguments[_counter].downcast::<#permutation>().unwrap().clone(); _counter += 1;)*
                 #function_body
@@ -143,13 +159,20 @@ pub fn instruction(_input: TokenStream) -> TokenStream {
     }
 
     let tokens = quote! {
-        let mut instruction_field_types: Vec<std::any::TypeId> = vec![#(std::any::TypeId::of::<#argument_types>(),)*];
-        let mut instructions: Vec<ezasm_core::instructions::instruction::Instruction> = Vec::new();
-        #({
-            #function_declarations;
-            instructions.push(ezasm_core::instructions::instruction::Instruction::new(vec![#(std::any::TypeId::of::<#possible_output_permutations>(),)*], #function_name_repeat));
-        })*
-        let #parsed_name = ezasm_core::instructions::instruction_field::InstructionField::new(instruction_field_types, instructions, stringify!(#parsed_name).to_string());
+        {
+            use ezasm_core::instructions::argument_type::Downcast;
+            use ezasm_core::instructions::targets::input_target::{Input, InputTarget};
+            use ezasm_core::instructions::targets::input_output_target::{InputOutput, InputOutputTarget};
+            use ezasm_core::instructions::targets::output_target::Output;
+            use ezasm_core::util::raw_data::RawData;
+            let mut instruction_field_types: Vec<std::any::TypeId> = vec![#(std::any::TypeId::of::<#argument_types>(),)*];
+            let mut instructions: Vec<ezasm_core::instructions::instruction::Instruction> = Vec::new();
+            #({
+                #function_declarations;
+                instructions.push(ezasm_core::instructions::instruction::Instruction::new(vec![#(std::any::TypeId::of::<#possible_output_permutations>(),)*], #function_name_repeat));
+            })*
+            ezasm_core::instructions::instruction_field::InstructionField::new(instruction_field_types, instructions, stringify!(#parsed_name).to_string())
+        }
     };
 
     TokenStream::from(tokens)
