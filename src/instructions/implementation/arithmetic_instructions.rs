@@ -47,8 +47,8 @@ lazy_static! {
 }
 
 pub fn register_instructions() {
-    register_instruction(&add);
-    register_instruction(&sub);
-    register_instruction(&mul);
-    register_instruction(&div);
+    register_instruction(&ADD);
+    register_instruction(&SUB);
+    register_instruction(&MUL);
+    register_instruction(&DIV);
 }

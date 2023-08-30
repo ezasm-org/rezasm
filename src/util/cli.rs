@@ -14,11 +14,11 @@ pub struct Arguments {
 
     /// A file to receive standard input from
     #[arg(short, long)]
-    input_file: String,
+    input_file: Option<String>,
 
     /// A file to print standard output to
     #[arg(short, long)]
-    output_file: String,
+    output_file: Option<String>,
 }
 
 pub fn get_args() -> Arguments {
