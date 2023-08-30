@@ -1,7 +1,7 @@
 use crate::parser::lexer::*;
 use crate::util::error::EzasmError;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Line {
     Instruction(String, Vec<Token>),
     Label(String),
@@ -10,7 +10,6 @@ pub enum Line {
 impl Line {
     pub fn new(instruction: &String, args: Vec<String>) -> Result<Self, EzasmError> {
         if is_label(instruction) {
-            println!("?");
             //cloning here might not be ideal long term.
             return Ok(Line::Label(
                 instruction[0..instruction.len() - 1].to_string(),

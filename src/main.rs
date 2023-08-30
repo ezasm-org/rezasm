@@ -11,7 +11,7 @@ use ezasm_core::instructions::argument_type::ArgumentType;
 use ezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
 use ezasm_core::instructions::targets::input_output_target::InputOutputTarget;
 use ezasm_core::instructions::targets::input_target::InputTarget;
-use ezasm_core::parser::lexer::{text_to_number, tokenize_line, EZNumber};
+use ezasm_core::parser::lexer::{text_to_number, tokenize_line, EZNumber, parse_line};
 use ezasm_core::parser::line::Line;
 use ezasm_core::simulation::memory::Memory;
 use ezasm_core::simulation::registry;
@@ -20,14 +20,18 @@ use ezasm_core::simulation::simulator::Simulator;
 use ezasm_core::util::raw_data::RawData;
 use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use ezasm_macro::instruction;
+use crate::instructions::implementation::arithmetic_instructions::register_instructions;
 
 fn main() {
+    register_instructions();
     test_tokenize_line();
     test_text_to_number();
     test_memory();
     test_registry();
     test_subclasses();
     test_proc_macro();
+    test_simulator_instruction();
+    test_simulator_labels();
 }
 
 fn test_tokenize_line() {
@@ -137,4 +141,43 @@ pub fn test_proc_macro() {
             assert!(false);
         }
     }
+}
+
+pub fn test_simulator_instruction() {
+    let mut simulator: Simulator = Simulator::new();
+
+    let line = parse_line(&"add $t0 $t0 1".to_string(), 0).unwrap().unwrap();
+    let _ = simulator.add_line(line);
+    let _ = simulator.run_line_from_pc();
+
+    assert_eq!(simulator.get_registers().get_register(&registry::T0.to_string()).unwrap().get_data().int_value(), 1i64);
+
+    println!("Instruction Registry and Simulator work");
+}
+
+pub fn test_simulator_labels() {
+    let mut simulator: Simulator = Simulator::new();
+
+    let line1 = parse_line(&"add $t0 0 0".to_string(), 0).unwrap().unwrap();
+    let line2 = parse_line(&"add $t1 0 1".to_string(), 1).unwrap().unwrap();
+    let line3 = parse_line(&"fib:".to_string(), 2).unwrap().unwrap();
+    let line4 = parse_line(&"add $t2 $t0 $t1".to_string(), 3).unwrap().unwrap();
+    let line5 = parse_line(&"add $t0 0 $t1".to_string(), 4).unwrap().unwrap();
+    let line6 = parse_line(&"add $t1 0 $t2".to_string(), 5).unwrap().unwrap();
+    let line7 = parse_line(&"add $pc 0 fib".to_string(), 6).unwrap().unwrap();
+
+    match simulator.add_lines(vec![line1, line2, line3, line4, line5, line6, line7]) {
+        Ok(_) => {}
+        Err(e) => println!("{:?}", e),
+    }
+
+    for i in 0..50 {
+        match simulator.run_line_from_pc() {
+            Ok(_) => {}
+            Err(e) => println!("{:?}", e),
+        }
+    }
+
+    assert_eq!(simulator.get_registers().get_register(&registry::T1.to_string()).unwrap().get_data().int_value(), 233i64);
+    println!("Labels worked (fibonacci test)")
 }

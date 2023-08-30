@@ -13,7 +13,7 @@ pub enum EZNumberFormat {
     BinaryFloat(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum EZNumber {
     Integer(i64),
     Float(f64),
@@ -31,7 +31,7 @@ impl From<f64> for EZNumber {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Token {
     NumericalImmediate(EZNumber),
     CharacterImmediate(char),
@@ -209,7 +209,7 @@ pub fn get_character_immediate(token: &String) -> Result<char, EzasmError> {
     }
 }
 
-pub fn parse_line(line: &String, line_number: &i32) -> Option<Result<Line, EzasmError>> {
+pub fn parse_line(line: &String, line_number: i64) -> Option<Result<Line, EzasmError>> {
     let tokens = tokenize_line(line);
 
     if tokens.len() == 0 {

@@ -4,8 +4,8 @@ version = "0.3.0"
 edition = "2021"
 
 [dependencies]
-ezasm-core = { path = "ezasm-core", version = "0.1.0" }
-ezasm-macro = { path = "ezasm-macro", version = "0.1.0" }
+ezasm-core = { path = "ezasm-core" }
+ezasm-macro = { path = "ezasm-macro" }
 
 lazy_static = "1.4.0"
 regex = "1.8.1"

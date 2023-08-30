@@ -1,21 +1,22 @@
-use ezasm_core::instructions::argument_type::ArgumentType;
-use ezasm_core::instructions::instruction::Instruction;
-use ezasm_core::instructions::instruction_field::InstructionField;
+use crate::instructions::argument_type::ArgumentType;
+use crate::instructions::instruction::Instruction;
+use crate::instructions::instruction_field::InstructionField;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
+use std::sync::Mutex;
 
 pub struct InstructionRegistry {
-    instructions: HashMap<String, Vec<InstructionField>>,
+    instructions: HashMap<String, Vec<&'static InstructionField>>,
 }
 
 impl InstructionRegistry {
-    pub fn new() -> InstructionRegistry {
+    fn new() -> InstructionRegistry {
         InstructionRegistry {
             instructions: HashMap::new(),
         }
     }
 
-    pub fn register_instruction(&mut self, instruction: InstructionField) {
+    fn register_instruction(&mut self, instruction: &'static InstructionField) {
         match self.instructions.get_mut(instruction.name()) {
             None => self
                 .instructions
@@ -27,7 +28,7 @@ impl InstructionRegistry {
         };
     }
 
-    pub fn get_instruction(&self, name: &String, args: &Vec<ArgumentType>) -> Option<&Instruction> {
+    fn get_instruction(&self, name: &String, args: &Vec<ArgumentType>) -> Option<&'static Instruction> {
         match self.instructions.get(name) {
             None => None,
             Some(group) => {
@@ -44,5 +45,13 @@ impl InstructionRegistry {
 }
 
 lazy_static! {
-    pub static ref INSTRUCTIONS: InstructionRegistry = InstructionRegistry::new();
+    pub static ref INSTRUCTIONS: Mutex<InstructionRegistry> = Mutex::new(InstructionRegistry::new());
+}
+
+pub fn register_instruction(instruction: &'static InstructionField) {
+    INSTRUCTIONS.lock().unwrap().register_instruction(instruction);
+}
+
+pub fn get_instruction(name: &String, args: &Vec<ArgumentType>) -> Option<&'static Instruction> {
+    INSTRUCTIONS.lock().unwrap().get_instruction(name, args)
 }
