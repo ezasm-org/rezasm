@@ -26,14 +26,12 @@ use util::cli;
 
 
 fn main() {
-    let args = cli::get_args();
-
-    // test_tokenize_line();
-    // test_text_to_number();
-    // test_memory();
-    // test_registry();
-    // test_subclasses();
-    // test_proc_macro();
+    test_tokenize_line();
+    test_text_to_number();
+    test_memory();
+    test_registry();
+    test_subclasses();
+    test_proc_macro();
 }
 
 fn test_tokenize_line() {
