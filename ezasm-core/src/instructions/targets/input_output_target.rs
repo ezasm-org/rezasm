@@ -1,8 +1,8 @@
-use crate::util::error::EzasmError;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::output_target::Output;
 use crate::simulation::registry;
 use crate::simulation::simulator::Simulator;
+use crate::util::error::EzasmError;
 use crate::util::raw_data::RawData;
 
 pub trait InputOutput: Input + Output {}

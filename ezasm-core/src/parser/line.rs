@@ -1,5 +1,5 @@
-use crate::util::error::EzasmError;
 use crate::parser::lexer::*;
+use crate::util::error::EzasmError;
 
 #[derive(Debug)]
 pub enum Line {

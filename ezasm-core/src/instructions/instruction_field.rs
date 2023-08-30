@@ -1,23 +1,27 @@
 use std::any::TypeId;
 use std::iter::zip;
 use std::marker::PhantomData;
-use crate::util::error::EzasmError;
 
+use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction::Instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::argument_type::ArgumentType;
 use crate::simulation::simulator::Simulator;
+use crate::util::error::EzasmError;
 
 #[derive(Debug)]
 pub struct InstructionField {
     argument_types: Vec<TypeId>,
     instructions: Vec<Instruction>,
-    name: String
+    name: String,
 }
 
 impl InstructionField {
-    pub fn new(argument_types: Vec<TypeId>, instructions: Vec<Instruction>, name: String) -> InstructionField {
+    pub fn new(
+        argument_types: Vec<TypeId>,
+        instructions: Vec<Instruction>,
+        name: String,
+    ) -> InstructionField {
         InstructionField {
             name,
             argument_types,
@@ -44,16 +48,24 @@ impl InstructionField {
 
         for instruction in self.instructions.iter() {
             if match_any_argument_types(instruction.get_types(), instruction_attempt) {
-                return Some(instruction)
+                return Some(instruction);
             }
         }
         None
     }
 
-    pub fn call_instruction_function(&self, simulator: &mut Simulator, instruction_attempt: &Vec<ArgumentType>) -> Result<(), EzasmError> {
+    pub fn call_instruction_function(
+        &self,
+        simulator: &mut Simulator,
+        instruction_attempt: &Vec<ArgumentType>,
+    ) -> Result<(), EzasmError> {
         match self.get_instruction(instruction_attempt) {
             None => Err(EzasmError::InvalidArguments),
-            Some(instruction) => (*instruction.get_function())(simulator, instruction.get_types(), instruction_attempt)
+            Some(instruction) => (*instruction.get_function())(
+                simulator,
+                instruction.get_types(),
+                instruction_attempt,
+            ),
         }
     }
 }
@@ -68,7 +80,10 @@ pub struct SubclassFactory<T> {
 
 impl Subclass<InputTarget> for SubclassFactory<InputTarget> {
     fn subclasses() -> Vec<TypeId> {
-        vec![TypeId::of::<InputTarget>(), TypeId::of::<InputOutputTarget>()]
+        vec![
+            TypeId::of::<InputTarget>(),
+            TypeId::of::<InputOutputTarget>(),
+        ]
     }
 }
 
@@ -113,6 +128,7 @@ macro_rules! instruction_field {
         use ezasm_core::instructions::targets::input_output_target::InputOutputTarget;
         use ezasm_core::instructions::targets::input_target::InputTarget;
         use ezasm_core::instructions::instruction_field::InstructionField;
+        use ezasm_core::instructions::instruction::TInstructionFunction;
         use ezasm_core::simulation::simulator::Simulator;
 
         $(types_list.push(TypeId::of::<$types>());)*

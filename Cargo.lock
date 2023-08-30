@@ -47,6 +47,7 @@ name = "ezasm-macro"
 version = "0.1.0"
 dependencies = [
  "ezasm-core",
+ "proc-macro2",
  "quote",
  "syn",
 ]

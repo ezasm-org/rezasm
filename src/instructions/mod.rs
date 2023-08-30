@@ -1,2 +1,2 @@
-pub mod instruction_registry;
 pub mod implementation;
+pub mod instruction_registry;

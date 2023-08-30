@@ -3,15 +3,15 @@
 
 mod instructions;
 
-extern crate lazy_static;
 extern crate ezasm_core;
 extern crate ezasm_macro;
+extern crate lazy_static;
 
 use ezasm_core::instructions::argument_type::ArgumentType;
 use ezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
 use ezasm_core::instructions::targets::input_output_target::InputOutputTarget;
 use ezasm_core::instructions::targets::input_target::InputTarget;
-use ezasm_core::parser::lexer::{EZNumber, text_to_number, tokenize_line};
+use ezasm_core::parser::lexer::{text_to_number, tokenize_line, EZNumber};
 use ezasm_core::parser::line::Line;
 use ezasm_core::simulation::memory::Memory;
 use ezasm_core::simulation::registry;
@@ -19,7 +19,7 @@ use ezasm_core::simulation::registry::Registry;
 use ezasm_core::simulation::simulator::Simulator;
 use ezasm_core::util::raw_data::RawData;
 use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
-use crate::instructions::implementation::arithmetic_instructions;
+use ezasm_macro::instruction;
 
 fn main() {
     test_tokenize_line();
@@ -27,7 +27,7 @@ fn main() {
     test_memory();
     test_registry();
     test_subclasses();
-    test_instruction_field_macro();
+    test_proc_macro();
 }
 
 fn test_tokenize_line() {
@@ -42,10 +42,13 @@ fn test_tokenize_line() {
 }
 
 fn test_text_to_number() {
-    assert_eq!(match text_to_number(String::from("0x0010.8000")).unwrap() {
-        EZNumber::Integer(_) => f64::INFINITY,
-        EZNumber::Float(x) => x,
-    }, 16.5);
+    assert_eq!(
+        match text_to_number(String::from("0x0010.8000")).unwrap() {
+            EZNumber::Integer(_) => f64::INFINITY,
+            EZNumber::Float(x) => x,
+        },
+        16.5
+    );
     println!("Hex-Float-String -> Float-Value works");
 }
 
@@ -53,10 +56,11 @@ fn test_memory() {
     let mut memory: Memory = Memory::new();
     let data = RawData::from_int(100, &DEFAULT_WORD_SIZE);
     memory.write(memory.current_heap_pointer(), &data).unwrap();
-    assert_eq!(memory
-        .read(memory.current_heap_pointer())
-        .unwrap()
-        .int_value(),
+    assert_eq!(
+        memory
+            .read(memory.current_heap_pointer())
+            .unwrap()
+            .int_value(),
         100
     );
     println!("Memory works");
@@ -68,11 +72,14 @@ fn test_registry() {
         .get_register_mut(&String::from(registry::T0))
         .unwrap()
         .set_data(RawData::from(255i32));
-    assert_eq!(registry
-       .get_register(&String::from(registry::T0))
-       .unwrap()
-       .get_data()
-       .int_value(), 255);
+    assert_eq!(
+        registry
+            .get_register(&String::from(registry::T0))
+            .unwrap()
+            .get_data()
+            .int_value(),
+        255
+    );
     println!("Registry works");
 }
 
@@ -84,14 +91,15 @@ pub fn test_subclasses() {
     println!("Subclasses work")
 }
 
-pub fn test_instruction_field_macro() {
+pub fn test_proc_macro() {
     let mut simulator: Simulator = Simulator::new();
 
     let line: Line = Line::new(
         &String::from("add"),
-        ["$T0".to_string(), "100".to_string(), "21".to_string()].to_vec(),
+        ["$T0".to_string(), "$T0".to_string(), "121".to_string()].to_vec(),
     )
-        .unwrap();
+    .unwrap();
+
     let args = match line {
         Line::Instruction(_, args) => args,
         _ => Vec::new(),
@@ -102,11 +110,28 @@ pub fn test_instruction_field_macro() {
         .map(|k| simulator.get_target(k).unwrap())
         .collect();
 
-    match arithmetic_instructions::add.call_instruction_function(&mut simulator, &targets) {
+    instruction!(foo, |simulator: Simulator,
+                       x: InputOutputTarget,
+                       y: InputTarget,
+                       z: InputTarget| {
+        let sum = y.get(simulator)?.int_value() + z.get(simulator)?.int_value();
+        let _ = x.set(simulator, RawData::from(sum));
+        Ok(())
+    });
+
+    match foo.call_instruction_function(&mut simulator, &targets) {
         Ok(_) => {
-            assert_eq!(simulator.get_registers().get_register(&registry::T0.to_string()).unwrap().get_data().int_value(), 121);
+            assert_eq!(
+                simulator
+                    .get_registers()
+                    .get_register(&registry::T0.to_string())
+                    .unwrap()
+                    .get_data()
+                    .int_value(),
+                121
+            );
             println!("Instruction Fields work")
-        },
+        }
         Err(e) => {
             println!("{:?}", e);
             assert!(false);

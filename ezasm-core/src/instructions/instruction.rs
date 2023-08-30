@@ -2,11 +2,12 @@ use std::any::TypeId;
 use std::fmt::{Debug, Formatter};
 use std::iter::zip;
 
-use crate::util::error::EzasmError;
 use crate::instructions::argument_type::ArgumentType;
 use crate::simulation::simulator::Simulator;
+use crate::util::error::EzasmError;
 
-pub type TInstructionFunction = fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), EzasmError>;
+pub type TInstructionFunction =
+    fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), EzasmError>;
 
 pub struct Instruction {
     types: Vec<TypeId>,
@@ -20,12 +21,8 @@ impl Debug for Instruction {
 }
 
 impl Instruction {
-
     pub fn new(types: Vec<TypeId>, function: TInstructionFunction) -> Self {
-        Instruction {
-            types,
-            function
-        }
+        Instruction { types, function }
     }
     pub fn get_types(&self) -> &Vec<TypeId> {
         &self.types
@@ -41,7 +38,7 @@ pub fn matches_argument_types(target: &Vec<TypeId>, attempt: &Vec<ArgumentType>)
         false
     } else {
         for (t, a) in zip(target, attempt) {
-            if t != &a.get_mut_type_id() && t != &a.get_ref_type_id() && t != &a.get_type_id()   {
+            if t != &a.get_mut_type_id() && t != &a.get_ref_type_id() && t != &a.get_type_id() {
                 return false;
             }
         }

@@ -3,8 +3,8 @@ use std::str::FromStr;
 use bimap::BiMap;
 use lazy_static::lazy_static;
 
-use crate::util::error::EzasmError;
 use crate::simulation::register::Register;
+use crate::util::error::EzasmError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 

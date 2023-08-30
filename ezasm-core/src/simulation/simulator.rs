@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-use crate::util::error::EzasmError;
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
@@ -11,6 +10,7 @@ use crate::simulation::memory;
 use crate::simulation::memory::Memory;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
+use crate::util::error::EzasmError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
 

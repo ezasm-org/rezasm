@@ -1,7 +1,7 @@
 use std::any::Any;
 
-use crate::util::error::EzasmError;
 use crate::simulation::simulator::Simulator;
+use crate::util::error::EzasmError;
 use crate::{instructions::targets::Target, util::raw_data::RawData};
 
 pub trait Input: Target {
