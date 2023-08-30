@@ -21,6 +21,9 @@ use ezasm_core::simulation::simulator::Simulator;
 use ezasm_core::util::raw_data::RawData;
 use ezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use ezasm_macro::instruction;
+use util::cli;
+
+
 
 use crate::instructions::implementation::arithmetic_instructions::register_instructions;
 use crate::util::cli;
