@@ -15,7 +15,7 @@ lazy_static! {
             Ok(())
         });
     pub static ref sub: InstructionField =
-        instruction!(add, |simulator: Simulator,
+        instruction!(sub, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget,
                            input2: InputTarget| {
@@ -26,7 +26,7 @@ lazy_static! {
             Ok(())
         });
     pub static ref mul: InstructionField =
-        instruction!(add, |simulator: Simulator,
+        instruction!(mul, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget,
                            input2: InputTarget| {
@@ -37,7 +37,7 @@ lazy_static! {
             Ok(())
         });
     pub static ref div: InstructionField =
-        instruction!(add, |simulator: Simulator,
+        instruction!(div, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget,
                            input2: InputTarget| {
