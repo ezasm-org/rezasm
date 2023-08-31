@@ -6,37 +6,52 @@ mod util;
 
 extern crate rezasm_core;
 extern crate rezasm_macro;
+extern crate expanduser;
 extern crate lazy_static;
 
 use rezasm_core::instructions::argument_type::ArgumentType;
 use rezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
 use rezasm_core::instructions::targets::input_output_target::InputOutputTarget;
 use rezasm_core::instructions::targets::input_target::InputTarget;
+use rezasm_core::parser::lexer;
 use rezasm_core::parser::lexer::{text_to_number, tokenize_line, EZNumber, parse_line};
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::simulator::Simulator;
+use rezasm_core::util::error::EzasmError;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use rezasm_macro::instruction;
 
 use crate::instructions::implementation::arithmetic_instructions::register_instructions;
-use crate::util::cli;
+use crate::util::application::Application;
+use crate::util::{application, cli};
+use crate::util::cli::Arguments;
 
 fn main() {
-    let args = cli::get_args();
 
-    register_instructions();
-    test_tokenize_line();
-    test_text_to_number();
-    test_memory();
-    test_registry();
-    test_subclasses();
-    test_proc_macro();
-    test_simulator_instruction();
-    test_simulator_labels();
+    let args: Arguments = cli::get_args();
+    let application: Application = match cli::handle_arguments(args) {
+        Ok(app) => app,
+        Err(error) => application::handle_error(error),
+    };
+
+    match application.run_until_completion() {
+        Ok(_) => {}
+        Err(error) => application::handle_error(error),
+    };
+
+    // register_instructions();
+    // test_tokenize_line();
+    // test_text_to_number();
+    // test_memory();
+    // test_registry();
+    // test_subclasses();
+    // test_proc_macro();
+    // test_simulator_instruction();
+    // test_simulator_labels();
 }
 
 fn test_tokenize_line() {

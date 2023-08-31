@@ -184,7 +184,7 @@ impl Simulator {
                     .map(|k| self.get_target(k).unwrap())
                     .collect();
                 match get_instruction(instruction_name, &targets) {
-                    None => Err(EzasmError::InvalidArguments),
+                    None => Err(EzasmError::InvalidInstructionError(instruction_name.to_string())),
                     Some(instruction) => instruction.get_function()(self, instruction.get_types(), &targets),
                 }
             },

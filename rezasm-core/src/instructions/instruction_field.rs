@@ -60,7 +60,7 @@ impl InstructionField {
         instruction_attempt: &Vec<ArgumentType>,
     ) -> Result<(), EzasmError> {
         match self.get_instruction(instruction_attempt) {
-            None => Err(EzasmError::InvalidArguments),
+            None => Err(EzasmError::InvalidInstructionError(self.name.to_string())),
             Some(instruction) => (*instruction.get_function())(
                 simulator,
                 instruction.get_types(),

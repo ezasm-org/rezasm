@@ -12,6 +12,7 @@ regex = "1.8.1"
 bimap = "0.6.3"
 bytebuffer = "2.1.0"
 clap = { version = "4.4.1", features = ["derive"] }
+expanduser = "1.2.2"
 
 [workspace]
 members = ["rezasm-core", "rezasm-macro"]

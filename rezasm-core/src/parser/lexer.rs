@@ -279,7 +279,7 @@ pub fn is_numeric(token: &String) -> bool {
 
 pub fn tokenize_line(text: &String) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
-    let trimmed = match text.split("#").max() {
+    let trimmed = match text.split("#").nth(0) {
         None => text,
         Some(first) => first,
     }
