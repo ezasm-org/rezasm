@@ -28,7 +28,11 @@ impl InstructionRegistry {
         };
     }
 
-    fn get_instruction(&self, name: &String, args: &Vec<ArgumentType>) -> Option<&'static Instruction> {
+    fn get_instruction(
+        &self,
+        name: &String,
+        args: &Vec<ArgumentType>,
+    ) -> Option<&'static Instruction> {
         match self.instructions.get(name) {
             None => None,
             Some(group) => {
@@ -45,11 +49,15 @@ impl InstructionRegistry {
 }
 
 lazy_static! {
-    pub static ref INSTRUCTIONS: Mutex<InstructionRegistry> = Mutex::new(InstructionRegistry::new());
+    pub static ref INSTRUCTIONS: Mutex<InstructionRegistry> =
+        Mutex::new(InstructionRegistry::new());
 }
 
 pub fn register_instruction(instruction: &'static InstructionField) {
-    INSTRUCTIONS.lock().unwrap().register_instruction(instruction);
+    INSTRUCTIONS
+        .lock()
+        .unwrap()
+        .register_instruction(instruction);
 }
 
 pub fn get_instruction(name: &String, args: &Vec<ArgumentType>) -> Option<&'static Instruction> {

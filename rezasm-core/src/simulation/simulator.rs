@@ -2,9 +2,9 @@ use std::collections::HashMap;
 use std::fmt::Debug;
 
 use crate::instructions::argument_type::ArgumentType;
+use crate::instructions::instruction_registry::get_instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::instruction_registry::get_instruction;
 use crate::parser::lexer::{EZNumber, Token};
 use crate::parser::line::Line;
 use crate::simulation::memory;
@@ -98,14 +98,18 @@ impl Simulator {
         match &line {
             Line::Label(label) => {
                 if self.label_map.contains_key(label) {
-                    return Err(EzasmError::LabelInUseError(label.to_string()))
+                    return Err(EzasmError::LabelInUseError(label.to_string()));
                 } else {
-                    self.label_map.insert(String::from(label), self.lines.len() as i64);
+                    self.label_map
+                        .insert(String::from(label), self.lines.len() as i64);
                 }
             }
             _ => {}
         };
-        match self.memory.add_string_immediates(line.get_string_immediates()) {
+        match self
+            .memory
+            .add_string_immediates(line.get_string_immediates())
+        {
             Ok(_) => {}
             Err(error) => return Err(error),
         };
@@ -116,7 +120,7 @@ impl Simulator {
     pub fn add_lines(&mut self, lines: Vec<Line>) -> Result<(), EzasmError> {
         for line in lines {
             match self.add_line(line) {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(error) => return Err(error),
             };
         }
@@ -179,22 +183,26 @@ impl Simulator {
         let result = match line {
             Line::Instruction(instruction_name, args) => {
                 // Parse and register the line, then execute it
-                let targets: Vec<ArgumentType> = args
-                    .iter()
-                    .map(|k| self.get_target(k).unwrap())
-                    .collect();
+                let targets: Vec<ArgumentType> =
+                    args.iter().map(|k| self.get_target(k).unwrap()).collect();
                 match get_instruction(instruction_name, &targets) {
-                    None => Err(EzasmError::InvalidInstructionError(instruction_name.to_string())),
-                    Some(instruction) => instruction.get_function()(self, instruction.get_types(), &targets),
+                    None => Err(EzasmError::InvalidInstructionError(
+                        instruction_name.to_string(),
+                    )),
+                    Some(instruction) => {
+                        instruction.get_function()(self, instruction.get_types(), &targets)
+                    }
                 }
-            },
+            }
             Line::Label(label) => {
                 // no-op
                 Ok(())
-            },
+            }
         };
         let new_pc = self.registry.get_pc().get_data().int_value() + 1;
-        self.registry.get_pc_mut().set_data(RawData::from_int(new_pc, &self.word_size));
+        self.registry
+            .get_pc_mut()
+            .set_data(RawData::from_int(new_pc, &self.word_size));
 
         result
     }

@@ -1,7 +1,7 @@
+use lazy_static::lazy_static;
 use rezasm_core::instructions::instruction_field::InstructionField;
 use rezasm_core::instructions::instruction_registry::register_instruction;
 use rezasm_macro::instruction;
-use lazy_static::lazy_static;
 
 lazy_static! {
     pub static ref ADD: InstructionField =
