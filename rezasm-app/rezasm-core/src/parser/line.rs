@@ -1,4 +1,4 @@
-use std::fmt::{Display, Formatter, Write};
+use std::fmt::{Display, Formatter};
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction::Instruction;
 use crate::instructions::instruction_registry::{get_instruction, is_instruction_name_registered};

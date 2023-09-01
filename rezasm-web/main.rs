@@ -5,14 +5,28 @@ extern crate rezasm_core;
 extern crate rezasm_macro;
 extern crate rezasm_app;
 
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use lazy_static::lazy_static;
 use rezasm_app::instructions::implementation::arithmetic_instructions::register_instructions;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 
+lazy_static! {
+    static ref SIMULATOR: Arc<RwLock<Simulator>> = Arc::new(RwLock::new(Simulator::new()));
+}
+
+pub fn get_simulator<'a>() -> RwLockWriteGuard<'a, Simulator> {
+    SIMULATOR.write().unwrap()
+}
+
+pub fn set_simulator(simulator: Simulator) {
+    *SIMULATOR.write().unwrap() = simulator;
+}
+
 #[tauri::command]
 fn run(line: &str) -> String {
-    let mut simulator: Simulator = Simulator::new();
+    let mut simulator = get_simulator();
 
     for line_string in line
         .lines()
@@ -41,6 +55,11 @@ fn run(line: &str) -> String {
     }
     let return_code: i64 = simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value();
     format!("Program completed with exit code {}", return_code)
+}
+
+#[tauri::command]
+fn step() -> String {
+    "".to_string()
 }
 
 fn main() {
