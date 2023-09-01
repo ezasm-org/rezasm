@@ -4,10 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "tauri": "tauri dev"
+    "tauri-dev": "tauri dev",
+    "tauri-build": "tauri build"
   },
   "dependencies": {
     "react": "^18.2.0",
