@@ -19,7 +19,9 @@ impl Line {
         word_size: &WordSize,
     ) -> Result<Self, EzasmError> {
         if is_label(instruction) {
-            return Ok(Line::Label(instruction[0..instruction.len() - 1].to_string()));
+            return Ok(Line::Label(
+                instruction[0..instruction.len() - 1].to_string(),
+            ));
         } else if !is_instruction_name_registered(instruction) {
             return Err(EzasmError::InvalidInstructionError(instruction.to_string()));
         }
@@ -59,7 +61,7 @@ impl Line {
 
         let matching_instruction = match get_instruction(instruction, &arguments) {
             Some(x) => x,
-            None => return Err(EzasmError::InvalidInstructionError(instruction.to_string()))
+            None => return Err(EzasmError::InvalidInstructionError(instruction.to_string())),
         };
 
         Ok(Line::Instruction(matching_instruction, arguments))
