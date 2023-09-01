@@ -9,6 +9,7 @@ use crate::util::error::EzasmError;
 pub type TInstructionFunction =
     fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), EzasmError>;
 
+#[derive(Clone)]
 pub struct Instruction {
     types: Vec<TypeId>,
     function: TInstructionFunction,

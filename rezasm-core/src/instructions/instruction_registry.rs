@@ -49,7 +49,7 @@ impl InstructionRegistry {
 }
 
 lazy_static! {
-    pub static ref INSTRUCTIONS: Mutex<InstructionRegistry> =
+    static ref INSTRUCTIONS: Mutex<InstructionRegistry> =
         Mutex::new(InstructionRegistry::new());
 }
 
@@ -62,4 +62,8 @@ pub fn register_instruction(instruction: &'static InstructionField) {
 
 pub fn get_instruction(name: &String, args: &Vec<ArgumentType>) -> Option<&'static Instruction> {
     INSTRUCTIONS.lock().unwrap().get_instruction(name, args)
+}
+
+pub fn is_instruction_name_registered(instruction: &String) -> bool {
+    INSTRUCTIONS.lock().unwrap().instructions.contains_key(instruction)
 }

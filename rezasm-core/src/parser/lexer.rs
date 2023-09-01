@@ -257,11 +257,6 @@ pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
     Ok(result.to_string())
 }
 
-pub fn is_instruction(token: &String) -> bool {
-    return true;
-    //TODO implement
-}
-
 // Regex matching sucks, the way it was done in the original sucks way more though
 pub fn is_numeric(token: &String) -> bool {
     let binary_pattern = Regex::new("^0b[10]+\\.?[01]*$").unwrap();

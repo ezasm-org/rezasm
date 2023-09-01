@@ -1,4 +1,6 @@
 use crate::instructions::argument_type::ArgumentType;
+use crate::instructions::instruction::Instruction;
+use crate::instructions::instruction_registry::{get_instruction, is_instruction_name_registered};
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::*;
 use crate::util::error::EzasmError;
@@ -6,7 +8,7 @@ use crate::util::word_size::WordSize;
 
 #[derive(Debug, Clone)]
 pub enum Line {
-    Instruction(String, Vec<ArgumentType>),
+    Instruction(&'static Instruction, Vec<ArgumentType>),
     Label(String),
 }
 
@@ -17,12 +19,9 @@ impl Line {
         word_size: &WordSize,
     ) -> Result<Self, EzasmError> {
         if is_label(instruction) {
-            //cloning here might not be ideal long term.
-            return Ok(Line::Label(
-                instruction[0..instruction.len() - 1].to_string(),
-            ));
-        } else if !is_instruction(instruction) {
-            return Err(EzasmError::ParserError);
+            return Ok(Line::Label(instruction[0..instruction.len() - 1].to_string()));
+        } else if !is_instruction_name_registered(instruction) {
+            return Err(EzasmError::InvalidInstructionError(instruction.to_string()));
         }
 
         let mut args_out: Vec<Token> = Vec::new();
@@ -58,7 +57,12 @@ impl Line {
             });
         }
 
-        Ok(Line::Instruction(instruction.clone(), arguments))
+        let matching_instruction = match get_instruction(instruction, &arguments) {
+            Some(x) => x,
+            None => return Err(EzasmError::InvalidInstructionError(instruction.to_string()))
+        };
+
+        Ok(Line::Instruction(matching_instruction, arguments))
     }
 
     pub fn get_string_immediates(&self) -> Vec<&String> {

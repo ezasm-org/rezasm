@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-use crate::instructions::instruction_registry::get_instruction;
 use crate::parser::line::Line;
 use crate::simulation::memory;
 use crate::simulation::memory::Memory;
@@ -145,15 +144,8 @@ impl Simulator {
 
     pub fn run_line(&mut self, line: &Line) -> Result<(), EzasmError> {
         let result = match line {
-            Line::Instruction(instruction_name, args) => {
-                match get_instruction(instruction_name, args) {
-                    None => Err(EzasmError::InvalidInstructionError(
-                        instruction_name.to_string(),
-                    )),
-                    Some(instruction) => {
-                        instruction.get_function()(self, instruction.get_types(), &args)
-                    }
-                }
+            Line::Instruction(instruction, args) => {
+                instruction.get_function()(self, instruction.get_types(), &args)
             }
             Line::Label(label) => {
                 // no-op
