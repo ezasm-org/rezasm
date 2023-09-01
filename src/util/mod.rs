@@ -1,3 +1,5 @@
+pub mod application;
+
 pub mod cli;
 
-pub mod application;
+pub mod cli_arguments;

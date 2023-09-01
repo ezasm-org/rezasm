@@ -29,10 +29,11 @@ use crate::instructions::implementation::arithmetic_instructions::register_instr
 use crate::util::application::Application;
 use crate::util::cli::Arguments;
 use crate::util::{application, cli};
+use crate::util::cli_arguments::handle_arguments;
 
 fn main() {
     let args: Arguments = cli::get_args();
-    let application: Application = match cli::handle_arguments(args) {
+    let application: Application = match handle_arguments(args) {
         Ok(app) => app,
         Err(error) => application::handle_error(error),
     };
