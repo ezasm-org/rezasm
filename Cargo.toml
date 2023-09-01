@@ -1,18 +1,42 @@
 [package]
 name = "rezasm"
-version = "0.4.0"
+version = "0.1.0"
 edition = "2021"
 
-[dependencies]
-rezasm-core = { path = "rezasm-core" }
-rezasm-macro = { path = "rezasm-macro" }
+[[bin]]
+path = "rezasm-app/src/main.rs"
+name = "rezasm-app"
 
-lazy_static = "1.4.0"
-regex = "1.8.1"
+[[bin]]
+path = "src-web/main.rs"
+name = "rezasm"
+
+# For src-web only
+[build-dependencies]
+tauri-build = { version = "1.4", features = [] }
+
+[dependencies]
+rezasm-core = { path = "rezasm-app/rezasm-core" }
+rezasm-macro = { path = "rezasm-app/rezasm-macro" }
+rezasm-app = { path = "rezasm-app" }
+
 bimap = "0.6.3"
-bytebuffer = "2.1.0"
+bytebuffer = "2.1.1"
 clap = { version = "4.4.1", features = ["derive"] }
 expanduser = "1.2.2"
+lazy_static = "1.4.0"
+regex = "1.8.4"
+
+# For src-web only
+tauri = { version = "1.4.1", features = ["shell-open"] }
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.105"
 
 [workspace]
-members = ["rezasm-core", "rezasm-macro"]
+members = ["rezasm-app", "rezasm-app/rezasm-core", "rezasm-app/rezasm-macro"]
+
+# For src-web only
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+[features]
+custom-protocol = ["tauri/custom-protocol"]

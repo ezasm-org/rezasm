@@ -32,16 +32,16 @@ use crate::util::cli;
 use crate::util::cli_arguments::handle_arguments;
 
 fn main() {
-    let args: Arguments = cli::get_args();
-    let application: Application = match handle_arguments(args) {
-        Ok(app) => app,
-        Err(error) => handle_error(error),
-    };
-
-    match application.run_until_completion() {
-        Ok(_) => {}
-        Err(error) => handle_error(error),
-    };
+    // let args: Arguments = cli::get_args();
+    // let application: Application = match handle_arguments(args) {
+    //     Ok(app) => app,
+    //     Err(error) => handle_error(error),
+    // };
+    //
+    // match application.run_until_completion() {
+    //     Ok(_) => {}
+    //     Err(error) => handle_error(error),
+    // };
 
     // register_instructions();
     // test_tokenize_line();
