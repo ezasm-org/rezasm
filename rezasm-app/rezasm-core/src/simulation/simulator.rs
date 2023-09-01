@@ -119,7 +119,7 @@ impl Simulator {
     }
 
     pub fn end_pc(&self) -> usize {
-        return self.lines.len() + 1;
+        return self.lines.len();
     }
 
     pub fn is_done(&self) -> bool {
@@ -165,8 +165,11 @@ impl Simulator {
             Ok(x) => x,
             Err(error) => return Err(error),
         };
-        let line = self.lines[line_number as usize].clone();
-        self.run_line(&line)
+        let line = match self.lines.get(line_number as usize) {
+            None => return Err(EzasmError::SimualtorError),
+            Some(x) => x,
+        };
+        self.run_line(&line.clone())
     }
 
     pub fn apply_transformation(&self) -> Result<(), EzasmError> {

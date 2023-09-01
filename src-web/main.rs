@@ -7,13 +7,12 @@ extern crate rezasm_app;
 
 use rezasm_app::instructions::implementation::arithmetic_instructions::register_instructions;
 use rezasm_core::parser::lexer;
+use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 
 #[tauri::command]
 fn run(line: &str) -> String {
     let mut simulator: Simulator = Simulator::new();
-
-    let mut output: String = "Successfully parsed code".to_string();
 
     for line_string in line
         .lines()
@@ -27,22 +26,21 @@ fn run(line: &str) -> String {
                 Ok(line ) => {
                     match simulator.add_line(line) {
                         Ok(_) => {}
-                        Err(error) => {
-                            output = format!("{:?}", error);
-                            break;
-                        }
+                        Err(error) => return format!("{:?}", error),
                     }
                 },
-                Err(error) => {
-                    output = format!("{:?}", error);
-                    break;
-                },
+                Err(error) => return format!("{:?}", error),
             }
         };
     }
-
-    output
-
+    while !simulator.is_done() || simulator.is_error() {
+        match simulator.run_line_from_pc() {
+            Ok(_) => {}
+            Err(error) => return format!("{:?}", error),
+        }
+    }
+    let return_code: i64 = simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value();
+    format!("Program completed with exit code {}", return_code)
 }
 
 fn main() {
