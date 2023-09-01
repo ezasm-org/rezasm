@@ -1,20 +1,21 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
+import ezasmLogo from "./assets/ezasm.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "./App.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+  const [result, setResult] = useState("");
+  const [line, setLine] = useState("");
 
-  async function greet() {
+  async function run() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-    setGreetMsg(await invoke("greet", { name }));
+      setResult(await invoke("run", { line }));
   }
 
   return (
     <div className="container">
-      <h1>Welcome to Tauri!</h1>
+      <h1>Welcome to rezasm!</h1>
 
       <div className="row">
         <a href="https://vitejs.dev" target="_blank">
@@ -26,26 +27,28 @@ function App() {
         <a href="https://reactjs.org" target="_blank">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
+        <a href="" target="_blank">
+          <img src={ezasmLogo} className="logo react" alt="EzASM logo"></img>
+        </a>
       </div>
-
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
 
       <form
         className="row"
         onSubmit={(e) => {
           e.preventDefault();
-          greet();
+          run();
         }}
       >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
+        <textarea
+          id="run-input"
+          cols="32"
+          onChange={(e) => setLine(e.currentTarget.value)}
+          placeholder="Enter some ezasm code..."
         />
-        <button type="submit">Greet</button>
+        <button type="submit">Run!</button>
       </form>
 
-      <p>{greetMsg}</p>
+      <p>{result}</p>
     </div>
   );
 }

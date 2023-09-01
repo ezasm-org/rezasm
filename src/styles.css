@@ -53,7 +53,7 @@ h1 {
   text-align: center;
 }
 
-input,
+textarea,
 button {
   border-radius: 8px;
   border: 1px solid transparent;
@@ -79,12 +79,12 @@ button:active {
   background-color: #e8e8e8;
 }
 
-input,
+textarea,
 button {
   outline: none;
 }
 
-#greet-input {
+#run-input {
   margin-right: 5px;
 }
 
@@ -98,7 +98,7 @@ button {
     color: #24c8db;
   }
 
-  input,
+  textarea,
   button {
     color: #ffffff;
     background-color: #0f0f0f98;
