@@ -55,25 +55,3 @@ impl Application {
         self.simulator.run_line_from_pc()
     }
 }
-
-pub fn handle_error(error: EzasmError) -> ! {
-    println!("{:?}", error);
-    match error {
-        EzasmError::ParserError => {}
-        EzasmError::SimualtorError => {}
-        EzasmError::InvalidArgumentsError => {}
-        EzasmError::InvalidWordSizeError(_) => {}
-        EzasmError::InvalidMemorySizeError(_) => {}
-        EzasmError::InvalidInstructionError(_) => {}
-        EzasmError::CouldNotOpenFileError(_) => {}
-        EzasmError::PathIsNotFileError(_) => {}
-        EzasmError::FileDoesNotExistError(_) => {}
-        EzasmError::ReadOutOfBoundsError(_) => {}
-        EzasmError::WriteOutOfBoundsError(_) => {}
-        EzasmError::WriteToReadOnlyError(_) => {}
-        EzasmError::InvalidProgramCounterError(_) => {}
-        EzasmError::NonExistentLabelError(_) => {}
-        EzasmError::LabelInUseError(_) => {}
-    }
-    panic!();
-}

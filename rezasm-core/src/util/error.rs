@@ -1,4 +1,5 @@
 use std::num::{ParseFloatError, ParseIntError};
+use std::process;
 
 #[derive(Debug)]
 pub enum EzasmError {
@@ -29,4 +30,27 @@ impl From<ParseIntError> for EzasmError {
     fn from(_err: ParseIntError) -> Self {
         EzasmError::ParserError
     }
+}
+
+
+pub fn handle_error(error: EzasmError) -> ! {
+    println!("{:?}", error);
+    match error {
+        EzasmError::ParserError => {}
+        EzasmError::SimualtorError => {}
+        EzasmError::InvalidArgumentsError => {}
+        EzasmError::InvalidWordSizeError(_) => {}
+        EzasmError::InvalidMemorySizeError(_) => {}
+        EzasmError::InvalidInstructionError(_) => {}
+        EzasmError::CouldNotOpenFileError(_) => {}
+        EzasmError::PathIsNotFileError(_) => {}
+        EzasmError::FileDoesNotExistError(_) => {}
+        EzasmError::ReadOutOfBoundsError(_) => {}
+        EzasmError::WriteOutOfBoundsError(_) => {}
+        EzasmError::WriteToReadOnlyError(_) => {}
+        EzasmError::InvalidProgramCounterError(_) => {}
+        EzasmError::NonExistentLabelError(_) => {}
+        EzasmError::LabelInUseError(_) => {}
+    }
+    process::exit(1);
 }

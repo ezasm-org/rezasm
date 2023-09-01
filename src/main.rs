@@ -20,7 +20,7 @@ use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::util::error::EzasmError;
+use rezasm_core::util::error::{EzasmError, handle_error};
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use rezasm_macro::instruction;
@@ -28,19 +28,19 @@ use rezasm_macro::instruction;
 use crate::instructions::implementation::arithmetic_instructions::register_instructions;
 use crate::util::application::Application;
 use crate::util::cli::Arguments;
-use crate::util::{application, cli};
+use crate::util::cli;
 use crate::util::cli_arguments::handle_arguments;
 
 fn main() {
     let args: Arguments = cli::get_args();
     let application: Application = match handle_arguments(args) {
         Ok(app) => app,
-        Err(error) => application::handle_error(error),
+        Err(error) => handle_error(error),
     };
 
     match application.run_until_completion() {
         Ok(_) => {}
-        Err(error) => application::handle_error(error),
+        Err(error) => handle_error(error),
     };
 
     // register_instructions();
