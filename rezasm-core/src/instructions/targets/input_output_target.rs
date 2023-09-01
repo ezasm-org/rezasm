@@ -64,8 +64,7 @@ impl InputOutputTarget {
     }
 
     pub fn new_dereference(register: &String) -> Result<InputOutputTarget, EzasmError> {
-        registry::get_register_number(register)
-            .map(|r| InputOutputTarget::DereferenceInputOutput(r, 0))
+        InputOutputTarget::new_dereference_offset(register, 0)
     }
 
     pub fn new_dereference_offset(

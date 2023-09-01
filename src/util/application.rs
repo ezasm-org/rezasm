@@ -28,18 +28,14 @@ impl Application {
     }
 
     pub fn run_until_completion(mut self) -> Result<(), EzasmError> {
-        let mut count: i64 = 0;
         let lines = self.code_file
             .lines()
             .map(|line| line.unwrap())
             .collect::<Vec<String>>();
         for line in lines {
-            match lexer::parse_line(&line, count) {
+            match lexer::parse_line(&line, self.simulator.get_word_size()) {
                 Some(line_result) => match line_result {
-                    Ok(line) => {
-                        self.simulator.add_line(line)?;
-                        count += 1;
-                    }
+                    Ok(line) => self.simulator.add_line(line)?,
                     Err(error) => return Err(error),
                 },
                 None => {}

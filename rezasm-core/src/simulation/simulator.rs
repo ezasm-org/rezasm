@@ -1,11 +1,7 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
 
-use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction_registry::get_instruction;
-use crate::instructions::targets::input_output_target::InputOutputTarget;
-use crate::instructions::targets::input_target::InputTarget;
-use crate::parser::lexer::{EZNumber, Token};
 use crate::parser::line::Line;
 use crate::simulation::memory;
 use crate::simulation::memory::Memory;
@@ -49,38 +45,6 @@ impl Simulator {
                 self.memory.initial_stack_pointer() as i64,
                 &self.word_size,
             ));
-    }
-
-    pub fn get_target(&self, token: &Token) -> Result<ArgumentType, EzasmError> {
-        Ok(ArgumentType::Input(match token {
-            Token::LabelReference(r) => InputTarget::new_label_reference(r),
-            Token::NumericalImmediate(EZNumber::Float(f)) => {
-                InputTarget::new_immediate(RawData::from_float(f.clone(), &self.word_size))
-            }
-            Token::NumericalImmediate(EZNumber::Integer(i)) => {
-                InputTarget::new_immediate(RawData::from_int(i.clone(), &self.word_size))
-            }
-            Token::StringImmediate(s) => InputTarget::new_string(s),
-            Token::CharacterImmediate(c) => {
-                InputTarget::new_immediate(RawData::from_int(c.clone() as i64, &self.word_size))
-            }
-            Token::Register(r) => {
-                return Ok(ArgumentType::InputOutput(
-                    match InputOutputTarget::new_register(r) {
-                        Ok(t) => t,
-                        Err(e) => return Err(e),
-                    },
-                ))
-            }
-            Token::Dereference(r) => {
-                return Ok(ArgumentType::InputOutput(
-                    match InputOutputTarget::new_dereference(r) {
-                        Ok(t) => t,
-                        Err(e) => return Err(e),
-                    },
-                ))
-            }
-        }))
     }
 
     pub fn reset_data(&mut self) {
@@ -182,15 +146,12 @@ impl Simulator {
     pub fn run_line(&mut self, line: &Line) -> Result<(), EzasmError> {
         let result = match line {
             Line::Instruction(instruction_name, args) => {
-                // Parse and register the line, then execute it
-                let targets: Vec<ArgumentType> =
-                    args.iter().map(|k| self.get_target(k).unwrap()).collect();
-                match get_instruction(instruction_name, &targets) {
+                match get_instruction(instruction_name, args) {
                     None => Err(EzasmError::InvalidInstructionError(
                         instruction_name.to_string(),
                     )),
                     Some(instruction) => {
-                        instruction.get_function()(self, instruction.get_types(), &targets)
+                        instruction.get_function()(self, instruction.get_types(), &args)
                     }
                 }
             }

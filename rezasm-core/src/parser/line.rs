@@ -1,14 +1,17 @@
+use crate::instructions::argument_type::ArgumentType;
+use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::*;
 use crate::util::error::EzasmError;
+use crate::util::word_size::WordSize;
 
 #[derive(Debug, Clone)]
 pub enum Line {
-    Instruction(String, Vec<Token>),
+    Instruction(String, Vec<ArgumentType>),
     Label(String),
 }
 
 impl Line {
-    pub fn new(instruction: &String, args: Vec<String>) -> Result<Self, EzasmError> {
+    pub fn new(instruction: &String, args: Vec<String>, word_size: &WordSize) -> Result<Self, EzasmError> {
         if is_label(instruction) {
             //cloning here might not be ideal long term.
             return Ok(Line::Label(
@@ -42,7 +45,16 @@ impl Line {
                 return Err(EzasmError::ParserError);
             }
         }
-        Ok(Line::Instruction(instruction.clone(), args_out))
+
+        let mut arguments: Vec<ArgumentType> = Vec::new();
+        for argument in args_out {
+            arguments.push(match argument.get_target(word_size) {
+                Ok(arg) => arg,
+                Err(error) => return Err(error),
+            });
+        }
+
+        Ok(Line::Instruction(instruction.clone(), arguments))
     }
 
     pub fn get_string_immediates(&self) -> Vec<&String> {
@@ -51,7 +63,10 @@ impl Line {
                 let mut string_immediates = Vec::new();
                 for arg in args {
                     match arg {
-                        Token::StringImmediate(s) => string_immediates.push(s),
+                        ArgumentType::Input(input) => match input {
+                            InputTarget::StringInput(string) => string_immediates.push(string),
+                            _ => {}
+                        }
                         _ => {}
                     }
                 }

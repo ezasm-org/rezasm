@@ -3,6 +3,7 @@ use regex::Regex;
 use crate::parser::line::*;
 use crate::simulation::registry;
 use crate::util::error::EzasmError;
+use crate::util::word_size::WordSize;
 
 pub enum EZNumberFormat {
     Decimal(String),
@@ -181,7 +182,6 @@ pub fn looks_like_string_immediate(token: &String) -> bool {
 
 pub fn get_character_immediate(token: &String) -> Result<char, EzasmError> {
     if token.len() == 3 {
-        //unwrap should never fail do to length check
         return Ok(token.chars().nth(1).unwrap());
     } else if token.len() == 4 {
         //TODO consider reworking this part of the program as it is not at feature parity with main
@@ -202,23 +202,19 @@ pub fn get_character_immediate(token: &String) -> Result<char, EzasmError> {
                 _ => Err(EzasmError::ParserError),
             },
         }
-    } else if token.len() < 3 {
-        return Err(EzasmError::ParserError);
     } else {
         Err(EzasmError::ParserError)
     }
 }
 
-pub fn parse_line(line: &String, line_number: i64) -> Option<Result<Line, EzasmError>> {
+pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, EzasmError>> {
     let tokens = tokenize_line(line);
 
     if tokens.len() == 0 {
-        return None;
+        None
+    } else {
+        Some(Line::new(&tokens[0], (&tokens[1..]).to_vec(), word_size))
     }
-
-    let args = &tokens[1..];
-
-    Some(Line::new(&tokens[0], args.to_vec()))
 }
 
 pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
