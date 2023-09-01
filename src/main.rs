@@ -120,7 +120,7 @@ pub fn test_proc_macro() {
     let line: Line = Line::new(
         &String::from("add"),
         ["$T0".to_string(), "$T0".to_string(), "121".to_string()].to_vec(),
-        simulator.get_word_size()
+        simulator.get_word_size(),
     )
     .unwrap();
 
@@ -183,9 +183,15 @@ pub fn test_simulator_instruction() {
 pub fn test_simulator_labels() {
     let mut simulator: Simulator = Simulator::new();
 
-    let line1 = parse_line(&"add $t0 0 0".to_string(), simulator.get_word_size()).unwrap().unwrap();
-    let line2 = parse_line(&"add $t1 0 1".to_string(), simulator.get_word_size()).unwrap().unwrap();
-    let line3 = parse_line(&"fib:".to_string(), simulator.get_word_size()).unwrap().unwrap();
+    let line1 = parse_line(&"add $t0 0 0".to_string(), simulator.get_word_size())
+        .unwrap()
+        .unwrap();
+    let line2 = parse_line(&"add $t1 0 1".to_string(), simulator.get_word_size())
+        .unwrap()
+        .unwrap();
+    let line3 = parse_line(&"fib:".to_string(), simulator.get_word_size())
+        .unwrap()
+        .unwrap();
     let line4 = parse_line(&"add $t2 $t0 $t1".to_string(), simulator.get_word_size())
         .unwrap()
         .unwrap();

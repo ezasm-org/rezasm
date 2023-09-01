@@ -28,7 +28,8 @@ impl Application {
     }
 
     pub fn run_until_completion(mut self) -> Result<(), EzasmError> {
-        let lines = self.code_file
+        let lines = self
+            .code_file
             .lines()
             .map(|line| line.unwrap())
             .collect::<Vec<String>>();

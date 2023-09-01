@@ -11,7 +11,11 @@ pub enum Line {
 }
 
 impl Line {
-    pub fn new(instruction: &String, args: Vec<String>, word_size: &WordSize) -> Result<Self, EzasmError> {
+    pub fn new(
+        instruction: &String,
+        args: Vec<String>,
+        word_size: &WordSize,
+    ) -> Result<Self, EzasmError> {
         if is_label(instruction) {
             //cloning here might not be ideal long term.
             return Ok(Line::Label(
@@ -66,7 +70,7 @@ impl Line {
                         ArgumentType::Input(input) => match input {
                             InputTarget::StringInput(string) => string_immediates.push(string),
                             _ => {}
-                        }
+                        },
                         _ => {}
                     }
                 }

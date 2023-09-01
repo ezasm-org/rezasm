@@ -126,7 +126,11 @@ impl Token {
                 let lparen = d.find('(').unwrap();
                 let rparen = d.rfind(')').unwrap();
 
-                let register_string: String = d.chars().skip(lparen + 1).take(rparen - lparen - 1).collect();
+                let register_string: String = d
+                    .chars()
+                    .skip(lparen + 1)
+                    .take(rparen - lparen - 1)
+                    .collect();
                 let offset_string: String = d.chars().take(lparen - 1).collect();
 
                 let offset: i64 = if offset_string.is_empty() {
@@ -143,7 +147,7 @@ impl Token {
                         Ok(t) => t,
                         Err(e) => return Err(e),
                     },
-                ))
+                ));
             }
         }))
     }
