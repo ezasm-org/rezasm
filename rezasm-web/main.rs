@@ -12,10 +12,8 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize, Serializer};
 use rezasm_app::instructions::implementation::arithmetic_instructions::register_instructions;
 use rezasm_core::parser::lexer;
-use rezasm_core::simulation::register::Register;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::util::error::EzasmError;
 use crate::util::serial_result::SerialResult;
 
 lazy_static! {
@@ -91,12 +89,14 @@ fn get_exit_status() -> i64 {
     get_simulator().get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value()
 }
 
-// TODO allow for options to be returned on registered functions
 #[tauri::command]
 fn get_register_value(register: &str) -> Option<i64> {
     match get_simulator().get_registers().get_register(&register.to_string()) {
         Ok(x) => Some(x.get_data().int_value()),
-        Err(_) => None,
+        Err(e) => {
+            println!("{:?}", e);
+            None
+        },
     }
 }
 

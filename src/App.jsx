@@ -32,6 +32,10 @@ const getErr = (result) => {
     }
 }
 
+const isSome = (option) => {
+    return option !== null;
+}
+
 
 function App() {
     const [error, setError] = useState("");
@@ -84,6 +88,10 @@ function App() {
         return await invoke("get_exit_status", {});
     }
 
+    async function getRegisterValue(register) {
+        return await invoke("get_register_value", {register});
+    }
+
     async function run() {
         await reset();
         await load();
@@ -92,7 +100,6 @@ function App() {
             setRunning(true);
             await invoke("run", {lines}).then(await (async (runResult) => {
                 // TODO enable run button
-                console.log("Async!!!!");
                 if (isOk(runResult)) {
                     setResult("Program exited with exit code " +  await getExitStatus());
                 } else {
@@ -118,8 +125,6 @@ function App() {
                 setRunning(await isCompleted());
             }));
         }
-
-
     }
 
     return (

@@ -6,9 +6,11 @@ pub enum EzasmError {
     ParserError,
     SimualtorError,
     InvalidArgumentsError,
-    InvalidWordSizeError(usize),
     InvalidMemorySizeError(usize),
     InvalidInstructionError(String),
+    InvalidRegisterNumberError(usize),
+    InvalidRegisterNameError(String),
+    InvalidWordSizeError(usize),
     CouldNotOpenFileError(String),
     PathIsNotFileError(String),
     FileDoesNotExistError(String),
@@ -39,9 +41,11 @@ pub fn handle_error(error: EzasmError) -> ! {
         EzasmError::ParserError => {}
         EzasmError::SimualtorError => {}
         EzasmError::InvalidArgumentsError => {}
-        EzasmError::InvalidWordSizeError(_) => {}
         EzasmError::InvalidMemorySizeError(_) => {}
         EzasmError::InvalidInstructionError(_) => {}
+        EzasmError::InvalidRegisterNumberError(_) => {}
+        EzasmError::InvalidRegisterNameError(_) => {}
+        EzasmError::InvalidWordSizeError(_) => {}
         EzasmError::CouldNotOpenFileError(_) => {}
         EzasmError::PathIsNotFileError(_) => {}
         EzasmError::FileDoesNotExistError(_) => {}

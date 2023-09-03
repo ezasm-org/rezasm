@@ -148,7 +148,7 @@ impl Registry {
 
     pub fn get_register_by_number(&self, register: usize) -> Result<&Register, EzasmError> {
         if register >= REGISTERS_COUNT {
-            Err(EzasmError::SimualtorError) // TODO name this
+            Err(EzasmError::InvalidRegisterNumberError(register))
         } else {
             Ok(&self.registers[register])
         }
@@ -159,20 +159,34 @@ impl Registry {
         register: usize,
     ) -> Result<&mut Register, EzasmError> {
         if register >= REGISTERS_COUNT {
-            Err(EzasmError::SimualtorError) // TODO name this
+            Err(EzasmError::InvalidRegisterNumberError(register))
         } else {
             Ok(&mut self.registers[register])
         }
     }
 
     pub fn get_register(&self, register: &String) -> Result<&Register, EzasmError> {
-        self.get_register_by_number(*REGISTERS_MAP.get_by_left(register).unwrap())
+        let no_dollar = if register.starts_with('$') {
+            register[1..].to_uppercase()
+        } else {
+            register.to_uppercase()
+        };
+        match REGISTERS_MAP.get_by_left(no_dollar.as_str()) {
+            None => Err(EzasmError::InvalidRegisterNameError(no_dollar)),
+            Some(r) => self.get_register_by_number(*r),
+        }
     }
 
     pub fn get_register_mut(&mut self, register: &String) -> Result<&mut Register, EzasmError> {
-        self.get_register_by_number_mut(
-            *REGISTERS_MAP.get_by_left(&register.to_uppercase()).unwrap(),
-        )
+        let no_dollar = if register.starts_with('$') {
+            register[1..].to_uppercase()
+        } else {
+            register.to_uppercase()
+        };
+        match REGISTERS_MAP.get_by_left(no_dollar.as_str()) {
+            None => Err(EzasmError::InvalidRegisterNameError(no_dollar)),
+            Some(r) => self.get_register_by_number_mut(*r),
+        }
     }
 
     pub fn get_pc(&self) -> &Register {
