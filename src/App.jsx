@@ -2,7 +2,7 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import ezasmLogo from "./assets/ezasm.svg";
 import { invoke } from "@tauri-apps/api/tauri";
-import "./App.css";
+import "../dist/output.css";
 
 const RESULT_OK = "data";
 const RESULT_ERR = "error";
@@ -147,19 +147,19 @@ function App() {
                     onChange={(e) => setLines(e.currentTarget.value)}
                     placeholder="Enter some ezasm code..."
                 />
-                <button onClick={(e) => {
+                <button class="rounded-full bg-green-700" onClick={(e) => {
                     e.preventDefault();
                     run();
                 }}>
                     Run
                 </button>
-                <button onClick={(e) => {
+                <button class="rounded-full bg-red-700" onClick={(e) => {
                     e.preventDefault();
                     step();
                 }}>
                     Step
                 </button>
-                <button onClick={(e) => {
+                <button class="rounded-full" onClick={(e) => {
                     e.preventDefault();
                     reset();
                 }}>
