@@ -2,8 +2,8 @@
 function Toolbar() {
     return (
         <div>
-            <button>Run</button>
-            <button>Step</button>
+            <button class="rounded-full">Run</button>
+            <button class="rounded-full">Step</button>
         </div>
     );
 }
