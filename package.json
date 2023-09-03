@@ -1,6 +1,6 @@
 {
   "name": "rezasm-web",
-  "private": true,
+  "private": false,
   "version": "0.1.0",
   "type": "module",
   "scripts": {
@@ -8,16 +8,21 @@
     "build": "vite build",
     "preview": "vite preview",
     "tauri-dev": "tauri dev",
-    "tauri-build": "tauri build"
+    "tauri-build": "tauri build",
+    "format": "eslint --fix"
   },
   "dependencies": {
+    "@tauri-apps/api": "^1.4.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@tauri-apps/api": "^1.4.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^1.4.0",
     "@vitejs/plugin-react": "^4.0.3",
-    "vite": "^4.4.4",
-    "@tauri-apps/cli": "^1.4.0"
+    "eslint": "^8.48.0",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "tailwindcss": "^3.3.3",
+    "vite": "^4.4.4"
   }
 }

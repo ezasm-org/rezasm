@@ -1,4 +1,4 @@
-import { useState } from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import reactLogo from "./assets/react.svg";
 import ezasmLogo from "./assets/ezasm.svg";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -8,7 +8,6 @@ const RESULT_OK = "data";
 const RESULT_ERR = "error";
 
 const isOk = (result) => {
-    // Cast to bool using ! operator, then undo inversion
     return result[RESULT_OK] || result[RESULT_OK] === null;
 }
 
@@ -39,93 +38,100 @@ const isSome = (option) => {
 
 function App() {
     const [error, setError] = useState("");
-    const [loaded, setLoaded] = useState(false);
-    const [running, setRunning] = useState(false);
     const [result, setResult] = useState("");
     const [lines, setLines] = useState("");
+    const loaded = useRef(false);
+    const running = useRef(false);
 
-    const isErrorState = () => {
+    const isErrorState = useCallback(() => {
         return error !== "";
-    }
+    }, [error]);
 
-    const clearErrorState = () => {
+    const clearErrorState = useCallback(() => {
         setError("");
-    }
+    }, []);
 
-    const setErrorState = (newState) => {
+    const setErrorState = useCallback((newState) => {
         setError(newState);
-        setRunning(false);
-    }
+        running.current = false;
+    }, []);
 
-    const getErrorState = () => {
+    const getErrorState = useCallback(() => {
         return error;
-    }
+    }, [error]);
 
-    async function reset() {
+    const reset = useCallback(async () => {
         await invoke("reset", {});
-        setLoaded(false);
+        loaded.current = false;
         clearErrorState();
         setResult("");
-    }
+    }, [clearErrorState]);
 
-    async function load() {
+    const load = useCallback(async () => {
+        if (loaded.current) {
+            return true;
+        }
+
         let result = await invoke("load", {lines});
         if (isOk(result)) {
-            setLoaded(true);
+            loaded.current = true;
+            return true;
         } else {
+            console.log("Error in LOAD");
             // isErr
-            setLoaded(false);
             setErrorState(getErr(result));
+            loaded.current = false;
+            return false;
         }
-        return result;
-    }
+    }, [setErrorState, isErrorState, lines]);
 
-    async function isCompleted() {
+    const isCompleted = useCallback(async () => {
         return await invoke("is_completed", {});
-    }
+    }, []);
 
-    async function getExitStatus() {
+    const getExitStatus = useCallback(async () => {
         return await invoke("get_exit_status", {});
-    }
+    }, []);
 
-    async function getRegisterValue(register) {
+    const getRegisterValue = useCallback(async (register) => {
         return await invoke("get_register_value", {register});
-    }
+    }, []);
 
-    async function run() {
+    const run = useCallback(async () => {
         await reset();
         await load();
-        if (!isErrorState()) {
+
+        if (loaded.current) {
             // TODO disable run button
-            setRunning(true);
-            await invoke("run", {lines}).then(await (async (runResult) => {
+            running.current = true;
+            await invoke("run", {}).then(await (async (runResult) => {
                 // TODO enable run button
                 if (isOk(runResult)) {
                     setResult("Program exited with exit code " +  await getExitStatus());
                 } else {
                     setErrorState(getErr(runResult));
                 }
-                setRunning(false);
+                running.current = false;
             }));
         }
-    }
+    }, [reset, load, error, isErrorState, getExitStatus]);
 
-    async function step() {
-        if (!loaded) {
+    const step = useCallback(async () => {
+        if (!loaded.current) {
             await load();
-            if (!isErrorState()) {
-                setRunning(true);
+            if (loaded.current) {
+                running.current = true;
             }
         }
 
-        if (loaded && running && !isErrorState()) {
+        if (loaded.current) {
             // TODO Disable step button
             await invoke("step", {}).then(await (async (stepResult) => {
                 // TODO Enable step button
-                setRunning(await isCompleted());
+                running.current = await isCompleted();
             }));
         }
-    }
+    }, [load, isErrorState, isCompleted]);
 
     return (
         <div className="container">
@@ -152,19 +158,19 @@ function App() {
                     onChange={(e) => setLines(e.currentTarget.value)}
                     placeholder="Enter some ezasm code..."
                 />
-                <button class="rounded-full bg-green-700" onClick={(e) => {
+                <button className="rounded-full bg-green-700" onClick={(e) => {
                     e.preventDefault();
                     run();
                 }}>
                     Run
                 </button>
-                <button class="rounded-full bg-red-700" onClick={(e) => {
+                <button className="rounded-full bg-red-700" onClick={(e) => {
                     e.preventDefault();
                     step();
                 }}>
                     Step
                 </button>
-                <button class="rounded-full" onClick={(e) => {
+                <button className="rounded-full bg-amber-800" onClick={(e) => {
                     e.preventDefault();
                     reset();
                 }}>
