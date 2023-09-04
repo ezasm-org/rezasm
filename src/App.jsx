@@ -1,22 +1,19 @@
 import {useCallback, useRef, useState} from "react";
-import reactLogo from "./assets/react.svg";
-import ezasmLogo from "./assets/ezasm.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "../dist/output.css";
-import colors from "tailwindcss/colors.js";
 
 const RESULT_OK = "data";
 const RESULT_ERR = "error";
 
-const isOk = (result) => {
+const isOk = result => {
     return result[RESULT_OK] || result[RESULT_OK] === null;
 }
 
-const isError = (result) => {
+const isError = result => {
     return result[RESULT_ERR] || result[RESULT_ERR] === null;
 }
 
-const getOk = (result) => {
+const getOk = result => {
     if (isOk(result)) {
         return result[RESULT_OK] === null ? {} : result[RESULT_OK];
     } else {
@@ -24,7 +21,7 @@ const getOk = (result) => {
     }
 }
 
-const getErr = (result) => {
+const getErr = result => {
     if (isError(result)) {
         return result[RESULT_ERR] === null ? {} : result[RESULT_ERR];
     } else {
@@ -32,7 +29,7 @@ const getErr = (result) => {
     }
 }
 
-const isSome = (option) => {
+const isSome = option => {
     return option !== null;
 }
 
@@ -54,7 +51,7 @@ function App() {
         setError("");
     }, []);
 
-    const setErrorState = useCallback((newState) => {
+    const setErrorState = useCallback(newState => {
         setError(newState);
         setRunning(false);
         setPaused(false);
@@ -97,7 +94,7 @@ function App() {
         return await invoke("get_exit_status", {});
     }, []);
 
-    const getRegisterValue = useCallback(async (register) => {
+    const getRegisterValue = useCallback(async register => {
         return await invoke("get_register_value", {register});
     }, []);
 
@@ -108,7 +105,7 @@ function App() {
         if (loaded.current) {
             // TODO disable run button
             setRunning(true);
-            await invoke("run", {}).then(await (async (runResult) => {
+            await invoke("run", {}).then(await (async runResult => {
                 // TODO enable run button
                 if (isOk(runResult)) {
                     setResult("Program exited with exit code " +  await getExitStatus());
@@ -129,15 +126,12 @@ function App() {
         }
 
         if (loaded.current && !await isCompleted()) {
-            console.log("Running step...");
             // TODO Disable step button
-            await invoke("step", {}).then(await (async (stepResult) => {
+            await invoke("step", {}).then(await (async stepResult => {
                 // TODO Enable step button
                 if (isOk(stepResult)) {
-                    console.log("Got OKAY");
                     const completed = await isCompleted();
                     if (completed) {
-                        console.log("CODE DONE");
                         setResult("Program exited with exit code " +  await getExitStatus());
                     }
                 } else {
