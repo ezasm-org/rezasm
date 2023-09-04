@@ -120,7 +120,6 @@ function App() {
     const step = useCallback(async () => {
         if (!loaded.current) {
             if (await load()) {
-                console.log("Loaded...");
                 setPaused(true);
             }
         }
