@@ -9,18 +9,16 @@ extern crate lazy_static;
 extern crate rezasm_core;
 extern crate rezasm_macro;
 
-use rezasm_core::instructions::argument_type::ArgumentType;
 use rezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
 use rezasm_core::instructions::targets::input_output_target::InputOutputTarget;
 use rezasm_core::instructions::targets::input_target::InputTarget;
-use rezasm_core::parser::lexer;
 use rezasm_core::parser::lexer::{parse_line, text_to_number, tokenize_line, EZNumber};
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::util::error::{EzasmError, handle_error};
+use rezasm_core::util::error::handle_error;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use rezasm_macro::instruction;
@@ -32,26 +30,26 @@ use crate::util::cli;
 use crate::util::cli_arguments::handle_arguments;
 
 fn main() {
-    // let args: Arguments = cli::get_args();
-    // let application: Application = match handle_arguments(args) {
-    //     Ok(app) => app,
-    //     Err(error) => handle_error(error),
-    // };
-    //
-    // match application.run_until_completion() {
-    //     Ok(_) => {}
-    //     Err(error) => handle_error(error),
-    // };
+    register_instructions();
+    test_tokenize_line();
+    test_text_to_number();
+    test_memory();
+    test_registry();
+    test_subclasses();
+    test_proc_macro();
+    test_simulator_instruction();
+    test_simulator_labels();
 
-    // register_instructions();
-    // test_tokenize_line();
-    // test_text_to_number();
-    // test_memory();
-    // test_registry();
-    // test_subclasses();
-    // test_proc_macro();
-    // test_simulator_instruction();
-    // test_simulator_labels();
+    let args: Arguments = cli::get_args();
+    let application: Application = match handle_arguments(args) {
+        Ok(app) => app,
+        Err(error) => handle_error(error),
+    };
+
+    match application.run_until_completion() {
+        Ok(_) => {}
+        Err(error) => handle_error(error),
+    };
 }
 
 fn test_tokenize_line() {

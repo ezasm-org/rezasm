@@ -9,7 +9,6 @@ extern crate rezasm_app;
 
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
 use lazy_static::lazy_static;
-use serde::{Deserialize, Serialize, Serializer};
 use rezasm_app::instructions::implementation::arithmetic_instructions::register_instructions;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
@@ -93,16 +92,12 @@ fn get_exit_status() -> i64 {
 fn get_register_value(register: &str) -> Option<i64> {
     match get_simulator().get_registers().get_register(&register.to_string()) {
         Ok(x) => Some(x.get_data().int_value()),
-        Err(e) => {
-            println!("{:?}", e);
-            None
-        },
+        Err(_) => None,
     }
 }
 
 fn main() {
     register_instructions();
-
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![load, reset, run, step, is_completed, get_exit_status, get_register_value])
         .run(tauri::generate_context!())

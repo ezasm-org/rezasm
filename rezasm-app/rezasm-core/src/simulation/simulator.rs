@@ -53,6 +53,7 @@ impl Simulator {
 
     pub fn reset(&mut self) {
         self.reset_data();
+        self.lines.clear();
         self.label_map.clear();
         self.initialize();
     }
@@ -123,8 +124,8 @@ impl Simulator {
     }
 
     pub fn is_done(&self) -> bool {
-        self.lines.is_empty()
-            || self.registry.get_pc().get_data().int_value() == self.end_pc() as i64
+        let pc = self.registry.get_pc().get_data().int_value();
+        self.lines.is_empty() && pc == 0 || pc == self.end_pc() as i64
     }
 
     pub fn is_error(&self) -> bool {

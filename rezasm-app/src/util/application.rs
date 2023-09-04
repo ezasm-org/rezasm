@@ -1,5 +1,4 @@
 use rezasm_core::parser::lexer;
-use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::EzasmError;
 use std::fs::File;
@@ -48,10 +47,5 @@ impl Application {
         }
 
         Ok(())
-    }
-
-    fn run_one_line(&mut self, line: Line) -> Result<(), EzasmError> {
-        self.simulator.add_line(line)?;
-        self.simulator.run_line_from_pc()
     }
 }

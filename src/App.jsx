@@ -1,8 +1,9 @@
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useRef, useState} from "react";
 import reactLogo from "./assets/react.svg";
 import ezasmLogo from "./assets/ezasm.svg";
 import { invoke } from "@tauri-apps/api/tauri";
 import "../dist/output.css";
+import colors from "tailwindcss/colors.js";
 
 const RESULT_OK = "data";
 const RESULT_ERR = "error";
@@ -37,11 +38,13 @@ const isSome = (option) => {
 
 
 function App() {
+    const [lines, setLines] = useState("");
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
-    const [lines, setLines] = useState("");
+
     const loaded = useRef(false);
-    const running = useRef(false);
+    const [running, setRunning] = useState(false);
+    const [paused, setPaused] = useState(false);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -53,7 +56,9 @@ function App() {
 
     const setErrorState = useCallback((newState) => {
         setError(newState);
-        running.current = false;
+        setRunning(false);
+        setPaused(false);
+        loaded.current = false;
     }, []);
 
     const getErrorState = useCallback(() => {
@@ -63,22 +68,21 @@ function App() {
     const reset = useCallback(async () => {
         await invoke("reset", {});
         loaded.current = false;
-        clearErrorState();
+        setRunning(false);
+        setPaused(false);
         setResult("");
+        clearErrorState();
     }, [clearErrorState]);
 
     const load = useCallback(async () => {
         if (loaded.current) {
             return true;
         }
-
         let result = await invoke("load", {lines});
         if (isOk(result)) {
             loaded.current = true;
             return true;
         } else {
-            console.log("Error in LOAD");
-            // isErr
             setErrorState(getErr(result));
             loaded.current = false;
             return false;
@@ -103,7 +107,7 @@ function App() {
 
         if (loaded.current) {
             // TODO disable run button
-            running.current = true;
+            setRunning(true);
             await invoke("run", {}).then(await (async (runResult) => {
                 // TODO enable run button
                 if (isOk(runResult)) {
@@ -111,75 +115,96 @@ function App() {
                 } else {
                     setErrorState(getErr(runResult));
                 }
-                running.current = false;
+                setRunning(false);
             }));
         }
     }, [reset, load, error, isErrorState, getExitStatus]);
 
     const step = useCallback(async () => {
         if (!loaded.current) {
-            await load();
-            if (loaded.current) {
-                running.current = true;
+            if (await load()) {
+                console.log("Loaded...");
+                setPaused(true);
             }
         }
 
-        if (loaded.current) {
+        if (loaded.current && !await isCompleted()) {
+            console.log("Running step...");
             // TODO Disable step button
             await invoke("step", {}).then(await (async (stepResult) => {
                 // TODO Enable step button
-                running.current = await isCompleted();
+                if (isOk(stepResult)) {
+                    console.log("Got OKAY");
+                    const completed = await isCompleted();
+                    if (completed) {
+                        console.log("CODE DONE");
+                        setResult("Program exited with exit code " +  await getExitStatus());
+                    }
+                } else {
+                    setErrorState(getErr(stepResult));
+                }
             }));
         }
-    }, [load, isErrorState, isCompleted]);
+    }, [load, isErrorState, getExitStatus, isCompleted]);
+
+
 
     return (
         <div className="container">
-            <h1>Welcome to rezasm!</h1>
+            <h1><b>Welcome to rezasm!</b></h1>
+            <div className="mt-2 mb-2 row">
+                { running ?
+                    <button className="btn-operation bg-red-500 hover:bg-red-700" onClick={(e) => {
+                        // TODO stop
+                    }}>
+                        Stop
+                    </button>
+                    :
+                    <button className="btn-operation bg-green-500 hover:bg-green-700" onClick={(e) => {
+                        run();
+                    }}>
+                        Start
+                    </button>
+                }
 
-            <div className="row">
-                <a href="https://vitejs.dev" target="_blank">
-                    <img src="/vite.svg" className="logo vite" alt="Vite logo"/>
-                </a>
-                <a href="https://tauri.app" target="_blank">
-                    <img src="/tauri.svg" className="logo tauri" alt="Tauri logo"/>
-                </a>
-                <a href="https://reactjs.org" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo"/>
-                </a>
-                <a href="" target="_blank">
-                    <img src={ezasmLogo} className="logo react" alt="EzASM logo"></img>
-                </a>
-            </div>
-            <div className="row">
-                <textarea
-                    id="run-input"
-                    cols="32"
-                    onChange={(e) => setLines(e.currentTarget.value)}
-                    placeholder="Enter some ezasm code..."
-                />
-                <button className="rounded-full bg-green-700" onClick={(e) => {
-                    e.preventDefault();
-                    run();
-                }}>
-                    Run
-                </button>
-                <button className="rounded-full bg-red-700" onClick={(e) => {
-                    e.preventDefault();
+                { paused ?
+                    <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
+                        // TODO resume
+                    }}>
+                        Resume
+                    </button>
+                    :
+                    <button className="btn-operation bg-cyan-600 hover:bg-cyan-700" onClick={(e) => {
+                        // TODO pause
+                    }}>
+                        Pause
+                    </button>
+                }
+
+                <button className="btn-operation bg-blue-500 hover:bg-blue-700" onClick={(e) => {
                     step();
                 }}>
                     Step
                 </button>
-                <button className="rounded-full bg-amber-800" onClick={(e) => {
-                    e.preventDefault();
+                <button className="btn-operation bg-teal-600 hover:bg-teal-700" onClick={(e) => {
+                    // TODO step back
+                }}>
+                    Step Back
+                </button>
+                <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
                     reset();
                 }}>
                     Reset
                 </button>
             </div>
-
-
-            <p>{isErrorState() ? getErrorState() : result}</p>
+            <div className="mt-2 mb-2 row">
+                <textarea
+                    disabled={loaded.current}
+                    onChange={(e) => setLines(e.currentTarget.value)}
+                    placeholder="Enter some ezasm code..."
+                />
+            </div>
+            <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
         </div>
     );
 }
