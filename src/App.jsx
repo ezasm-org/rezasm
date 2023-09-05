@@ -118,8 +118,10 @@ function App() {
     }, [reset, load, error, isErrorState, getExitStatus]);
 
     const step = useCallback(async () => {
-        if (!loaded.current) {
-            if (await load()) {
+        if (!loaded.current && await load()) {
+            if (await isCompleted()) {
+                setResult("Program exited with exit code " +  await getExitStatus());
+            } else {
                 setPaused(true);
             }
         }
@@ -131,6 +133,7 @@ function App() {
                 if (isOk(stepResult)) {
                     const completed = await isCompleted();
                     if (completed) {
+                        setPaused(false);
                         setResult("Program exited with exit code " +  await getExitStatus());
                     }
                 } else {
@@ -167,19 +170,26 @@ function App() {
                         Resume
                     </button>
                     :
-                    <button className="btn-operation bg-cyan-600 hover:bg-cyan-700" onClick={(e) => {
+                    <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
+                            disabled={!running}
+                            onClick={(e) => {
                         // TODO pause
                     }}>
                         Pause
                     </button>
                 }
 
-                <button className="btn-operation bg-blue-500 hover:bg-blue-700" onClick={(e) => {
+                <button className="btn-operation bg-blue-500 hover:bg-blue-700"
+                        // Enabled = (paused  || !loaded) && !isErrorState
+                        disabled={(!paused && !loaded) || isErrorState()}
+                        onClick={(e) => {
                     step();
                 }}>
                     Step
                 </button>
-                <button className="btn-operation bg-teal-600 hover:bg-teal-700" onClick={(e) => {
+                <button className="btn-operation bg-teal-600 hover:bg-teal-700"
+                        disabled={!paused}
+                        onClick={(e) => {
                     // TODO step back
                 }}>
                     Step Back

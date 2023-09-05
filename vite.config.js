@@ -7,7 +7,7 @@ export default defineConfig(async () => ({
 
   build: {
     root: "src",
-    outDir: "build",
+    outDir: "dist",
     emptyOutDir: true,
   },
 
