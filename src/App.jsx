@@ -1,6 +1,14 @@
-import {useCallback, useRef, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import "../dist/output.css";
+
+const STATE = {
+    IDLE: 1,
+    LOADED: 2,
+    RUNNING: 3,
+    PAUSED: 4,
+    STOPPED: 5,
+}
 
 const RESULT_OK = "data";
 const RESULT_ERR = "error";
@@ -33,15 +41,12 @@ const isSome = option => {
     return option !== null;
 }
 
-
 function App() {
     const [lines, setLines] = useState("");
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
 
-    const loaded = useRef(false);
-    const [running, setRunning] = useState(false);
-    const [paused, setPaused] = useState(false);
+    const [state, setState] = useState(STATE.IDLE);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -53,38 +58,12 @@ function App() {
 
     const setErrorState = useCallback(newState => {
         setError(newState);
-        setRunning(false);
-        setPaused(false);
-        loaded.current = false;
+        setState(STATE.STOPPED);
     }, []);
 
     const getErrorState = useCallback(() => {
         return error;
     }, [error]);
-
-    const reset = useCallback(async () => {
-        await invoke("reset", {});
-        loaded.current = false;
-        setRunning(false);
-        setPaused(false);
-        setResult("");
-        clearErrorState();
-    }, [clearErrorState]);
-
-    const load = useCallback(async () => {
-        if (loaded.current) {
-            return true;
-        }
-        let result = await invoke("load", {lines});
-        if (isOk(result)) {
-            loaded.current = true;
-            return true;
-        } else {
-            setErrorState(getErr(result));
-            loaded.current = false;
-            return false;
-        }
-    }, [setErrorState, isErrorState, lines]);
 
     const isCompleted = useCallback(async () => {
         return await invoke("is_completed", {});
@@ -98,13 +77,37 @@ function App() {
         return await invoke("get_register_value", {register});
     }, []);
 
-    const run = useCallback(async () => {
-        await reset();
-        await load();
+    const reset = useCallback(async () => {
+        await invoke("reset", {});
+        setState(STATE.IDLE);
+        setResult("");
+        clearErrorState();
+        return STATE.IDLE;
+    }, [clearErrorState]);
 
-        if (loaded.current) {
+    const load = useCallback(async (currentState) => {
+        if (currentState >= STATE.LOADED) {
+            return currentState;
+        }
+        let result = await invoke("load", {lines});
+        if (isOk(result)) {
+            setState(STATE.LOADED);
+            return STATE.LOADED;
+        } else {
+            setErrorState(getErr(result));
+            setState(STATE.STOPPED);
+            return STATE.STOPPED;
+        }
+    }, [setErrorState, isErrorState, lines, state]);
+
+    const run = useCallback(async (currentState) => {
+        currentState = await reset();
+        currentState = await load(currentState);
+
+        if (currentState >= STATE.LOADED) {
             // TODO disable run button
-            setRunning(true);
+            currentState = STATE.RUNNING;
+            setState(currentState);
             await invoke("run", {}).then(await (async runResult => {
                 // TODO enable run button
                 if (isOk(runResult)) {
@@ -112,44 +115,53 @@ function App() {
                 } else {
                     setErrorState(getErr(runResult));
                 }
-                setRunning(false);
+                currentState = STATE.STOPPED;
+                setState(currentState);
             }));
         }
-    }, [reset, load, error, isErrorState, getExitStatus]);
+        return currentState;
+    }, [reset, load, error, isErrorState, getExitStatus, state]);
 
-    const step = useCallback(async () => {
-        if (!loaded.current && await load()) {
+    const step = useCallback(async currentState => {
+        if (currentState < STATE.LOADED) {
+            currentState = await load(currentState);
             if (await isCompleted()) {
                 setResult("Program exited with exit code " +  await getExitStatus());
+                currentState = STATE.STOPPED;
             } else {
-                setPaused(true);
+                currentState = STATE.PAUSED;
             }
         }
 
-        if (loaded.current && !await isCompleted()) {
+        console.log(currentState);
+
+        if (currentState >= STATE.LOADED && currentState !== STATE.STOPPED) {
             // TODO Disable step button
             await invoke("step", {}).then(await (async stepResult => {
                 // TODO Enable step button
                 if (isOk(stepResult)) {
-                    const completed = await isCompleted();
-                    if (completed) {
-                        setPaused(false);
+                    if (await isCompleted()) {
+                        currentState = STATE.STOPPED;
                         setResult("Program exited with exit code " +  await getExitStatus());
+                    } else {
+                        currentState = STATE.PAUSED;
                     }
                 } else {
                     setErrorState(getErr(stepResult));
+                    currentState = STATE.STOPPED;
                 }
             }));
         }
-    }, [load, isErrorState, getExitStatus, isCompleted]);
-
-
+        setState(currentState);
+        console.log(currentState);
+        return currentState
+    }, [load, isErrorState, getExitStatus, isCompleted, state]);
 
     return (
         <div className="container">
             <h1><b>Welcome to rezasm!</b></h1>
             <div className="mt-2 mb-2 row">
-                { running ?
+                    { state === STATE.RUNNING ?
                     <button className="btn-operation bg-red-500 hover:bg-red-700" onClick={(e) => {
                         // TODO stop
                     }}>
@@ -157,13 +169,13 @@ function App() {
                     </button>
                     :
                     <button className="btn-operation bg-green-500 hover:bg-green-700" onClick={(e) => {
-                        run();
+                        run(state);
                     }}>
                         Start
                     </button>
                 }
 
-                { paused ?
+                { state === STATE.PAUSED ?
                     <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
                         // TODO resume
                     }}>
@@ -171,7 +183,7 @@ function App() {
                     </button>
                     :
                     <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
-                            disabled={!running}
+                            disabled={state !== STATE.RUNNING}
                             onClick={(e) => {
                         // TODO pause
                     }}>
@@ -180,15 +192,14 @@ function App() {
                 }
 
                 <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                        // Enabled = (paused  || !loaded) && !isErrorState
-                        disabled={(!paused && !loaded) || isErrorState()}
+                        disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
                         onClick={(e) => {
-                    step();
+                    step(state);
                 }}>
                     Step
                 </button>
                 <button className="btn-operation bg-teal-600 hover:bg-teal-700"
-                        disabled={!paused}
+                        disabled={state !== STATE.PAUSED}
                         onClick={(e) => {
                     // TODO step back
                 }}>
@@ -202,7 +213,7 @@ function App() {
             </div>
             <div className="mt-2 mb-2 row">
                 <textarea
-                    disabled={loaded.current}
+                    disabled={state !== STATE.IDLE && state !== STATE.STOPPED}
                     onChange={(e) => setLines(e.currentTarget.value)}
                     placeholder="Enter some ezasm code..."
                 />
