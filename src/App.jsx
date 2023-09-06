@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import "../dist/output.css";
 
@@ -47,6 +47,7 @@ function App() {
     const [result, setResult] = useState("");
 
     const [state, setState] = useState(STATE.IDLE);
+    const [counter, setCounter] = useState(0);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -100,62 +101,64 @@ function App() {
         }
     }, [setErrorState, isErrorState, lines, state]);
 
-    const run = useCallback(async (currentState) => {
+    const run = useCallback(async currentState => {
         currentState = await reset();
         currentState = await load(currentState);
 
         if (currentState >= STATE.LOADED) {
-            // TODO disable run button
             currentState = STATE.RUNNING;
-            setState(currentState);
-            await invoke("run", {}).then(await (async runResult => {
-                // TODO enable run button
-                if (isOk(runResult)) {
+            invoke("run", {}).then(async () => {
+                if (await isCompleted()) {
                     setResult("Program exited with exit code " +  await getExitStatus());
-                } else {
-                    setErrorState(getErr(runResult));
+                    currentState = STATE.STOPPED;
                 }
-                currentState = STATE.STOPPED;
-                setState(currentState);
-            }));
+            });
         }
+        setState(currentState);
         return currentState;
     }, [reset, load, error, isErrorState, getExitStatus, state]);
 
     const step = useCallback(async currentState => {
         if (currentState < STATE.LOADED) {
             currentState = await load(currentState);
-            if (await isCompleted()) {
-                setResult("Program exited with exit code " +  await getExitStatus());
-                currentState = STATE.STOPPED;
-            } else {
-                currentState = STATE.PAUSED;
-            }
+            currentState = STATE.PAUSED;
         }
-
-        console.log(currentState);
 
         if (currentState >= STATE.LOADED && currentState !== STATE.STOPPED) {
-            // TODO Disable step button
-            await invoke("step", {}).then(await (async stepResult => {
-                // TODO Enable step button
-                if (isOk(stepResult)) {
-                    if (await isCompleted()) {
-                        currentState = STATE.STOPPED;
-                        setResult("Program exited with exit code " +  await getExitStatus());
-                    } else {
-                        currentState = STATE.PAUSED;
-                    }
-                } else {
-                    setErrorState(getErr(stepResult));
+            currentState = STATE.PAUSED;
+            invoke("step", {}).then(async () => {
+                if (await isCompleted()) {
+                    setResult("Program exited with exit code " +  await getExitStatus());
                     currentState = STATE.STOPPED;
                 }
-            }));
+            });
         }
         setState(currentState);
-        console.log(currentState);
         return currentState
     }, [load, isErrorState, getExitStatus, isCompleted, state]);
+
+    const stop = useCallback(async currentState => {
+        await invoke("stop", {})
+        currentState = STATE.STOPPED;
+        setState(currentState);
+        return currentState;
+    }, []);
+
+    useEffect(() => {
+        if (state === STATE.RUNNING || state === STATE.PAUSED) {
+            isCompleted().then(completed => {
+                if (completed) {
+                    getExitStatus().then(exitStatus => {
+                        setResult("Program exited with exit code " +  exitStatus);
+                    });
+                    setState(STATE.STOPPED);
+                } else {
+                    // trigger rerender
+                    setTimeout(() => setCounter(counter + 1), 50);
+                }
+            });
+        }
+    }, [counter, state]);
 
     return (
         <div className="container">
@@ -163,7 +166,7 @@ function App() {
             <div className="mt-2 mb-2 row">
                     { state === STATE.RUNNING ?
                     <button className="btn-operation bg-red-500 hover:bg-red-700" onClick={(e) => {
-                        // TODO stop
+                        stop(state);
                     }}>
                         Stop
                     </button>

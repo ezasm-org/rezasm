@@ -20,6 +20,7 @@ pub enum EzasmError {
     InvalidProgramCounterError(i64),
     NonExistentLabelError(String),
     LabelInUseError(String),
+    TimeoutError(),
 }
 
 impl From<ParseFloatError> for EzasmError {
@@ -55,6 +56,7 @@ pub fn handle_error(error: EzasmError) -> ! {
         EzasmError::InvalidProgramCounterError(_) => {}
         EzasmError::NonExistentLabelError(_) => {}
         EzasmError::LabelInUseError(_) => {}
+        EzasmError::TimeoutError() => {}
     }
     process::exit(1);
 }
