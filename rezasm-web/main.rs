@@ -44,7 +44,7 @@ pub fn get_window() -> Window {
 
 #[tauri::command]
 fn stop() {
-    // RUNTIME.write().unwrap().abort();
+    RUNTIME.write().unwrap().abort();
 }
 
 #[tauri::command]
@@ -81,42 +81,52 @@ fn load(lines: &str) -> SerialResult<(), String> {
 
 #[tauri::command(async)]
 async fn run() {
-    let mut simulator = get_simulator();
-    while !simulator.is_done() && !simulator.is_error() && !RUNTIME.read().unwrap().deref().force_stop {
-        match simulator.run_line_from_pc() {
-            Ok(_) => {},
-            Err(error) => {
-                signal_error(format!("Program error: {:?}", error).as_str());
-                // return Ok::<(), EzasmError>(());
-            },
+    RUNTIME.write().unwrap().call(async {
+        {
+            let mut simulator = get_simulator();
+            while !simulator.is_done() && !simulator.is_error() && !RUNTIME.read().unwrap().deref().force_stop {
+                match simulator.run_line_from_pc() {
+                    Ok(_) => {},
+                    Err(error) => {
+                        signal_error(format!("Program error: {:?}", error).as_str());
+                        return Ok::<(), EzasmError>(());
+                    },
+                }
+            }
         }
-    }
 
-    if simulator.is_error() {
-        signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
-    } else {
-        signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
-    }
-    // Ok(())
+        let simulator = get_simulator();
+        if simulator.is_error() {
+            signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
+        } else {
+            signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
+        }
+        Ok(())
+    });
 }
 
 #[tauri::command(async)]
 async fn step() {
-    let mut simulator = get_simulator();
-    match simulator.run_line_from_pc() {
-        Ok(_) => {},
-        Err(error) => {
-            signal_error(format!("Program error: {:?}", error).as_str());
-            // return Ok::<(), EzasmError>(());
-        },
-    }
+    RUNTIME.write().unwrap().call(async {
+        {
+            let mut simulator = get_simulator();
+            match simulator.run_line_from_pc() {
+                Ok(_) => {},
+                Err(error) => {
+                    signal_error(format!("Program error: {:?}", error).as_str());
+                    return Ok::<(), EzasmError>(());
+                },
+            }
+        }
 
-    if simulator.is_error() {
-        signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
-    } else {
-        signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
-    }
-    // Ok(())
+        let simulator = get_simulator();
+        if simulator.is_error() {
+            signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
+        } else {
+            signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
+        }
+        Ok(())
+    });
 }
 
 #[tauri::command]
@@ -153,6 +163,8 @@ fn main() {
     rt.block_on(async {
         tauri::async_runtime::set(runtime::Handle::current());
     });
+
+    *RUNTIME.write().unwrap() = Runtime::from_rt(rt);
 
     tauri::Builder::default().setup(|app| {
         let window = app.get_window(WINDOW_NAME).unwrap();

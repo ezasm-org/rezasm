@@ -1,4 +1,4 @@
-use std::{mem, thread, time};
+use std::{thread, time};
 use std::future::Future;
 use tokio::runtime;
 use tokio::task::JoinHandle;
@@ -41,20 +41,7 @@ impl Runtime {
         }
     }
 
-    pub fn return_value(&mut self) -> Option<OutputType> {
-        match &self.handle {
-            None => None,
-            Some(_) => self.runtime.block_on(async {
-                let x = mem::replace(&mut self.handle, None);
-                Some(match x.unwrap().await {
-                    Ok(result) => result,
-                    Err(_) => Err(EzasmError::TimeoutError()),
-                })
-            })
-        }
-    }
-
-    pub fn abort(&mut self) -> Option<OutputType> {
+    pub fn abort(&mut self) {
         self.force_stop = true;
         thread::sleep(time::Duration::from_millis(50));
         self.force_stop = false;
@@ -67,7 +54,5 @@ impl Runtime {
                 }
             },
         }
-
-        self.return_value()
     }
 }
