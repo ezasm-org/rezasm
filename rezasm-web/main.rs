@@ -84,7 +84,10 @@ async fn run() {
     RUNTIME.write().unwrap().call(async {
         {
             let mut simulator = get_simulator();
-            while !simulator.is_done() && !simulator.is_error() && !RUNTIME.read().unwrap().deref().force_stop {
+            while !simulator.is_done() && !simulator.is_error() {
+                if RUNTIME.read().unwrap().deref().force_stop {
+                    break;
+                }
                 match simulator.run_line_from_pc() {
                     Ok(_) => {},
                     Err(error) => {
@@ -98,8 +101,10 @@ async fn run() {
         let simulator = get_simulator();
         if simulator.is_error() {
             signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
-        } else {
+        } else if simulator.is_done() {
             signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
+        } else {
+            signal_error("Program terminated forcefully");
         }
         Ok(())
     });
@@ -122,8 +127,10 @@ async fn step() {
         let simulator = get_simulator();
         if simulator.is_error() {
             signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
-        } else {
+        } else if simulator.is_done() {
             signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
+        } else {
+            signal_error("Program terminated forcefully");
         }
         Ok(())
     });

@@ -31,6 +31,7 @@ impl Runtime {
     }
 
     pub fn call(&mut self, future: impl Future<Output=OutputType> + Sync + Send + Sized + 'static) {
+        self.force_stop = false;
         self.handle = Some(self.runtime.spawn(future));
     }
 
@@ -44,7 +45,6 @@ impl Runtime {
     pub fn abort(&mut self) {
         self.force_stop = true;
         thread::sleep(time::Duration::from_millis(50));
-        self.force_stop = false;
 
         match &self.handle {
             None => {},
