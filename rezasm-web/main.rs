@@ -9,8 +9,10 @@ extern crate rezasm_macro;
 extern crate rezasm_app;
 
 use std::ops::Deref;
+use std::string::ToString;
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
 use lazy_static::lazy_static;
+use tauri::{Manager, Window};
 use tokio::runtime;
 use rezasm_app::instructions::implementation::arithmetic_instructions::register_instructions;
 use rezasm_core::parser::lexer;
@@ -23,9 +25,12 @@ use crate::util::runtime::Runtime;
 lazy_static! {
     static ref SIMULATOR: Arc<RwLock<Simulator>> = Arc::new(RwLock::new(Simulator::new()));
     static ref RUNTIME: Arc<RwLock<Runtime>> = Arc::new(RwLock::new(Runtime::new()));
+    static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
 }
 
-pub fn get_simulator<'a>() -> RwLockWriteGuard<'a, Simulator> {
+const WINDOW_NAME: &'static str = "main";
+
+pub fn get_simulator() -> RwLockWriteGuard<'static, Simulator> {
     SIMULATOR.write().unwrap()
 }
 
@@ -33,13 +38,18 @@ pub fn set_simulator(simulator: Simulator) {
     *SIMULATOR.write().unwrap() = simulator;
 }
 
+pub fn get_window() -> Window {
+    WINDOW.write().unwrap().as_ref().unwrap().get_window(WINDOW_NAME).unwrap()
+}
+
 #[tauri::command]
 fn stop() {
-    RUNTIME.write().unwrap().abort();
+    // RUNTIME.write().unwrap().abort();
 }
 
 #[tauri::command]
 fn reset() {
+    stop();
     get_simulator().reset();
 }
 
@@ -71,36 +81,42 @@ fn load(lines: &str) -> SerialResult<(), String> {
 
 #[tauri::command(async)]
 async fn run() {
-    tauri::async_runtime::spawn(async {
-        // let mut counter: usize = 0;
-        let mut simulator = get_simulator();
-        while !simulator.is_done() && !simulator.is_error() && !RUNTIME.read().unwrap().deref().force_stop {
-            match simulator.run_line_from_pc() {
-                Ok(_) => { /*counter += 1*/ },
-                Err(error) => return Err(error),
-            }
-            // if counter % 1000 == 0 {
-            //     println!("{}", counter / 1000);
-            // }
+    let mut simulator = get_simulator();
+    while !simulator.is_done() && !simulator.is_error() && !RUNTIME.read().unwrap().deref().force_stop {
+        match simulator.run_line_from_pc() {
+            Ok(_) => {},
+            Err(error) => {
+                signal_error(format!("Program error: {:?}", error).as_str());
+                // return Ok::<(), EzasmError>(());
+            },
         }
+    }
 
-        if simulator.is_error() {
-            Err(EzasmError::InvalidProgramCounterError(simulator.get_registers().get_pc().get_data().int_value()))
-        } else {
-            Ok(())
-        }
-    });
-
+    if simulator.is_error() {
+        signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
+    } else {
+        signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
+    }
+    // Ok(())
 }
 
 #[tauri::command(async)]
 async fn step() {
-    tauri::async_runtime::spawn(async {
-        match get_simulator().run_line_from_pc() {
-            Ok(_) => Ok(()),
-            Err(error) => Err(error),
-        }
-    });
+    let mut simulator = get_simulator();
+    match simulator.run_line_from_pc() {
+        Ok(_) => {},
+        Err(error) => {
+            signal_error(format!("Program error: {:?}", error).as_str());
+            // return Ok::<(), EzasmError>(());
+        },
+    }
+
+    if simulator.is_error() {
+        signal_error(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()).as_str());
+    } else {
+        signal_program_completion(simulator.get_registers().get_register(&registry::R0.to_string()).unwrap().get_data().int_value());
+    }
+    // Ok(())
 }
 
 #[tauri::command]
@@ -121,6 +137,13 @@ fn get_register_value(register: &str) -> Option<i64> {
     }
 }
 
+fn signal_error(error: &str) {
+    let _ = get_window().eval(format!("window.errorCallback(\"{}\")", error).as_str());
+}
+
+fn signal_program_completion(exit_status: i64) {
+    let _ = get_window().eval(format!("window.programCompletionCallback(\"{}\")", exit_status).as_str());
+}
 
 fn main() {
     register_instructions();
@@ -131,8 +154,14 @@ fn main() {
         tauri::async_runtime::set(runtime::Handle::current());
     });
 
-    tauri::Builder::default()
+    tauri::Builder::default().setup(|app| {
+        let window = app.get_window(WINDOW_NAME).unwrap();
+        let _ = WINDOW.write().unwrap().replace(window);
+        Ok(())
+    })
         .invoke_handler(tauri::generate_handler![load, reset, run, step, stop, is_completed, get_exit_status, get_register_value])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+
+    let _ = get_window();
 }

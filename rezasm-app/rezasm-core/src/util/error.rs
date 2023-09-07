@@ -4,7 +4,7 @@ use std::process;
 #[derive(Debug)]
 pub enum EzasmError {
     ParserError,
-    SimualtorError,
+    SimulatorError,
     InvalidArgumentsError,
     InvalidMemorySizeError(usize),
     InvalidInstructionError(String),
@@ -40,7 +40,7 @@ pub fn handle_error(error: EzasmError) -> ! {
     println!("{:?}", error);
     match error {
         EzasmError::ParserError => {}
-        EzasmError::SimualtorError => {}
+        EzasmError::SimulatorError => {}
         EzasmError::InvalidArgumentsError => {}
         EzasmError::InvalidMemorySizeError(_) => {}
         EzasmError::InvalidInstructionError(_) => {}

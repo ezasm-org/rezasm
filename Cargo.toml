@@ -13,7 +13,7 @@ name = "rezasm"
 
 # For rezasm-web only
 [build-dependencies]
-tauri-build = { version = "1.4", features = [] }
+tauri-build = { version = "1.4.0", features = [] }
 
 [dependencies]
 rezasm-core = { path = "rezasm-app/rezasm-core" }

@@ -45,9 +45,7 @@ function App() {
     const [lines, setLines] = useState("");
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
-
     const [state, setState] = useState(STATE.IDLE);
-    const [counter, setCounter] = useState(0);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -92,50 +90,54 @@ function App() {
         }
         let result = await invoke("load", {lines});
         if (isOk(result)) {
-            setState(STATE.LOADED);
-            return STATE.LOADED;
+            currentState = STATE.LOADED;
         } else {
             setErrorState(getErr(result));
-            setState(STATE.STOPPED);
-            return STATE.STOPPED;
+            currentState = STATE.STOPPED;
         }
-    }, [setErrorState, isErrorState, lines, state]);
+        setState(currentState);
+        return currentState;
+    }, [setErrorState, lines]);
 
     const run = useCallback(async currentState => {
         currentState = await reset();
         currentState = await load(currentState);
+        setState(currentState);
 
         if (currentState >= STATE.LOADED) {
-            currentState = STATE.RUNNING;
-            invoke("run", {}).then(async () => {
-                if (await isCompleted()) {
-                    setResult("Program exited with exit code " +  await getExitStatus());
-                    currentState = STATE.STOPPED;
-                }
-            });
+            if (await isCompleted()) {
+                setResult("Program exited with exit code " + await getExitStatus());
+                currentState = STATE.STOPPED;
+                setState(currentState);
+            } else {
+                currentState = STATE.RUNNING;
+                setState(currentState);
+                await invoke("run", {});
+            }
         }
-        setState(currentState);
         return currentState;
-    }, [reset, load, error, isErrorState, getExitStatus, state]);
+    }, [reset, load, getExitStatus, isCompleted]);
 
     const step = useCallback(async currentState => {
         if (currentState < STATE.LOADED) {
             currentState = await load(currentState);
             currentState = STATE.PAUSED;
+            setState(currentState);
         }
 
         if (currentState >= STATE.LOADED && currentState !== STATE.STOPPED) {
-            currentState = STATE.PAUSED;
-            invoke("step", {}).then(async () => {
-                if (await isCompleted()) {
-                    setResult("Program exited with exit code " +  await getExitStatus());
-                    currentState = STATE.STOPPED;
-                }
-            });
+            if (await isCompleted()) {
+                setResult("Program exited with exit code " +  await getExitStatus());
+                currentState = STATE.STOPPED;
+                setState(currentState);
+            } else {
+                currentState = STATE.PAUSED;
+                setState(currentState);
+                await invoke("step", {});
+            }
         }
-        setState(currentState);
         return currentState
-    }, [load, isErrorState, getExitStatus, isCompleted, state]);
+    }, [load, isErrorState, getExitStatus, isCompleted]);
 
     const stop = useCallback(async currentState => {
         await invoke("stop", {})
@@ -145,20 +147,16 @@ function App() {
     }, []);
 
     useEffect(() => {
-        if (state === STATE.RUNNING || state === STATE.PAUSED) {
-            isCompleted().then(completed => {
-                if (completed) {
-                    getExitStatus().then(exitStatus => {
-                        setResult("Program exited with exit code " +  exitStatus);
-                    });
-                    setState(STATE.STOPPED);
-                } else {
-                    // trigger rerender
-                    setTimeout(() => setCounter(counter + 1), 50);
-                }
-            });
+        window.errorCallback = error => {
+            console.log(error);
+            setErrorState(error);
+        };
+
+        window.programCompletionCallback = exitStatus => {
+            setResult("Program exited with exit code " + exitStatus);
+            setState(STATE.STOPPED);
         }
-    }, [counter, state]);
+    }, [state]);
 
     return (
         <div className="container">

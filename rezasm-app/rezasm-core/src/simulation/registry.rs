@@ -102,7 +102,7 @@ pub fn get_register_number(register: &String) -> Result<usize, EzasmError> {
     REGISTERS_MAP
         .get_by_left(register[1..].to_uppercase().as_str())
         .map(|r| r.clone())
-        .ok_or(EzasmError::SimualtorError)
+        .ok_or(EzasmError::SimulatorError)
 }
 
 pub fn is_valid_register(register: &String) -> bool {

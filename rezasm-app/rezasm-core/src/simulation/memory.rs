@@ -73,7 +73,7 @@ impl Memory {
 
     pub fn set_heap_pointer(&mut self, address: usize) -> Result<(), EzasmError> {
         if address < self.offset_bytes || address > self.memory_size {
-            return Err(EzasmError::SimualtorError);
+            return Err(EzasmError::SimulatorError);
         }
         self.alloc_index = address;
         Ok(())
@@ -113,7 +113,7 @@ impl Memory {
         for string in strings {
             if !self.string_address_map.contains_key(string) {
                 if self.string_alloc_index + string.len() >= self.offset_bytes {
-                    return Err(EzasmError::SimualtorError);
+                    return Err(EzasmError::SimulatorError);
                 }
                 for (index, c) in string.as_bytes().iter().enumerate() {
                     match self.unsafe_write(
@@ -143,7 +143,7 @@ impl Memory {
     pub fn get_string_immediate_address(&self, string: &String) -> Result<&RawData, EzasmError> {
         match self.string_address_map.get(string) {
             Some(s) => Ok(s),
-            None => Err(EzasmError::SimualtorError),
+            None => Err(EzasmError::SimulatorError),
         }
     }
 }

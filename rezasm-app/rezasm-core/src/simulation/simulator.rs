@@ -167,7 +167,7 @@ impl Simulator {
             Err(error) => return Err(error),
         };
         let line = match self.lines.get(line_number as usize) {
-            None => return Err(EzasmError::SimualtorError),
+            None => return Err(EzasmError::SimulatorError),
             Some(x) => x,
         };
         self.run_line(&line.clone())
