@@ -35,7 +35,6 @@ impl From<ParseIntError> for EzasmError {
     }
 }
 
-
 pub fn handle_error(error: EzasmError) -> ! {
     println!("{:?}", error);
     match error {

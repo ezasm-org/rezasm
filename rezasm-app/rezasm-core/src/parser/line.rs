@@ -1,4 +1,3 @@
-use std::fmt::{Display, Formatter};
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction::Instruction;
 use crate::instructions::instruction_registry::{get_instruction, is_instruction_name_registered};
@@ -6,6 +5,7 @@ use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::*;
 use crate::util::error::EzasmError;
 use crate::util::word_size::WordSize;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone)]
 pub enum Line {
@@ -90,9 +90,16 @@ impl Line {
 
 impl Display for Line {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.write_str(format!("{}", match self {
-            Line::Instruction(instruction, arguments) => format!("Instruction {{ {:?} }}", instruction),
-            Line::Label(label) => format!("Label {{ {} }}", label),
-        }).as_str())
+        f.write_str(
+            format!(
+                "{}",
+                match self {
+                    Line::Instruction(instruction, arguments) =>
+                        format!("Instruction {{ {:?} }}", instruction),
+                    Line::Label(label) => format!("Label {{ {} }}", label),
+                }
+            )
+            .as_str(),
+        )
     }
 }

@@ -25,8 +25,8 @@ use rezasm_macro::instruction;
 
 use crate::instructions::implementation::arithmetic_instructions::register_instructions;
 use crate::util::application::Application;
-use crate::util::cli::Arguments;
 use crate::util::cli;
+use crate::util::cli::Arguments;
 use crate::util::cli_arguments::handle_arguments;
 
 fn main() {
