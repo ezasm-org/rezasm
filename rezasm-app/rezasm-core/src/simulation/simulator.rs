@@ -125,7 +125,7 @@ impl Simulator {
 
     pub fn is_done(&self) -> bool {
         let pc = self.registry.get_pc().get_data().int_value();
-        self.lines.is_empty() && pc == 0 || pc == self.end_pc() as i64
+        (self.lines.is_empty() && pc == 0) || pc == self.end_pc() as i64
     }
 
     pub fn is_error(&self) -> bool {
