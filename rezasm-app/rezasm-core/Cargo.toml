@@ -1,0 +1,13 @@
+[package]
+name = "rezasm-core"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+bimap = "0.6.3"
+bytebuffer = "2.1.0"
+lazy_static = "1.4.0"
+regex = "1.8.1"
