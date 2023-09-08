@@ -3,7 +3,6 @@ use crate::instructions::instruction::Instruction;
 use crate::instructions::instruction_registry::{get_instruction, is_instruction_name_registered};
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::*;
-use crate::util::error::EzasmError;
 use crate::util::error::ParserError;
 use crate::util::word_size::WordSize;
 use std::fmt::{Display, Formatter};
@@ -19,13 +18,19 @@ impl Line {
         instruction: &String,
         args: Vec<String>,
         word_size: &WordSize,
-    ) -> Result<Self, EzasmError> {
-        if is_label(instruction) {
-            return Ok(Line::Label(
-                instruction[0..instruction.len() - 1].to_string(),
-            ));
+    ) -> Result<Self, ParserError> {
+        if looks_like_label(instruction) {
+            return if is_label(instruction) {
+                Ok(Line::Label(
+                    instruction[0..instruction.len() - 1].to_string(),
+                ))
+            } else {
+                Err(ParserError::LabelDefinitionError(instruction.to_string()))
+            };
         } else if !is_instruction_name_registered(instruction) {
-            return Err(EzasmError::InvalidInstructionError(instruction.to_string()));
+            return Err(ParserError::InvalidInstructionError(
+                instruction.to_string(),
+            ));
         }
 
         let mut args_out: Vec<Token> = Vec::new();

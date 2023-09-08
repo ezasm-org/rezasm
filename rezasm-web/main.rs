@@ -75,9 +75,13 @@ fn load(lines: &str) -> SerialResult<(), String> {
             Some(x) => match x {
                 Ok(line) => match simulator.add_line(line) {
                     Ok(_) => {}
-                    Err(error) => return SerialResult::Err(format!("Error parsing program: {}", error)),
+                    Err(error) => {
+                        return SerialResult::Err(format!("Error parsing program: {}", error))
+                    }
                 },
-                Err(error) => return SerialResult::Err(format!("Error parsing program: {}", error)),
+                Err(error) => {
+                    return SerialResult::Err(format!("Error parsing program: {}", error))
+                }
             },
         };
     }

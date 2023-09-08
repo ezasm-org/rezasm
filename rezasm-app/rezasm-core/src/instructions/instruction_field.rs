@@ -7,7 +7,7 @@ use crate::instructions::instruction::Instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::simulation::simulator::Simulator;
-use crate::util::error::EzasmError;
+use crate::util::error::SimulatorError;
 
 #[derive(Debug)]
 pub struct InstructionField {
@@ -58,9 +58,11 @@ impl InstructionField {
         &self,
         simulator: &mut Simulator,
         instruction_attempt: &Vec<ArgumentType>,
-    ) -> Result<(), EzasmError> {
+    ) -> Result<(), SimulatorError> {
         match self.get_instruction(instruction_attempt) {
-            None => Err(EzasmError::InvalidInstructionError(self.name.to_string())),
+            None => Err(SimulatorError::InvalidInstructionError(
+                self.name.to_string(),
+            )),
             Some(instruction) => (*instruction.get_function())(
                 simulator,
                 instruction.get_types(),

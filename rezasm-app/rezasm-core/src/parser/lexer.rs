@@ -1,9 +1,9 @@
-use std::str::FromStr;
 use regex::Regex;
+use std::str::FromStr;
 
 use crate::parser::line::*;
 use crate::simulation::registry;
-use crate::util::error::{EzasmError, ParserError};
+use crate::util::error::ParserError;
 use crate::util::word_size::WordSize;
 
 pub enum EZNumberFormat {
@@ -49,7 +49,7 @@ pub fn is_alphanumeric_underscore(c: &char) -> bool {
 
 pub fn all_alphanumeric_underscore(text: &str) -> bool {
     if text.len() > 0 && is_numeric(&format!("{}", text.chars().nth(0).unwrap())) {
-        return false
+        return false;
     }
 
     for c in text.chars() {
@@ -105,7 +105,7 @@ pub fn text_to_number(token: String) -> Result<EZNumber, ParserError> {
 
 pub fn parse_float_string(string: &String, base: u8) -> Result<f64, ParserError> {
     if string.find(".") != string.rfind(".") {
-        return Err(ParserError::NumericImmediateError(string.to_string()).into());
+        return Err(ParserError::NumericalImmediateError(string.to_string()).into());
     }
     let mut number = string.as_str();
 
@@ -146,6 +146,13 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, ParserError>
     };
 
     Ok(result)
+}
+
+pub fn looks_like_label(token: &String) -> bool {
+    match token.rfind(':') {
+        None => false,
+        Some(index) => index == token.len() - 1,
+    }
 }
 
 pub fn is_label(token: &String) -> bool {
@@ -195,7 +202,6 @@ pub fn get_dereference(token: &String) -> Result<Token, ParserError> {
         Err(_) => return Err(ParserError::UnknownRegisterError(register_string)),
     };
 
-
     let offset_string: String = if lparen > 0 {
         token.chars().take(lparen).collect()
     } else {
@@ -219,7 +225,9 @@ pub fn looks_like_numerical_immediate(token: &String) -> bool {
 }
 
 pub fn get_numerical_immediate(token: &String) -> Result<Token, ParserError> {
-    Ok(Token::NumericalImmediate(text_to_number(token.to_string())?))
+    Ok(Token::NumericalImmediate(text_to_number(
+        token.to_string(),
+    )?))
 }
 
 pub fn looks_like_string_immediate(token: &String) -> bool {
@@ -230,7 +238,7 @@ pub fn looks_like_character_immediate(token: &String) -> bool {
     token.len() > 1 && token.starts_with('\'') && token.ends_with('\'')
 }
 
-pub fn get_character_immediate(token: &String) -> Result<Token, EzasmError> {
+pub fn get_character_immediate(token: &String) -> Result<Token, ParserError> {
     if token.len() == 3 {
         return Ok(Token::CharacterImmediate(token.chars().nth(1).unwrap()));
     } else if token.len() == 4 {
@@ -257,7 +265,7 @@ pub fn get_character_immediate(token: &String) -> Result<Token, EzasmError> {
     }
 }
 
-pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, EzasmError>> {
+pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, ParserError>> {
     let tokens = tokenize_line(line);
 
     if tokens.len() == 0 {
@@ -267,7 +275,7 @@ pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, Ez
     }
 }
 
-pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
+pub fn get_string_immediate(token: &String) -> Result<String, ParserError> {
     if token.len() < 2 {
         return Err(ParserError::StringImmediateError(token.to_string()).into());
     }

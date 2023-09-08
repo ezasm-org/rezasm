@@ -1,10 +1,11 @@
-use crate::instructions::argument_type::ArgumentType;
-use crate::instructions::instruction::Instruction;
-use crate::instructions::instruction_field::InstructionField;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use crate::util::error::EzasmError;
+
+use crate::instructions::argument_type::ArgumentType;
+use crate::instructions::instruction::Instruction;
+use crate::instructions::instruction_field::InstructionField;
+use crate::util::error::ParserError;
 
 pub struct InstructionRegistry {
     instructions: HashMap<String, Vec<&'static InstructionField>>,
@@ -33,9 +34,9 @@ impl InstructionRegistry {
         &self,
         name: &String,
         args: &Vec<ArgumentType>,
-    ) -> Result<&'static Instruction, EzasmError> {
+    ) -> Result<&'static Instruction, ParserError> {
         match self.instructions.get(name) {
-            None => Err(EzasmError::InvalidInstructionError(name.to_string())),
+            None => Err(ParserError::InvalidInstructionError(name.to_string())),
             Some(group) => {
                 for attempt in group.iter() {
                     match attempt.get_instruction(args) {
@@ -43,7 +44,7 @@ impl InstructionRegistry {
                         Some(instruction) => return Ok(instruction),
                     }
                 }
-                Err(EzasmError::InvalidArgumentsError)
+                Err(ParserError::InvalidArgumentsError(name.to_string()))
             }
         }
     }
@@ -60,7 +61,10 @@ pub fn register_instruction(instruction: &'static InstructionField) {
         .register_instruction(instruction);
 }
 
-pub fn get_instruction(name: &String, args: &Vec<ArgumentType>) -> Result<&'static Instruction, EzasmError> {
+pub fn get_instruction(
+    name: &String,
+    args: &Vec<ArgumentType>,
+) -> Result<&'static Instruction, ParserError> {
     INSTRUCTIONS.lock().unwrap().get_instruction(name, args)
 }
 

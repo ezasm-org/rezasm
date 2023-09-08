@@ -1,11 +1,11 @@
 use std::any::Any;
 
 use crate::simulation::simulator::Simulator;
-use crate::util::error::EzasmError;
+use crate::util::error::SimulatorError;
 use crate::{instructions::targets::Target, util::raw_data::RawData};
 
 pub trait Input: Target {
-    fn get(&self, simulator: &Simulator) -> Result<RawData, EzasmError>;
+    fn get(&self, simulator: &Simulator) -> Result<RawData, SimulatorError>;
 }
 
 impl<T: Input> Target for T {
@@ -36,7 +36,7 @@ impl InputTarget {
 }
 
 impl Input for InputTarget {
-    fn get(&self, simulator: &Simulator) -> Result<RawData, EzasmError> {
+    fn get(&self, simulator: &Simulator) -> Result<RawData, SimulatorError> {
         match self {
             InputTarget::ImmediateInput(x) => Ok(x.clone()),
             InputTarget::LabelReferenceInput(s) => simulator

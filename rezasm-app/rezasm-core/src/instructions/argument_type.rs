@@ -1,11 +1,10 @@
 use std::any::TypeId;
-use std::str::FromStr;
 
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::{Input, InputTarget};
 use crate::instructions::targets::Target;
 use crate::parser::lexer::Token;
-use crate::util::error::{EzasmError, ParserError};
+use crate::util::error::ParserError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 
@@ -101,7 +100,7 @@ impl ArgumentType {
 }
 
 impl Token {
-    pub fn get_target(&self, word_size: &WordSize) -> Result<ArgumentType, EzasmError> {
+    pub fn get_target(&self, word_size: &WordSize) -> Result<ArgumentType, ParserError> {
         Ok(ArgumentType::Input(match self {
             Token::LabelReference(r) => InputTarget::new_label_reference(r),
             Token::NumericalImmediate(crate::parser::lexer::EZNumber::Float(f)) => {
@@ -124,10 +123,13 @@ impl Token {
             }
             Token::Dereference(offset, register) => {
                 return Ok(ArgumentType::InputOutput(
-                    match InputOutputTarget::new_dereference_offset(register.clone(), offset.clone()) {
+                    match InputOutputTarget::new_dereference_offset(
+                        register.clone(),
+                        offset.clone(),
+                    ) {
                         Ok(t) => t,
                         Err(e) => return Err(e),
-                    }
+                    },
                 ))
             }
         }))

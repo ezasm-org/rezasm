@@ -4,7 +4,7 @@ use bimap::BiMap;
 use lazy_static::lazy_static;
 
 use crate::simulation::register::Register;
-use crate::util::error::EzasmError;
+use crate::util::error::ParserError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 
@@ -98,11 +98,11 @@ pub const ALL_REGISTERS: [&str; REGISTERS_COUNT] = [
     FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI,
 ];
 
-pub fn get_register_number(register: &String) -> Result<usize, EzasmError> {
+pub fn get_register_number(register: &String) -> Result<usize, ParserError> {
     REGISTERS_MAP
         .get_by_left(register[1..].to_uppercase().as_str())
         .map(|r| r.clone())
-        .ok_or(EzasmError::InvalidRegisterNameError(register.to_string()))
+        .ok_or(ParserError::InvalidRegisterNameError(register.to_string()))
 }
 
 pub fn is_valid_register(register: &String) -> bool {
@@ -150,9 +150,9 @@ impl Registry {
         }
     }
 
-    pub fn get_register_by_number(&self, register: usize) -> Result<&Register, EzasmError> {
+    pub fn get_register_by_number(&self, register: usize) -> Result<&Register, ParserError> {
         if register >= REGISTERS_COUNT {
-            Err(EzasmError::InvalidRegisterNumberError(register))
+            Err(ParserError::InvalidRegisterNumberError(register))
         } else {
             Ok(&self.registers[register])
         }
@@ -161,34 +161,34 @@ impl Registry {
     pub fn get_register_by_number_mut(
         &mut self,
         register: usize,
-    ) -> Result<&mut Register, EzasmError> {
+    ) -> Result<&mut Register, ParserError> {
         if register >= REGISTERS_COUNT {
-            Err(EzasmError::InvalidRegisterNumberError(register))
+            Err(ParserError::InvalidRegisterNumberError(register))
         } else {
             Ok(&mut self.registers[register])
         }
     }
 
-    pub fn get_register(&self, register: &String) -> Result<&Register, EzasmError> {
+    pub fn get_register(&self, register: &String) -> Result<&Register, ParserError> {
         let no_dollar = if register.starts_with('$') {
             register[1..].to_uppercase()
         } else {
             register.to_uppercase()
         };
         match REGISTERS_MAP.get_by_left(no_dollar.as_str()) {
-            None => Err(EzasmError::InvalidRegisterNameError(no_dollar)),
+            None => Err(ParserError::InvalidRegisterNameError(no_dollar)),
             Some(r) => self.get_register_by_number(*r),
         }
     }
 
-    pub fn get_register_mut(&mut self, register: &String) -> Result<&mut Register, EzasmError> {
+    pub fn get_register_mut(&mut self, register: &String) -> Result<&mut Register, ParserError> {
         let no_dollar = if register.starts_with('$') {
             register[1..].to_uppercase()
         } else {
             register.to_uppercase()
         };
         match REGISTERS_MAP.get_by_left(no_dollar.as_str()) {
-            None => Err(EzasmError::InvalidRegisterNameError(no_dollar)),
+            None => Err(ParserError::InvalidRegisterNameError(no_dollar)),
             Some(r) => self.get_register_by_number_mut(*r),
         }
     }

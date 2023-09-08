@@ -6,7 +6,7 @@ use crate::simulation::memory;
 use crate::simulation::memory::Memory;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
-use crate::util::error::EzasmError;
+use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
 
@@ -58,11 +58,11 @@ impl Simulator {
         self.initialize();
     }
 
-    pub fn add_line(&mut self, line: Line) -> Result<(), EzasmError> {
+    pub fn add_line(&mut self, line: Line) -> Result<(), SimulatorError> {
         match &line {
             Line::Label(label) => {
                 if self.label_map.contains_key(label) {
-                    return Err(EzasmError::LabelInUseError(label.to_string()));
+                    return Err(SimulatorError::LabelInUseError(label.to_string()));
                 } else {
                     self.label_map
                         .insert(String::from(label), self.lines.len() as i64);
@@ -81,7 +81,7 @@ impl Simulator {
         Ok(())
     }
 
-    pub fn add_lines(&mut self, lines: Vec<Line>) -> Result<(), EzasmError> {
+    pub fn add_lines(&mut self, lines: Vec<Line>) -> Result<(), SimulatorError> {
         for line in lines {
             match self.add_line(line) {
                 Ok(_) => {}
@@ -133,9 +133,9 @@ impl Simulator {
         (line > self.lines.len() as i64) || (line < 0)
     }
 
-    pub fn validate_pc(&self) -> Result<i64, EzasmError> {
+    pub fn validate_pc(&self) -> Result<i64, SimulatorError> {
         if self.is_error() {
-            Err(EzasmError::InvalidProgramCounterError(
+            Err(SimulatorError::InvalidProgramCounterError(
                 self.registry.get_pc().get_data().int_value(),
             ))
         } else {
@@ -143,7 +143,7 @@ impl Simulator {
         }
     }
 
-    pub fn run_line(&mut self, line: &Line) -> Result<(), EzasmError> {
+    pub fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
         let result = match line {
             Line::Instruction(instruction, args) => {
                 instruction.get_function()(self, instruction.get_types(), &args)
@@ -161,25 +161,25 @@ impl Simulator {
         result
     }
 
-    pub fn run_line_from_pc(&mut self) -> Result<(), EzasmError> {
+    pub fn run_line_from_pc(&mut self) -> Result<(), SimulatorError> {
         let line_number = match self.validate_pc() {
             Ok(x) => x,
             Err(error) => return Err(error),
         };
         let line = match self.lines.get(line_number as usize) {
-            None => return Err(EzasmError::SimulatorError),
+            None => return Err(SimulatorError::InvalidProgramCounterError(line_number)),
             Some(x) => x,
         };
         self.run_line(&line.clone())
     }
 
-    pub fn apply_transformation(&self) -> Result<(), EzasmError> {
+    pub fn apply_transformation(&self) -> Result<(), SimulatorError> {
         todo!()
     }
 
-    pub fn get_label_line_number(&self, label: &String) -> Result<&i64, EzasmError> {
+    pub fn get_label_line_number(&self, label: &String) -> Result<&i64, SimulatorError> {
         self.label_map
             .get(label)
-            .ok_or(EzasmError::NonExistentLabelError(label.clone()))
+            .ok_or(SimulatorError::NonExistentLabelError(label.clone()))
     }
 }
