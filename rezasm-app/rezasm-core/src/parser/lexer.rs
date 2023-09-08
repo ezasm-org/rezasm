@@ -48,6 +48,10 @@ pub fn is_alphanumeric_underscore(c: &char) -> bool {
 }
 
 pub fn all_alphanumeric_underscore(text: &str) -> bool {
+    if text.len() > 0 && is_numeric(&format!("{}", text.chars().nth(0).unwrap())) {
+        return false
+    }
+
     for c in text.chars() {
         if !is_alphanumeric_underscore(&c) {
             return false;
@@ -193,7 +197,7 @@ pub fn get_dereference(token: &String) -> Result<Token, ParserError> {
 
 
     let offset_string: String = if lparen > 0 {
-        token.chars().take(lparen - 1).collect()
+        token.chars().take(lparen).collect()
     } else {
         "".to_string()
     };

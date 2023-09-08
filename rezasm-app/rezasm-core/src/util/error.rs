@@ -4,7 +4,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum EzasmError {
-    #[error("error parsing the given code")]
+    #[error("{0}")]
     ParserError(ParserError),
 
     #[error("error running the given code")]
@@ -79,10 +79,10 @@ pub enum ParserError {
     #[error("invalid dereference `{0}`")]
     DereferenceError(String),
 
-    #[error("unknown register `{0}`")]
+    #[error("unrecognized register `{0}`")]
     UnknownRegisterError(String),
 
-    #[error("unknown token `{0}`")]
+    #[error("unrecognized token `{0}`")]
     UnknownTokenError(String),
 }
 
