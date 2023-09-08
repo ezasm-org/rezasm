@@ -4,6 +4,7 @@ use crate::instructions::instruction_field::InstructionField;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use crate::util::error::EzasmError;
 
 pub struct InstructionRegistry {
     instructions: HashMap<String, Vec<&'static InstructionField>>,
@@ -32,17 +33,17 @@ impl InstructionRegistry {
         &self,
         name: &String,
         args: &Vec<ArgumentType>,
-    ) -> Option<&'static Instruction> {
+    ) -> Result<&'static Instruction, EzasmError> {
         match self.instructions.get(name) {
-            None => None,
+            None => Err(EzasmError::InvalidInstructionError(name.to_string())),
             Some(group) => {
                 for attempt in group.iter() {
                     match attempt.get_instruction(args) {
                         None => {}
-                        Some(instruction) => return Some(instruction),
+                        Some(instruction) => return Ok(instruction),
                     }
                 }
-                None
+                Err(EzasmError::InvalidArgumentsError)
             }
         }
     }
@@ -59,7 +60,7 @@ pub fn register_instruction(instruction: &'static InstructionField) {
         .register_instruction(instruction);
 }
 
-pub fn get_instruction(name: &String, args: &Vec<ArgumentType>) -> Option<&'static Instruction> {
+pub fn get_instruction(name: &String, args: &Vec<ArgumentType>) -> Result<&'static Instruction, EzasmError> {
     INSTRUCTIONS.lock().unwrap().get_instruction(name, args)
 }
 

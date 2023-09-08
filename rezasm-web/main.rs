@@ -75,9 +75,9 @@ fn load(lines: &str) -> SerialResult<(), String> {
             Some(x) => match x {
                 Ok(line) => match simulator.add_line(line) {
                     Ok(_) => {}
-                    Err(error) => return SerialResult::Err(format!("{:?}", error)),
+                    Err(error) => return SerialResult::Err(format!("{}", error)),
                 },
-                Err(error) => return SerialResult::Err(format!("{:?}", error)),
+                Err(error) => return SerialResult::Err(format!("{}", error)),
             },
         };
     }
@@ -96,7 +96,7 @@ async fn run() {
                 match simulator.run_line_from_pc() {
                     Ok(_) => {}
                     Err(error) => {
-                        signal_error(format!("Program error: {:?}", error).as_str());
+                        signal_error(format!("Program error: {}", error).as_str());
                         return Ok::<(), EzasmError>(());
                     }
                 }
@@ -136,7 +136,7 @@ async fn step() {
             match simulator.run_line_from_pc() {
                 Ok(_) => {}
                 Err(error) => {
-                    signal_error(format!("Program error: {:?}", error).as_str());
+                    signal_error(format!("Program error: {}", error).as_str());
                     return Ok::<(), EzasmError>(());
                 }
             }

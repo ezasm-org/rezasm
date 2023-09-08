@@ -2333,6 +2333,7 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "thiserror",
  "tokio",
 ]
 
@@ -2358,6 +2359,7 @@ dependencies = [
  "bytebuffer",
  "lazy_static",
  "regex",
+ "thiserror",
 ]
 
 [[package]]

@@ -102,7 +102,7 @@ pub fn get_register_number(register: &String) -> Result<usize, EzasmError> {
     REGISTERS_MAP
         .get_by_left(register[1..].to_uppercase().as_str())
         .map(|r| r.clone())
-        .ok_or(EzasmError::SimulatorError)
+        .ok_or(EzasmError::InvalidRegisterNameError(register.to_string()))
 }
 
 pub fn is_valid_register(register: &String) -> bool {
@@ -120,6 +120,10 @@ pub fn is_valid_register(register: &String) -> bool {
         Err(_) => REGISTERS_COUNT + 1,
     };
     REGISTERS_MAP.contains_left(&temp) || REGISTERS_MAP.contains_right(&number)
+}
+
+pub fn is_valid_register_number(register: usize) -> bool {
+    REGISTERS_MAP.contains_right(&register)
 }
 
 #[derive(Debug)]
