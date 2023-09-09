@@ -1,8 +1,9 @@
 use regex::Regex;
+use std::str::FromStr;
 
 use crate::parser::line::*;
 use crate::simulation::registry;
-use crate::util::error::EzasmError;
+use crate::util::error::ParserError;
 use crate::util::word_size::WordSize;
 
 pub enum EZNumberFormat {
@@ -37,8 +38,8 @@ pub enum Token {
     NumericalImmediate(EZNumber),
     CharacterImmediate(char),
     StringImmediate(String),
-    Register(String),
-    Dereference(String),
+    Register(usize),
+    Dereference(i64, usize),
     LabelReference(String),
 }
 
@@ -47,6 +48,10 @@ pub fn is_alphanumeric_underscore(c: &char) -> bool {
 }
 
 pub fn all_alphanumeric_underscore(text: &str) -> bool {
+    if text.len() > 0 && is_numeric(&format!("{}", text.chars().nth(0).unwrap())) {
+        return false;
+    }
+
     for c in text.chars() {
         if !is_alphanumeric_underscore(&c) {
             return false;
@@ -71,16 +76,16 @@ pub fn get_number_type(text: String) -> EZNumberFormat {
     }
 }
 
-pub fn text_to_number(token: String) -> Result<EZNumber, EzasmError> {
+pub fn text_to_number(token: String) -> Result<EZNumber, ParserError> {
     match get_number_type(token) {
         EZNumberFormat::Hexadecimal(s) => i64::from_str_radix(s.replace("0x", "").as_str(), 16)
-            .map_err(EzasmError::from)
+            .map_err(ParserError::from)
             .map(EZNumber::from),
         EZNumberFormat::Binary(s) => i64::from_str_radix(s.replace("0b", "").as_str(), 2)
-            .map_err(EzasmError::from)
+            .map_err(ParserError::from)
             .map(EZNumber::from),
         EZNumberFormat::Decimal(s) => i64::from_str_radix(s.as_str(), 10)
-            .map_err(EzasmError::from)
+            .map_err(ParserError::from)
             .map(EZNumber::from),
         EZNumberFormat::HexadecimalFloat(s) => {
             parse_float_string(&s.replace("0x", ""), 16u8).map(EZNumber::from)
@@ -92,15 +97,15 @@ pub fn text_to_number(token: String) -> Result<EZNumber, EzasmError> {
             let k = s.parse::<f64>();
             match k {
                 Ok(x) => Ok(EZNumber::Float(x)),
-                Err(e) => Err(EzasmError::from(e)),
+                Err(e) => Err(ParserError::from(e)),
             }
         }
     }
 }
 
-pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> {
+pub fn parse_float_string(string: &String, base: u8) -> Result<f64, ParserError> {
     if string.find(".") != string.rfind(".") {
-        return Err(EzasmError::ParserError);
+        return Err(ParserError::NumericalImmediateError(string.to_string()).into());
     }
     let mut number = string.as_str();
 
@@ -114,7 +119,7 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> 
         None => 0,
         Some(first) => match i64::from_str_radix(first, base as u32) {
             Ok(i) => i,
-            Err(e) => return Err(EzasmError::from(e)),
+            Err(e) => return Err(ParserError::from(e)),
         },
     };
 
@@ -128,7 +133,7 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> 
             } else {
                 match i64::from_str_radix(&tail, base as u32) {
                     Ok(i) => i,
-                    Err(e) => return Err(EzasmError::from(e)),
+                    Err(e) => return Err(ParserError::from(e)),
                 }
             }
         }
@@ -141,6 +146,13 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, EzasmError> 
     };
 
     Ok(result)
+}
+
+pub fn looks_like_label(token: &String) -> bool {
+    match token.rfind(':') {
+        None => false,
+        Some(index) => index == token.len() - 1,
+    }
 }
 
 pub fn is_label(token: &String) -> bool {
@@ -162,52 +174,104 @@ pub fn is_register(token: &String) -> bool {
     token.starts_with("$") && token.len() > 1 && registry::is_valid_register(token)
 }
 
+pub fn get_register(token: &String) -> Result<Token, ParserError> {
+    match registry::get_register_number(token) {
+        Ok(n) => Ok(Token::Register(n)),
+        Err(_) => Err(ParserError::UnknownRegisterError(token.to_string())),
+    }
+}
+
 pub fn looks_like_dereference(token: &String) -> bool {
     //unwrap below should never panic because the pattern is hardcoded
     let pattern = Regex::new("^(-?\\d+)?\\(\\$.+\\)$").unwrap();
     pattern.is_match(token)
 }
 
+pub fn get_dereference(token: &String) -> Result<Token, ParserError> {
+    let lparen = match token.find('(') {
+        None => return Err(ParserError::DereferenceError(token.to_string())),
+        Some(x) => x,
+    };
+    let rparen = match token.rfind(')') {
+        None => return Err(ParserError::DereferenceError(token.to_string())),
+        Some(x) => x,
+    };
+
+    let register_string: String = token
+        .chars()
+        .skip(lparen + 1)
+        .take(rparen - lparen - 1)
+        .collect();
+
+    let register = match registry::get_register_number(&register_string) {
+        Ok(n) => n,
+        Err(_) => return Err(ParserError::UnknownRegisterError(register_string)),
+    };
+
+    let offset_string: String = if lparen > 0 {
+        token.chars().take(lparen).collect()
+    } else {
+        "".to_string()
+    };
+
+    let offset: i64 = if offset_string.is_empty() {
+        0
+    } else {
+        match i64::from_str(&offset_string) {
+            Ok(x) => x,
+            Err(_) => return Err(ParserError::DereferenceError(token.to_string())),
+        }
+    };
+
+    Ok(Token::Dereference(offset, register))
+}
+
 pub fn looks_like_numerical_immediate(token: &String) -> bool {
     !token.is_empty() && is_numeric(token)
 }
 
-pub fn looks_like_character_immediate(token: &String) -> bool {
-    token.len() > 1 && token.starts_with('\'') && token.ends_with('\'')
+pub fn get_numerical_immediate(token: &String) -> Result<Token, ParserError> {
+    Ok(Token::NumericalImmediate(text_to_number(
+        token.to_string(),
+    )?))
 }
 
 pub fn looks_like_string_immediate(token: &String) -> bool {
     token.len() > 1 && token.starts_with('"') && token.ends_with('"')
 }
 
-pub fn get_character_immediate(token: &String) -> Result<char, EzasmError> {
+pub fn looks_like_character_immediate(token: &String) -> bool {
+    token.len() > 1 && token.starts_with('\'') && token.ends_with('\'')
+}
+
+pub fn get_character_immediate(token: &String) -> Result<Token, ParserError> {
     if token.len() == 3 {
-        return Ok(token.chars().nth(1).unwrap());
+        return Ok(Token::CharacterImmediate(token.chars().nth(1).unwrap()));
     } else if token.len() == 4 {
         //TODO consider reworking this part of the program as it is not at feature parity with main
         let mut temp = token.clone();
         temp.pop();
         if token.chars().nth(1).unwrap() != '\\' {
-            return Err(EzasmError::ParserError);
+            return Err(ParserError::CharacterImmediateError(token.to_string()).into());
         }
         match temp.pop() {
-            None => Err(EzasmError::ParserError),
+            None => Err(ParserError::CharacterImmediateError(token.to_string()).into()),
             Some(c) => match c {
-                't' => Ok('\t'),
-                'n' => Ok('\n'),
-                'r' => Ok('\r'),
-                '\'' => Ok('\''),
-                '"' => Ok('\"'),
-                '\\' => Ok('\\'),
-                _ => Err(EzasmError::ParserError),
+                't' => Ok(Token::CharacterImmediate('\t')),
+                'n' => Ok(Token::CharacterImmediate('\n')),
+                'r' => Ok(Token::CharacterImmediate('\r')),
+                '\'' => Ok(Token::CharacterImmediate('\'')),
+                '"' => Ok(Token::CharacterImmediate('\"')),
+                '\\' => Ok(Token::CharacterImmediate('\\')),
+                _ => Err(ParserError::CharacterImmediateError(token.to_string()).into()),
             },
         }
     } else {
-        Err(EzasmError::ParserError)
+        Err(ParserError::CharacterImmediateError(token.to_string()).into())
     }
 }
 
-pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, EzasmError>> {
+pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, ParserError>> {
     let tokens = tokenize_line(line);
 
     if tokens.len() == 0 {
@@ -217,9 +281,9 @@ pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, Ez
     }
 }
 
-pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
+pub fn get_string_immediate(token: &String) -> Result<String, ParserError> {
     if token.len() < 2 {
-        return Err(EzasmError::ParserError);
+        return Err(ParserError::StringImmediateError(token.to_string()).into());
     }
 
     let chars_full = token.chars();
@@ -246,7 +310,7 @@ pub fn get_string_immediate(token: &String) -> Result<String, EzasmError> {
                 '\'' => result.push('\''),
                 '"' => result.push('"'),
                 '\\' => result.push('\\'),
-                _ => return Err(EzasmError::ParserError),
+                _ => return Err(ParserError::StringImmediateError(token.to_string()).into()),
             }
             last_character = Some('\\');
         } else {

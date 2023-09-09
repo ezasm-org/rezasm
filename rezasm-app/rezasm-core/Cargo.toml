@@ -1,6 +1,6 @@
 [package]
 name = "rezasm-core"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
 
 [lib]
@@ -11,3 +11,4 @@ bimap = "0.6.3"
 bytebuffer = "2.1.0"
 lazy_static = "1.4.0"
 regex = "1.8.1"
+thiserror = "1.0.47"

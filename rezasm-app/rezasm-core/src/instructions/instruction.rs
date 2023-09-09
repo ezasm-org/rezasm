@@ -4,10 +4,10 @@ use std::iter::zip;
 
 use crate::instructions::argument_type::ArgumentType;
 use crate::simulation::simulator::Simulator;
-use crate::util::error::EzasmError;
+use crate::util::error::SimulatorError;
 
 pub type TInstructionFunction =
-    fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), EzasmError>;
+    fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), SimulatorError>;
 
 #[derive(Clone)]
 pub struct Instruction {

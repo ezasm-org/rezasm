@@ -48,7 +48,7 @@ fn main() {
 
     match application.run_until_completion() {
         Ok(_) => {}
-        Err(error) => handle_error(error),
+        Err(error) => handle_error(error.into()),
     };
 }
 

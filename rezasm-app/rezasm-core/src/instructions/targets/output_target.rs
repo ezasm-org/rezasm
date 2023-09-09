@@ -1,8 +1,8 @@
 use crate::instructions::targets::Target;
 use crate::simulation::simulator::Simulator;
-use crate::util::error::EzasmError;
+use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
 pub trait Output: Target {
-    fn set(&mut self, simulator: &mut Simulator, data: RawData) -> Result<(), EzasmError>;
+    fn set(&self, simulator: &mut Simulator, data: RawData) -> Result<(), SimulatorError>;
 }

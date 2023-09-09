@@ -1,6 +1,6 @@
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::util::error::EzasmError;
+use rezasm_core::util::error::SimulatorError;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
 
@@ -26,7 +26,7 @@ impl Application {
         }
     }
 
-    pub fn run_until_completion(mut self) -> Result<(), EzasmError> {
+    pub fn run_until_completion(mut self) -> Result<(), SimulatorError> {
         let lines = self
             .code_file
             .lines()
@@ -36,7 +36,7 @@ impl Application {
             match lexer::parse_line(&line, self.simulator.get_word_size()) {
                 Some(line_result) => match line_result {
                     Ok(line) => self.simulator.add_line(line)?,
-                    Err(error) => return Err(error),
+                    Err(error) => return Err(error.into()),
                 },
                 None => {}
             };

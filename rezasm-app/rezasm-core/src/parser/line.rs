@@ -3,7 +3,7 @@ use crate::instructions::instruction::Instruction;
 use crate::instructions::instruction_registry::{get_instruction, is_instruction_name_registered};
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::*;
-use crate::util::error::EzasmError;
+use crate::util::error::ParserError;
 use crate::util::word_size::WordSize;
 use std::fmt::{Display, Formatter};
 
@@ -18,13 +18,19 @@ impl Line {
         instruction: &String,
         args: Vec<String>,
         word_size: &WordSize,
-    ) -> Result<Self, EzasmError> {
-        if is_label(instruction) {
-            return Ok(Line::Label(
-                instruction[0..instruction.len() - 1].to_string(),
-            ));
+    ) -> Result<Self, ParserError> {
+        if looks_like_label(instruction) {
+            return if is_label(instruction) {
+                Ok(Line::Label(
+                    instruction[0..instruction.len() - 1].to_string(),
+                ))
+            } else {
+                Err(ParserError::LabelDefinitionError(instruction.to_string()))
+            };
         } else if !is_instruction_name_registered(instruction) {
-            return Err(EzasmError::InvalidInstructionError(instruction.to_string()));
+            return Err(ParserError::InvalidInstructionError(
+                instruction.to_string(),
+            ));
         }
 
         let mut args_out: Vec<Token> = Vec::new();
@@ -32,23 +38,17 @@ impl Line {
             if looks_like_string_immediate(&arg) {
                 args_out.push(Token::StringImmediate(arg));
             } else if looks_like_dereference(&arg) {
-                args_out.push(Token::Dereference(arg));
+                args_out.push(get_dereference(&arg)?);
             } else if looks_like_character_immediate(&arg) {
-                match get_character_immediate(&arg) {
-                    Ok(c) => args_out.push(Token::CharacterImmediate(c)),
-                    Err(_) => return Err(EzasmError::ParserError),
-                }
+                args_out.push(get_character_immediate(&arg)?);
             } else if looks_like_numerical_immediate(&arg) {
-                match text_to_number(arg) {
-                    Ok(i) => args_out.push(Token::NumericalImmediate(i)),
-                    Err(_) => return Err(EzasmError::ParserError),
-                }
+                args_out.push(get_numerical_immediate(&arg)?);
             } else if is_register(&arg) {
-                args_out.push(Token::Register(arg));
+                args_out.push(get_register(&arg)?);
             } else if looks_like_label_reference(&arg) {
                 args_out.push(Token::LabelReference(arg));
             } else {
-                return Err(EzasmError::ParserError);
+                return Err(ParserError::UnknownTokenError(arg).into());
             }
         }
 
@@ -60,10 +60,7 @@ impl Line {
             });
         }
 
-        let matching_instruction = match get_instruction(instruction, &arguments) {
-            Some(x) => x,
-            None => return Err(EzasmError::InvalidInstructionError(instruction.to_string())),
-        };
+        let matching_instruction = get_instruction(instruction, &arguments)?;
 
         Ok(Line::Instruction(matching_instruction, arguments))
     }

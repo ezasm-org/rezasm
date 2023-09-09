@@ -1,11 +1,10 @@
 use std::any::TypeId;
-use std::str::FromStr;
 
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::{Input, InputTarget};
 use crate::instructions::targets::Target;
 use crate::parser::lexer::Token;
-use crate::util::error::EzasmError;
+use crate::util::error::ParserError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 
@@ -101,7 +100,7 @@ impl ArgumentType {
 }
 
 impl Token {
-    pub fn get_target(&self, word_size: &WordSize) -> Result<ArgumentType, EzasmError> {
+    pub fn get_target(&self, word_size: &WordSize) -> Result<ArgumentType, ParserError> {
         Ok(ArgumentType::Input(match self {
             Token::LabelReference(r) => InputTarget::new_label_reference(r),
             Token::NumericalImmediate(crate::parser::lexer::EZNumber::Float(f)) => {
@@ -122,32 +121,16 @@ impl Token {
                     },
                 ))
             }
-            Token::Dereference(d) => {
-                let lparen = d.find('(').unwrap();
-                let rparen = d.rfind(')').unwrap();
-
-                let register_string: String = d
-                    .chars()
-                    .skip(lparen + 1)
-                    .take(rparen - lparen - 1)
-                    .collect();
-                let offset_string: String = d.chars().take(lparen - 1).collect();
-
-                let offset: i64 = if offset_string.is_empty() {
-                    0
-                } else {
-                    match i64::from_str(&offset_string) {
-                        Ok(x) => x,
-                        Err(_) => return Err(EzasmError::ParserError),
-                    }
-                };
-
+            Token::Dereference(offset, register) => {
                 return Ok(ArgumentType::InputOutput(
-                    match InputOutputTarget::new_dereference_offset(&register_string, offset) {
+                    match InputOutputTarget::new_dereference_offset(
+                        register.clone(),
+                        offset.clone(),
+                    ) {
                         Ok(t) => t,
                         Err(e) => return Err(e),
                     },
-                ));
+                ))
             }
         }))
     }

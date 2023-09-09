@@ -2318,7 +2318,7 @@ checksum = "dbb5fb1acd8a1a18b3dd5be62d25485eb770e05afb408a9627d14d451bae12da"
 
 [[package]]
 name = "rezasm"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bimap",
  "bytebuffer",
@@ -2333,12 +2333,13 @@ dependencies = [
  "serde_json",
  "tauri",
  "tauri-build",
+ "thiserror",
  "tokio",
 ]
 
 [[package]]
 name = "rezasm-app"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "bimap",
  "bytebuffer",
@@ -2352,17 +2353,18 @@ dependencies = [
 
 [[package]]
 name = "rezasm-core"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "bimap",
  "bytebuffer",
  "lazy_static",
  "regex",
+ "thiserror",
 ]
 
 [[package]]
 name = "rezasm-macro"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "proc-macro2",
  "quote",

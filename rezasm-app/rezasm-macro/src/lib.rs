@@ -150,7 +150,7 @@ pub fn instruction(_input: TokenStream) -> TokenStream {
 
     for (permutation, field) in zip(possible_output_permutations.clone(), argument_names_repeat) {
         function_declarations.push(proc_macro2::TokenStream::from(quote! {
-            fn #parsed_name (#simulator_name: &mut rezasm_core::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<rezasm_core::instructions::argument_type::ArgumentType>) -> Result<(), rezasm_core::util::error::EzasmError> {
+            fn #parsed_name (#simulator_name: &mut rezasm_core::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<rezasm_core::instructions::argument_type::ArgumentType>) -> Result<(), rezasm_core::util::error::SimulatorError> {
                 let mut _counter: usize = 0;
                 #(let mut #field: #permutation = arguments[_counter].downcast::<#permutation>().unwrap().clone(); _counter += 1;)*
                 #function_body
