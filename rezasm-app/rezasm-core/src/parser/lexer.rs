@@ -188,8 +188,14 @@ pub fn looks_like_dereference(token: &String) -> bool {
 }
 
 pub fn get_dereference(token: &String) -> Result<Token, ParserError> {
-    let lparen = token.find('(').unwrap();
-    let rparen = token.rfind(')').unwrap();
+    let lparen = match token.find('(') {
+        None => return Err(ParserError::DereferenceError(token.to_string())),
+        Some(x) => x,
+    };
+    let rparen = match token.rfind(')') {
+        None => return Err(ParserError::DereferenceError(token.to_string())),
+        Some(x) => x,
+    };
 
     let register_string: String = token
         .chars()
