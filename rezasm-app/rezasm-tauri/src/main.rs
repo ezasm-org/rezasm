@@ -6,11 +6,14 @@ extern crate tauri;
 extern crate tokio;
 
 use lazy_static::lazy_static;
+use rezasm_instructions::register_instructions;
+use rezasm_web_core::util::commands::{
+    get_exit_status, get_register_value, initialize_globals, is_completed, load,
+    register_callbacks, reset, run, step, stop,
+};
+use rezasm_web_core::util::serial_result::SerialResult;
 use tauri::{Manager, Window};
 use tokio::runtime;
-use rezasm_instructions::register_instructions;
-use rezasm_web_core::util::commands::{initialize_globals, load, reset, run, step, stop, is_completed, get_exit_status, get_register_value, register_callbacks};
-use rezasm_web_core::util::serial_result::SerialResult;
 
 use std::sync::{Arc, RwLock};
 

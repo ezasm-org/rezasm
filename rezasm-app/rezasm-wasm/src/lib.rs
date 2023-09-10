@@ -4,7 +4,9 @@ extern crate wasm_bindgen;
 
 use wasm_bindgen::prelude::*;
 
-use rezasm_web_core::util::commands::{load, reset, run, step, stop, is_completed, get_exit_status, get_register_value};
+use rezasm_web_core::util::commands::{
+    get_exit_status, get_register_value, is_completed, load, reset, run, step, stop,
+};
 
 #[wasm_bindgen]
 pub fn wasm_stop() {

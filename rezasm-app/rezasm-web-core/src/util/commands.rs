@@ -1,12 +1,12 @@
-use std::ops::Deref;
 use crate::util::runtime::Runtime;
 use crate::util::serial_result::SerialResult;
+use std::ops::Deref;
 
+use lazy_static::lazy_static;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::EzasmError;
-use lazy_static::lazy_static;
 
 use std::string::ToString;
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
@@ -21,7 +21,8 @@ lazy_static! {
     static ref SIMULATOR: Arc<RwLock<Simulator>> = Arc::new(RwLock::new(Simulator::new()));
     static ref RUNTIME: Arc<RwLock<Runtime>> = Arc::new(RwLock::new(Runtime::new()));
     static ref SIGNAL_ERROR: Arc<RwLock<CallbackFnStr>> = Arc::new(RwLock::new(_temp_str));
-    static ref SIGNAL_PROGRAM_COMPLETION: Arc<RwLock<CallbackFnI64>> = Arc::new(RwLock::new(_temp_i64));
+    static ref SIGNAL_PROGRAM_COMPLETION: Arc<RwLock<CallbackFnI64>> =
+        Arc::new(RwLock::new(_temp_i64));
 }
 
 pub fn get_simulator() -> RwLockWriteGuard<'static, Simulator> {
@@ -99,7 +100,7 @@ pub fn run() {
                     "Invalid PC: {}",
                     simulator.get_registers().get_pc().get_data().int_value()
                 )
-                    .as_str(),
+                .as_str(),
             );
         } else if simulator.is_done() {
             signal_program_completion(
@@ -137,7 +138,7 @@ pub fn step() {
                     "Invalid PC: {}",
                     simulator.get_registers().get_pc().get_data().int_value()
                 )
-                    .as_str(),
+                .as_str(),
             );
         } else if simulator.is_done() {
             signal_program_completion(
@@ -187,7 +188,5 @@ fn signal_program_completion(exit_status: i64) {
 }
 
 pub fn initialize_globals(runtime: tokio::runtime::Runtime) {
-
-
     *RUNTIME.write().unwrap() = Runtime::from_rt(runtime);
 }
