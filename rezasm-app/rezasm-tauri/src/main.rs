@@ -11,7 +11,6 @@ use rezasm_web_core::util::commands::{
     get_exit_status, get_register_value, initialize_globals, is_completed, load,
     register_callbacks, reset, run, step, stop,
 };
-use rezasm_web_core::util::serial_result::SerialResult;
 use tauri::{Manager, Window};
 use tokio::runtime;
 
@@ -48,7 +47,7 @@ fn tauri_reset() {
 }
 
 #[tauri::command]
-fn tauri_load(lines: &str) -> SerialResult<(), String> {
+fn tauri_load(lines: &str) -> Result<(), String> {
     load(lines)
 }
 

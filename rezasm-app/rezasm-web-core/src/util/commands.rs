@@ -1,5 +1,4 @@
 use crate::util::runtime::Runtime;
-use crate::util::serial_result::SerialResult;
 use std::ops::Deref;
 
 use lazy_static::lazy_static;
@@ -47,7 +46,7 @@ pub fn reset() {
     get_simulator().reset();
 }
 
-pub fn load(lines: &str) -> SerialResult<(), String> {
+pub fn load(lines: &str) -> Result<(), String> {
     let mut simulator = get_simulator();
 
     for line_string in lines
@@ -62,17 +61,13 @@ pub fn load(lines: &str) -> SerialResult<(), String> {
             Some(x) => match x {
                 Ok(line) => match simulator.add_line(line) {
                     Ok(_) => {}
-                    Err(error) => {
-                        return SerialResult::Err(format!("Error parsing program: {}", error))
-                    }
+                    Err(error) => return Err(format!("Error parsing program: {}", error)),
                 },
-                Err(error) => {
-                    return SerialResult::Err(format!("Error parsing program: {}", error))
-                }
+                Err(error) => return Err(format!("Error parsing program: {}", error)),
             },
         };
     }
-    SerialResult::Ok(())
+    Ok(())
 }
 
 pub fn run() {

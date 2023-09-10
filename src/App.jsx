@@ -1,5 +1,8 @@
-import {useCallback, useEffect, useState} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import { wasm_initialize_backend, wasm_load, wasm_run, wasm_step, wasm_stop, wasm_reset, wasm_is_completed,
+         wasm_get_exit_status, wasm_get_register_value } from "../dist/wasm";
+import init from "../dist/wasm/rezasm_wasm.js"
 import "../dist/output.css";
 
 const STATE = {
@@ -10,35 +13,22 @@ const STATE = {
     STOPPED: 5,
 }
 
-const RESULT_OK = "data";
-const RESULT_ERR = "error";
-
-const isOk = result => {
-    return result[RESULT_OK] || result[RESULT_OK] === null;
-}
-
-const isError = result => {
-    return result[RESULT_ERR] || result[RESULT_ERR] === null;
-}
-
-const getOk = result => {
-    if (isOk(result)) {
-        return result[RESULT_OK] === null ? {} : result[RESULT_OK];
-    } else {
-        return undefined;
-    }
-}
-
-const getErr = result => {
-    if (isError(result)) {
-        return result[RESULT_ERR] === null ? {} : result[RESULT_ERR];
-    } else {
-        return undefined;
-    }
-}
-
 const isSome = option => {
     return option !== null;
+}
+
+const isNone = option => {
+    return option === null;
+}
+
+const rust_load = async lines => {
+    if (window.__TAURI__) {
+        return invoke("tauri_load", {lines});
+    } else if (wasm_load) {
+        return wasm_load(lines);
+    } else {
+        throw "Load does not exist";
+    }
 }
 
 function App() {
@@ -88,14 +78,17 @@ function App() {
         if (currentState >= STATE.LOADED) {
             return currentState;
         }
-        let result = await invoke("tauri_load", {lines});
-        if (isOk(result)) {
-            currentState = STATE.LOADED;
-        } else {
-            setErrorState(getErr(result));
-            currentState = STATE.STOPPED;
-        }
-        setState(currentState);
+        await rust_load(lines)
+            .then(() => {
+                currentState = STATE.LOADED;
+                setState(currentState);
+            })
+            .catch(error => {
+                setErrorState(error);
+                currentState = STATE.STOPPED;
+                setState(currentState);
+            });
+
         return currentState;
     }, [setErrorState, lines]);
 
@@ -157,6 +150,14 @@ function App() {
             setState(STATE.STOPPED);
         }
     }, [state]);
+
+    useEffect(() => {
+        if (init) {
+            init().then(r => {
+                wasm_initialize_backend();
+            });
+        }
+    }, [])
 
     return (
         <div className="container">
