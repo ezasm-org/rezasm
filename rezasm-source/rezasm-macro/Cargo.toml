@@ -8,7 +8,7 @@ proc-macro = true
 path = "src/lib.rs"
 
 [dependencies]
-rezasm-core = { path = "../rezasm-core", version = "*" }
+rezasm-core = { path = "../rezasm-core" }
 
 quote = "1.0.33"
 proc-macro2 = "1.0.66"

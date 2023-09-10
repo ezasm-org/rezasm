@@ -1,10 +1,11 @@
 target
-rezasm-app/target
+rezasm-app/*/target
+rezasm-source/*/target
 
 package-lock.json
-rezasm-app/rezasm-core/Cargo.lock
-rezasm-app/rezasm-macro/Cargo.lock
-rezasm-app/Cargo.lock
+rezasm-source/rezasm-core/Cargo.lock
+rezasm-source/rezasm-macro/Cargo.lock
+rezasm-source/Cargo.lock
 
 # Logs
 logs

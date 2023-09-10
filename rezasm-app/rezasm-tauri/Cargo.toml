@@ -1,0 +1,29 @@
+[package]
+name = "rezasm-tauri"
+version = "1.0.0"
+edition = "2021"
+
+[[bin]]
+path = "src/main.rs"
+name = "rezasm-tauri"
+
+
+[build-dependencies]
+tauri-build = { version = "1.4.0", features = [] }
+
+[dependencies]
+rezasm-core = { path = "../../rezasm-source/rezasm-core" }
+rezasm-instructions = { path = "../../rezasm-source/rezasm-instructions" }
+rezasm-macro = { path = "../../rezasm-source/rezasm-macro" }
+rezasm-web-core = { path = "../rezasm-web-core" }
+
+lazy_static = "1.4.0"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.105"
+tauri = { version = "1.4.1", features = ["shell-open"] }
+tokio = { version = "1.32.0", features = ["full"] }
+
+# this feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+[features]
+custom-protocol = ["tauri/custom-protocol"]

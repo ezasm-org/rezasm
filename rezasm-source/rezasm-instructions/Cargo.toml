@@ -1,0 +1,13 @@
+[package]
+name = "rezasm-instructions"
+version = "1.0.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+rezasm-core = { path = "../rezasm-core" }
+rezasm-macro = { path = "../rezasm-macro" }
+
+lazy_static = "1.4.0"

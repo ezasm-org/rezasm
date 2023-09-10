@@ -65,19 +65,19 @@ function App() {
     }, [error]);
 
     const isCompleted = useCallback(async () => {
-        return await invoke("is_completed", {});
+        return await invoke("tauri_is_completed", {});
     }, []);
 
     const getExitStatus = useCallback(async () => {
-        return await invoke("get_exit_status", {});
+        return await invoke("tauri_get_exit_status", {});
     }, []);
 
     const getRegisterValue = useCallback(async register => {
-        return await invoke("get_register_value", {register});
+        return await invoke("tauri_get_register_value", {register});
     }, []);
 
     const reset = useCallback(async () => {
-        await invoke("reset", {});
+        await invoke("tauri_reset", {});
         setState(STATE.IDLE);
         setResult("");
         clearErrorState();
@@ -88,7 +88,7 @@ function App() {
         if (currentState >= STATE.LOADED) {
             return currentState;
         }
-        let result = await invoke("load", {lines});
+        let result = await invoke("tauri_load", {lines});
         if (isOk(result)) {
             currentState = STATE.LOADED;
         } else {
@@ -112,7 +112,7 @@ function App() {
             } else {
                 currentState = STATE.RUNNING;
                 setState(currentState);
-                await invoke("run", {});
+                await invoke("tauri_run", {});
             }
         }
         return currentState;
@@ -133,14 +133,14 @@ function App() {
             } else {
                 currentState = STATE.PAUSED;
                 setState(currentState);
-                await invoke("step", {});
+                await invoke("tauri_step", {});
             }
         }
         return currentState
     }, [load, isErrorState, getExitStatus, isCompleted]);
 
     const stop = useCallback(async currentState => {
-        await invoke("stop", {})
+        await invoke("tauri_stop", {})
         currentState = STATE.STOPPED;
         setState(currentState);
         return currentState;

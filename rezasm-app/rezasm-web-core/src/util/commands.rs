@@ -1,34 +1,28 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
-mod util;
-
-extern crate rezasm_app;
-extern crate rezasm_core;
-extern crate rezasm_macro;
-extern crate tokio;
-
+use std::ops::Deref;
 use crate::util::runtime::Runtime;
 use crate::util::serial_result::SerialResult;
-use lazy_static::lazy_static;
-use rezasm_app::instructions::implementation::arithmetic_instructions::register_instructions;
+
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::EzasmError;
-use std::ops::Deref;
+use lazy_static::lazy_static;
+
 use std::string::ToString;
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
-use tauri::{Manager, Window};
-use tokio::runtime;
+
+type CallbackFnStr = fn(&str);
+type CallbackFnI64 = fn(i64);
+
+fn _temp_str(_: &str) {}
+fn _temp_i64(_: i64) {}
 
 lazy_static! {
     static ref SIMULATOR: Arc<RwLock<Simulator>> = Arc::new(RwLock::new(Simulator::new()));
     static ref RUNTIME: Arc<RwLock<Runtime>> = Arc::new(RwLock::new(Runtime::new()));
-    static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
+    static ref SIGNAL_ERROR: Arc<RwLock<CallbackFnStr>> = Arc::new(RwLock::new(_temp_str));
+    static ref SIGNAL_PROGRAM_COMPLETION: Arc<RwLock<CallbackFnI64>> = Arc::new(RwLock::new(_temp_i64));
 }
-
-const WINDOW_NAME: &'static str = "main";
 
 pub fn get_simulator() -> RwLockWriteGuard<'static, Simulator> {
     SIMULATOR.write().unwrap()
@@ -38,29 +32,21 @@ pub fn set_simulator(simulator: Simulator) {
     *SIMULATOR.write().unwrap() = simulator;
 }
 
-pub fn get_window() -> Window {
-    WINDOW
-        .write()
-        .unwrap()
-        .as_ref()
-        .unwrap()
-        .get_window(WINDOW_NAME)
-        .unwrap()
+pub fn register_callbacks(signal_error: CallbackFnStr, signal_program_completion: CallbackFnI64) {
+    *SIGNAL_ERROR.write().unwrap() = signal_error;
+    *SIGNAL_PROGRAM_COMPLETION.write().unwrap() = signal_program_completion;
 }
 
-#[tauri::command]
-fn stop() {
+pub fn stop() {
     RUNTIME.write().unwrap().abort();
 }
 
-#[tauri::command]
-fn reset() {
+pub fn reset() {
     stop();
     get_simulator().reset();
 }
 
-#[tauri::command]
-fn load(lines: &str) -> SerialResult<(), String> {
+pub fn load(lines: &str) -> SerialResult<(), String> {
     let mut simulator = get_simulator();
 
     for line_string in lines
@@ -88,8 +74,7 @@ fn load(lines: &str) -> SerialResult<(), String> {
     SerialResult::Ok(())
 }
 
-#[tauri::command(async)]
-async fn run() {
+pub fn run() {
     RUNTIME.write().unwrap().call(async {
         {
             let mut simulator = get_simulator();
@@ -114,7 +99,7 @@ async fn run() {
                     "Invalid PC: {}",
                     simulator.get_registers().get_pc().get_data().int_value()
                 )
-                .as_str(),
+                    .as_str(),
             );
         } else if simulator.is_done() {
             signal_program_completion(
@@ -132,8 +117,7 @@ async fn run() {
     });
 }
 
-#[tauri::command(async)]
-async fn step() {
+pub fn step() {
     RUNTIME.write().unwrap().call(async {
         {
             let mut simulator = get_simulator();
@@ -153,7 +137,7 @@ async fn step() {
                     "Invalid PC: {}",
                     simulator.get_registers().get_pc().get_data().int_value()
                 )
-                .as_str(),
+                    .as_str(),
             );
         } else if simulator.is_done() {
             signal_program_completion(
@@ -171,13 +155,11 @@ async fn step() {
     });
 }
 
-#[tauri::command]
-fn is_completed() -> bool {
+pub fn is_completed() -> bool {
     get_simulator().is_done() || get_simulator().is_error()
 }
 
-#[tauri::command]
-fn get_exit_status() -> i64 {
+pub fn get_exit_status() -> i64 {
     get_simulator()
         .get_registers()
         .get_register(&registry::R0.to_string())
@@ -186,8 +168,7 @@ fn get_exit_status() -> i64 {
         .int_value()
 }
 
-#[tauri::command]
-fn get_register_value(register: &str) -> Option<i64> {
+pub fn get_register_value(register: &str) -> Option<i64> {
     match get_simulator()
         .get_registers()
         .get_register(&register.to_string())
@@ -198,43 +179,15 @@ fn get_register_value(register: &str) -> Option<i64> {
 }
 
 fn signal_error(error: &str) {
-    let _ = get_window().eval(format!("window.errorCallback(\"{}\")", error).as_str());
+    SIGNAL_ERROR.read().unwrap()(error);
 }
 
 fn signal_program_completion(exit_status: i64) {
-    let _ = get_window()
-        .eval(format!("window.programCompletionCallback(\"{}\")", exit_status).as_str());
+    SIGNAL_PROGRAM_COMPLETION.read().unwrap()(exit_status);
 }
 
-fn main() {
-    register_instructions();
+pub fn initialize_globals(runtime: tokio::runtime::Runtime) {
 
-    let rt = runtime::Builder::new_multi_thread().build().unwrap();
 
-    rt.block_on(async {
-        tauri::async_runtime::set(runtime::Handle::current());
-    });
-
-    *RUNTIME.write().unwrap() = Runtime::from_rt(rt);
-
-    tauri::Builder::default()
-        .setup(|app| {
-            let window = app.get_window(WINDOW_NAME).unwrap();
-            let _ = WINDOW.write().unwrap().replace(window);
-            Ok(())
-        })
-        .invoke_handler(tauri::generate_handler![
-            load,
-            reset,
-            run,
-            step,
-            stop,
-            is_completed,
-            get_exit_status,
-            get_register_value
-        ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
-
-    let _ = get_window();
+    *RUNTIME.write().unwrap() = Runtime::from_rt(runtime);
 }

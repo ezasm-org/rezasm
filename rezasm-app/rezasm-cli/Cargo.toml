@@ -1,0 +1,16 @@
+[package]
+name = "rezasm-cli"
+version = "0.5.0"
+edition = "2021"
+
+[dependencies]
+rezasm-core = { path = "../../rezasm-source/rezasm-core" }
+rezasm-instructions = { path = "../../rezasm-source/rezasm-instructions" }
+rezasm-macro = { path = "../../rezasm-source/rezasm-macro" }
+
+lazy_static = "1.4.0"
+regex = "1.8.1"
+bimap = "0.6.3"
+bytebuffer = "2.1.0"
+clap = { version = "4.4.1", features = ["derive"] }
+expanduser = "1.2.2"
