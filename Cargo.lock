@@ -2586,6 +2586,7 @@ dependencies = [
  "bytebuffer",
  "clap",
  "expanduser",
+ "js-sys",
  "lazy_static",
  "regex",
  "rezasm-cli",
@@ -2599,8 +2600,11 @@ dependencies = [
  "serde_json",
  "tauri-build",
  "thiserror",
+ "tokio",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "wasm-pack",
+ "web-sys",
 ]
 
 [[package]]
@@ -2668,12 +2672,17 @@ dependencies = [
 name = "rezasm-wasm"
 version = "1.0.0"
 dependencies = [
+ "js-sys",
+ "lazy_static",
  "rezasm-core",
  "rezasm-instructions",
  "rezasm-macro",
  "rezasm-web-core",
+ "tokio",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "wasm-pack",
+ "web-sys",
 ]
 
 [[package]]
@@ -3849,6 +3858,19 @@ dependencies = [
  "quote",
  "syn 2.0.31",
  "wasm-bindgen-shared",
+]
+
+[[package]]
+name = "wasm-bindgen-futures"
+version = "0.4.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c02dbc21516f9f1f04f187958890d7e6026df8d16540b7ad9492bc34a67cea03"
+dependencies = [
+ "cfg-if",
+ "futures-core",
+ "js-sys",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]

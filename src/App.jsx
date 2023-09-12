@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { wasm_initialize_backend, wasm_load, wasm_run, wasm_step, wasm_stop, wasm_reset, wasm_is_completed,
+import { wasm_completion_callback, wasm_load, wasm_run, wasm_step, wasm_stop, wasm_reset, wasm_is_completed,
          wasm_get_exit_status, wasm_get_register_value } from "../dist/wasm";
 import init from "../dist/wasm/rezasm_wasm.js"
 import "../dist/output.css";
+import _ from "lodash";
 
 const STATE = {
     IDLE: 1,
@@ -25,9 +26,98 @@ const rust_load = async lines => {
     if (window.__TAURI__) {
         return invoke("tauri_load", {lines});
     } else if (wasm_load) {
-        return wasm_load(lines);
+        return new Promise((resolve, reject) => {
+            try {
+                wasm_load(lines);
+                resolve(null);
+            } catch (error) {
+                reject(error);
+            }
+        });
     } else {
-        throw "Load does not exist";
+        throw "Function load does not exist";
+    }
+}
+
+const rust_run = async () => {
+    if (window.__TAURI__) {
+        return invoke("tauri_run", {});
+    } else if (wasm_run) {
+        return new Promise((resolve, reject) => {
+            wasm_run();
+            resolve(null);
+        });
+    } else {
+        throw "Function run does not exist";
+    }
+}
+
+const rust_step = async () => {
+    if (window.__TAURI__) {
+        return invoke("tauri_step", {});
+    } else if (wasm_step) {
+        return new Promise((resolve, reject) => {
+            wasm_step();
+            resolve(null);
+        });
+    } else {
+        throw "Function step does not exist";
+    }
+}
+
+const rust_reset = async () => {
+    if (window.__TAURI__) {
+        return invoke("tauri_reset", {});
+    } else if (wasm_reset) {
+        return new Promise((resolve, reject) => {
+            wasm_reset();
+            resolve(null);
+        });
+    } else {
+        throw "Function reset does not exist";
+    }
+}
+
+const rust_stop = async () => {
+    if (window.__TAURI__) {
+        return invoke("tauri_stop", {});
+    } else if (wasm_stop) {
+        return new Promise((resolve, reject) => {
+            wasm_stop();
+            resolve(null);
+        });
+    } else {
+        throw "Function stop does not exist";
+    }
+}
+
+const rust_is_completed = async () => {
+    if (window.__TAURI__) {
+        return invoke("tauri_is_completed", {});
+    } else if (wasm_is_completed) {
+        return new Promise((resolve, reject) => resolve(wasm_is_completed()));
+    } else {
+        throw "Function is_completed does not exist";
+    }
+}
+
+const rust_get_exit_status = async () => {
+    if (window.__TAURI__) {
+        return invoke("tauri_get_exit_status", {});
+    } else if (wasm_get_exit_status) {
+        return new Promise((resolve, reject) => resolve(wasm_get_exit_status()));
+    } else {
+        throw "Function get_exit_status does not exist";
+    }
+}
+
+const rust_get_register_value = async register => {
+    if (window.__TAURI__) {
+        return invoke("tauri_get_register_value", {register});
+    } else if (wasm_get_register_value) {
+        return new Promise((resolve, reject) => resolve(wasm_get_register_value(register)));
+    } else {
+        throw "Function get_register_value does not exist";
     }
 }
 
@@ -54,20 +144,23 @@ function App() {
         return error;
     }, [error]);
 
+    const debounce = useCallback(_.debounce((func, arg) => func(arg), 250,
+        {leading: true, trailing: false, maxWait: 250}), []);
+
     const isCompleted = useCallback(async () => {
-        return await invoke("tauri_is_completed", {});
+        return await rust_is_completed();
     }, []);
 
     const getExitStatus = useCallback(async () => {
-        return await invoke("tauri_get_exit_status", {});
+        return await rust_get_exit_status();
     }, []);
 
     const getRegisterValue = useCallback(async register => {
-        return await invoke("tauri_get_register_value", {register});
+        return await rust_get_register_value(register);
     }, []);
 
     const reset = useCallback(async () => {
-        await invoke("tauri_reset", {});
+        await rust_reset();
         setState(STATE.IDLE);
         setResult("");
         clearErrorState();
@@ -81,59 +174,72 @@ function App() {
         await rust_load(lines)
             .then(() => {
                 currentState = STATE.LOADED;
-                setState(currentState);
             })
             .catch(error => {
                 setErrorState(error);
                 currentState = STATE.STOPPED;
-                setState(currentState);
             });
 
         return currentState;
     }, [setErrorState, lines]);
 
-    const run = useCallback(async currentState => {
-        currentState = await reset();
-        currentState = await load(currentState);
-        setState(currentState);
+    const reset_load = useCallback(async () => {
+        return reset().then(newState => {
+            return load(newState);
+        });
+    }, [reset, load]);
 
-        if (currentState >= STATE.LOADED) {
-            if (await isCompleted()) {
-                setResult("Program exited with exit code " + await getExitStatus());
-                currentState = STATE.STOPPED;
-                setState(currentState);
-            } else {
-                currentState = STATE.RUNNING;
-                setState(currentState);
-                await invoke("tauri_run", {});
-            }
+    const run = useCallback(async currentState => {
+        if (currentState === STATE.RUNNING) {
+            return currentState;
         }
+
+        reset_load().then(async newState => {
+            if (newState >= STATE.LOADED && !isErrorState()) {
+                if (await isCompleted()) {
+                    setResult("Program exited with exit code " + await getExitStatus());
+                    setState(currentState);
+                } else {
+                    setState(STATE.RUNNING);
+                    rust_run();
+                }
+            }
+        });
+
+        setState(currentState);
         return currentState;
     }, [reset, load, getExitStatus, isCompleted]);
 
     const step = useCallback(async currentState => {
         if (currentState < STATE.LOADED) {
-            currentState = await load(currentState);
-            currentState = STATE.PAUSED;
-            setState(currentState);
-        }
-
-        if (currentState >= STATE.LOADED && currentState !== STATE.STOPPED) {
+            reset_load().then(async () => {
+                if (await isCompleted()) {
+                    currentState = STATE.STOPPED;
+                    setState(currentState);
+                    setResult("Program exited with exit code " +  await getExitStatus());
+                } else {
+                    currentState = STATE.PAUSED;
+                    setState(currentState);
+                    rust_step();
+                }
+            })
+        } else if (currentState === STATE.PAUSED) {
             if (await isCompleted()) {
-                setResult("Program exited with exit code " +  await getExitStatus());
                 currentState = STATE.STOPPED;
                 setState(currentState);
+                setResult("Program exited with exit code " +  await getExitStatus());
             } else {
                 currentState = STATE.PAUSED;
                 setState(currentState);
-                await invoke("tauri_step", {});
+                rust_step();
             }
         }
+
         return currentState
     }, [load, isErrorState, getExitStatus, isCompleted]);
 
     const stop = useCallback(async currentState => {
-        await invoke("tauri_stop", {})
+        await rust_stop();
         currentState = STATE.STOPPED;
         setState(currentState);
         return currentState;
@@ -153,8 +259,10 @@ function App() {
 
     useEffect(() => {
         if (init) {
-            init().then(r => {
-                wasm_initialize_backend();
+            init().then(() => {
+                if (wasm_completion_callback) {
+                    window.wasm_completion_callback = wasm_completion_callback;
+                }
             });
         }
     }, [])
@@ -164,14 +272,14 @@ function App() {
             <h1><b>Welcome to rezasm!</b></h1>
             <div className="mt-2 mb-2 row">
                     { state === STATE.RUNNING ?
-                    <button className="btn-operation bg-red-500 hover:bg-red-700" onClick={(e) => {
-                        stop(state);
+                    <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
+                        debounce(stop, state);
                     }}>
                         Stop
                     </button>
                     :
-                    <button className="btn-operation bg-green-500 hover:bg-green-700" onClick={(e) => {
-                        run(state);
+                    <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
+                        debounce(run, state);
                     }}>
                         Start
                     </button>
@@ -196,19 +304,19 @@ function App() {
                 <button className="btn-operation bg-blue-500 hover:bg-blue-700"
                         disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
                         onClick={(e) => {
-                    step(state);
+                            debounce(step, state);
                 }}>
                     Step
                 </button>
                 <button className="btn-operation bg-teal-600 hover:bg-teal-700"
                         disabled={state !== STATE.PAUSED}
                         onClick={(e) => {
-                    // TODO step back
+                            // TODO step back
                 }}>
                     Step Back
                 </button>
                 <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
-                    reset();
+                    debounce(reset, state);
                 }}>
                     Reset
                 </button>
