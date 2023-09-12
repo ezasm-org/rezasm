@@ -23,7 +23,7 @@ const isNone = option => {
 }
 
 const rust_load = async lines => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_load", {lines});
     } else if (wasm_load) {
         return new Promise((resolve, reject) => {
@@ -40,7 +40,7 @@ const rust_load = async lines => {
 }
 
 const rust_run = async () => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_run", {});
     } else if (wasm_run) {
         return new Promise((resolve, reject) => {
@@ -53,7 +53,7 @@ const rust_run = async () => {
 }
 
 const rust_step = async () => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_step", {});
     } else if (wasm_step) {
         return new Promise((resolve, reject) => {
@@ -66,7 +66,7 @@ const rust_step = async () => {
 }
 
 const rust_reset = async () => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_reset", {});
     } else if (wasm_reset) {
         return new Promise((resolve, reject) => {
@@ -79,7 +79,7 @@ const rust_reset = async () => {
 }
 
 const rust_stop = async () => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_stop", {});
     } else if (wasm_stop) {
         return new Promise((resolve, reject) => {
@@ -92,7 +92,7 @@ const rust_stop = async () => {
 }
 
 const rust_is_completed = async () => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_is_completed", {});
     } else if (wasm_is_completed) {
         return new Promise((resolve, reject) => resolve(wasm_is_completed()));
@@ -102,7 +102,7 @@ const rust_is_completed = async () => {
 }
 
 const rust_get_exit_status = async () => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_get_exit_status", {});
     } else if (wasm_get_exit_status) {
         return new Promise((resolve, reject) => resolve(wasm_get_exit_status()));
@@ -112,7 +112,7 @@ const rust_get_exit_status = async () => {
 }
 
 const rust_get_register_value = async register => {
-    if (window.__TAURI__) {
+    if (window.__TAURI_IPC__) {
         return invoke("tauri_get_register_value", {register});
     } else if (wasm_get_register_value) {
         return new Promise((resolve, reject) => resolve(wasm_get_register_value(register)));
