@@ -11,10 +11,7 @@ use std::path::Path;
 
 fn get_file_from_path(path_string: &String) -> Result<File, EzasmError> {
     let path = if path_string.starts_with('~') {
-        match expanduser::expanduser(path_string) {
-            Ok(x) => x,
-            Err(_) => return Err(EzasmError::CouldNotOpenFileError(path_string.to_string())),
-        }
+        todo!();
     } else {
         Path::new(path_string).to_path_buf()
     };

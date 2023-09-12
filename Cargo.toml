@@ -23,7 +23,6 @@ rezasm-app = { path = "rezasm-app" }
 bimap = "0.6.3"
 bytebuffer = "2.1.1"
 clap = { version = "4.4.1", features = ["derive"] }
-expanduser = "1.2.2"
 lazy_static = "1.4.0"
 regex = "1.8.4"
 serde = { version = "1.0.188", features = ["derive"] }

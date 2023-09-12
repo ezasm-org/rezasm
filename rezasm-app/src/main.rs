@@ -4,7 +4,6 @@
 mod instructions;
 mod util;
 
-extern crate expanduser;
 extern crate lazy_static;
 extern crate rezasm_core;
 extern crate rezasm_macro;
