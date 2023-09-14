@@ -1,8 +1,9 @@
+import React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import { wasm_completion_callback, wasm_load, wasm_run, wasm_step, wasm_stop, wasm_reset, wasm_is_completed,
-         wasm_get_exit_status, wasm_get_register_value } from "../dist/wasm";
-import init from "../dist/wasm/rezasm_wasm.js"
+    wasm_get_exit_status, wasm_get_register_value } from "../dist/wasm";
+import init from "../dist/wasm/rezasm_wasm.js";
 import "../dist/output.css";
 import _ from "lodash";
 
@@ -12,15 +13,15 @@ const STATE = {
     RUNNING: 3,
     PAUSED: 4,
     STOPPED: 5,
-}
+};
 
 const isSome = option => {
     return option !== null;
-}
+};
 
 const isNone = option => {
     return option === null;
-}
+};
 
 const rust_load = async lines => {
     if (window.__TAURI_IPC__) {
@@ -37,7 +38,7 @@ const rust_load = async lines => {
     } else {
         throw "Function load does not exist";
     }
-}
+};
 
 const rust_run = async () => {
     if (window.__TAURI_IPC__) {
@@ -50,7 +51,7 @@ const rust_run = async () => {
     } else {
         throw "Function run does not exist";
     }
-}
+};
 
 const rust_step = async () => {
     if (window.__TAURI_IPC__) {
@@ -63,7 +64,7 @@ const rust_step = async () => {
     } else {
         throw "Function step does not exist";
     }
-}
+};
 
 const rust_reset = async () => {
     if (window.__TAURI_IPC__) {
@@ -76,7 +77,7 @@ const rust_reset = async () => {
     } else {
         throw "Function reset does not exist";
     }
-}
+};
 
 const rust_stop = async () => {
     if (window.__TAURI_IPC__) {
@@ -89,7 +90,7 @@ const rust_stop = async () => {
     } else {
         throw "Function stop does not exist";
     }
-}
+};
 
 const rust_is_completed = async () => {
     if (window.__TAURI_IPC__) {
@@ -99,7 +100,7 @@ const rust_is_completed = async () => {
     } else {
         throw "Function is_completed does not exist";
     }
-}
+};
 
 const rust_get_exit_status = async () => {
     if (window.__TAURI_IPC__) {
@@ -109,7 +110,7 @@ const rust_get_exit_status = async () => {
     } else {
         throw "Function get_exit_status does not exist";
     }
-}
+};
 
 const rust_get_register_value = async register => {
     if (window.__TAURI_IPC__) {
@@ -119,7 +120,7 @@ const rust_get_register_value = async register => {
     } else {
         throw "Function get_register_value does not exist";
     }
-}
+};
 
 function App() {
     const [lines, setLines] = useState("");
@@ -222,7 +223,7 @@ function App() {
                     setState(currentState);
                     rust_step();
                 }
-            })
+            });
         } else if (currentState === STATE.PAUSED) {
             if (await isCompleted()) {
                 currentState = STATE.STOPPED;
@@ -254,7 +255,7 @@ function App() {
         window.programCompletionCallback = exitStatus => {
             setResult("Program exited with exit code " + exitStatus);
             setState(STATE.STOPPED);
-        }
+        };
     }, [state]);
 
     useEffect(() => {
@@ -265,13 +266,13 @@ function App() {
                 }
             });
         }
-    }, [])
+    }, []);
 
     return (
         <div className="container">
             <h1><b>Welcome to rezasm!</b></h1>
             <div className="mt-2 mb-2 row">
-                    { state === STATE.RUNNING ?
+                { state === STATE.RUNNING ?
                     <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
                         debounce(stop, state);
                     }}>
@@ -293,26 +294,26 @@ function App() {
                     </button>
                     :
                     <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
-                            disabled={state !== STATE.RUNNING}
-                            onClick={(e) => {
+                        disabled={state !== STATE.RUNNING}
+                        onClick={(e) => {
                         // TODO pause
-                    }}>
+                        }}>
                         Pause
                     </button>
                 }
 
                 <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                        disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
-                        onClick={(e) => {
-                            debounce(step, state);
-                }}>
+                    disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
+                    onClick={(e) => {
+                        debounce(step, state);
+                    }}>
                     Step
                 </button>
                 <button className="btn-operation bg-teal-600 hover:bg-teal-700"
-                        disabled={state !== STATE.PAUSED}
-                        onClick={(e) => {
-                            // TODO step back
-                }}>
+                    disabled={state !== STATE.PAUSED}
+                    onClick={(e) => {
+                        // TODO step back
+                    }}>
                     Step Back
                 </button>
                 <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {

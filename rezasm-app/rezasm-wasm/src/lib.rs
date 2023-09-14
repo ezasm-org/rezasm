@@ -11,8 +11,8 @@ extern crate web_sys;
 use lazy_static::lazy_static;
 use rezasm_instructions::register_instructions;
 use rezasm_web_core::util::commands::{
-    get_exit_status, get_register_value, get_simulator, initialize_runtime, is_completed, load,
-    register_callbacks, reset, run, step, stop,
+    get_exit_status, get_register_value, get_simulator, is_completed, load, register_callbacks,
+    reset, run, step, stop,
 };
 use wasm_bindgen::prelude::*;
 
