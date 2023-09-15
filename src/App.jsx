@@ -11,10 +11,11 @@ import _ from "lodash";
 
 const STATE = {
     IDLE: 1,
-    LOADED: 2,
-    RUNNING: 3,
-    PAUSED: 4,
-    STOPPED: 5,
+    LOADING: 2,
+    LOADED: 3,
+    RUNNING: 4,
+    PAUSED: 5,
+    STOPPED: 1,
 };
 
 const callWorkerFunction = message => {
@@ -103,7 +104,15 @@ function App() {
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
     const [state, setState] = useState(STATE.IDLE);
-    const canExecute = useRef(true);
+    const timerId = useRef(null);
+    const [instructionDelay, setInstructionDelay] = useState(5);
+
+    const disallowExecution = () => {
+        if (timerId.current !== null) {
+            clearTimeout(timerId.current);
+            timerId.current = null;
+        }
+    };
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -138,7 +147,7 @@ function App() {
     }, []);
 
     const stop = useCallback(async currentState => {
-        canExecute.current = false;
+        disallowExecution();
         await rust_stop();
         currentState = STATE.STOPPED;
         setState(currentState);
@@ -146,7 +155,7 @@ function App() {
     }, []);
 
     const reset = useCallback(async () => {
-        canExecute.current = false;
+        disallowExecution();
         await rust_reset();
         setState(STATE.IDLE);
         setResult("");
@@ -173,18 +182,18 @@ function App() {
 
     const reset_load = useCallback(async () => {
         return reset().then(newState => {
+            setState(STATE.LOADING);
             return load(newState);
         });
     }, [reset, load]);
 
     const checkAndHandleProgramCompletion = useCallback(async () => {
         if (await isCompleted() || isErrorState()) {
-            canExecute.current = false;
+            disallowExecution();
             setState(STATE.STOPPED);
             setResult("Program exited with exit code " +  await getExitStatus());
             return true;
         } else {
-            setState(STATE.PAUSED);
             return false;
         }
     }, [getExitStatus, isCompleted]);
@@ -202,30 +211,40 @@ function App() {
         if (currentState < STATE.LOADED) {
             reset_load().then(async () => {
                 if (! await checkAndHandleProgramCompletion()) {
-                    handleStepCall();
+                    return handleStepCall().then(() => setState(STATE.PAUSED));
                 }
             });
         } else if (currentState === STATE.PAUSED || currentState === STATE.RUNNING) {
-            handleStepCall();
+            return handleStepCall();
         }
     }, [reset_load, handleStepCall, checkAndHandleProgramCompletion]);
 
-    const recursivelyCallStep = useCallback(() => {
-        if (canExecute.current) {
-            console.log("Exec'd");
-            step(state.PAUSED).then(() => setTimeout(recursivelyCallStep, 100));
+    const recursivelyCallStep = useCallback(async () => {
+        if (state > STATE.RUNNING) {
+            return;
         }
-    }, [canExecute, step]);
-
-    const run = useCallback(async currentState => {
-        canExecute.current = true;
-        step(currentState).then(() => {
-            setState(STATE.RUNNING);
-            if (!isErrorState()) {
-                recursivelyCallStep();
+        checkAndHandleProgramCompletion().then(async completed => {
+            if (!completed) {
+                handleStepCall().then(() => {
+                    timerId.current = setTimeout(recursivelyCallStep, instructionDelay);
+                }).catch((e) => {
+                    timerId.current = null;
+                    setErrorState(e);
+                    setState(STATE.STOPPED);
+                });
             }
         });
-    }, [step, isErrorState]);
+    }, [checkAndHandleProgramCompletion, state, step, instructionDelay]);
+
+    const run = useCallback(async () => {
+        reset_load().then(async () => {
+            setState(STATE.RUNNING);
+            recursivelyCallStep();
+        });
+        // step(currentState).then(() => {
+        //
+        // });
+    }, [step, isErrorState, recursivelyCallStep]);
 
     useEffect(() => {
         if (init) {
@@ -233,7 +252,9 @@ function App() {
         }
         window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
         window.worker.postMessage({command: "ping"}).then(e => {
-            console.log(e);
+            if (e !== "pong") {
+                throw Error("Could not communicate with the web-worker");
+            }
         });
     }, []);
 
