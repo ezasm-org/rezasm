@@ -18,9 +18,9 @@ The goal of this project is to create a small-instruction-set programming langua
 
 ## Getting Started (Linux)
 1. Install Rust using your package manager
-    1. If your package manager doesn't have Rust in a repo you trust, go to [this site](https://www.rust-lang.org/learn/get-started) and follow the instructions there
+    - If your package manager doesn't have Rust in a repo you trust, go to [this site](https://www.rust-lang.org/learn/get-started) and follow the instructions there
 2. Install NodeJS using your package manager
-    1. If your package manager doesn't have NodeJS in a repo you trust, go to [this site](https://nodejs.org/en/download) and follow the instructions there
+    - If your package manager doesn't have NodeJS in a repo you trust, go to [this site](https://nodejs.org/en/download) and follow the instructions there
 3. Install cargo-tauri using `cargo install tauri-cli`
 4. Install tailwindcss using `npm install -g tailwindcss`
 5. Clone this repository using whatever method you prefer
