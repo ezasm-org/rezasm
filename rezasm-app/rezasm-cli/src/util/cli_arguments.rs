@@ -4,7 +4,6 @@ use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::EzasmError;
 use rezasm_core::util::word_size::WordSize;
 use std::fs::File;
-use std::io;
 use std::io::{BufReader, BufWriter};
 use std::path::Path;
 

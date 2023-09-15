@@ -1,0 +1,23 @@
+[package]
+name = "rezasm-wasm"
+version = "1.0.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+name = "rezasm_wasm"
+crate-type = ["cdylib", "rlib"]
+
+
+[build-dependencies]
+wasm-pack = "0.12.1"
+
+[dependencies]
+rezasm-core = { path = "../../rezasm-source/rezasm-core" }
+rezasm-instructions = { path = "../../rezasm-source/rezasm-instructions" }
+rezasm-macro = { path = "../../rezasm-source/rezasm-macro" }
+rezasm-web-core = { path = "../../rezasm-source/rezasm-web-core" }
+
+lazy_static = "1.4.0"
+tokio = { version = "1.32.0", features = ["sync", "rt"] }
+wasm-bindgen = "0.2.87"

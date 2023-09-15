@@ -1,51 +1,118 @@
-import {useCallback, useEffect, useState} from "react";
+import React, {useRef} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
+import WorkerPromise from "webworker-promise";
+import {
+    wasm_load, wasm_step, wasm_stop, wasm_reset, wasm_is_completed, wasm_get_exit_status, wasm_get_register_value
+} from "../dist/wasm";
+import init from "../dist/wasm/rezasm_wasm.js";
 import "../dist/output.css";
+import _ from "lodash";
 
 const STATE = {
     IDLE: 1,
-    LOADED: 2,
-    RUNNING: 3,
-    PAUSED: 4,
-    STOPPED: 5,
-}
+    LOADING: 2,
+    LOADED: 3,
+    RUNNING: 4,
+    PAUSED: 5,
+    STOPPED: 1,
+};
 
-const RESULT_OK = "data";
-const RESULT_ERR = "error";
+const callWorkerFunction = message => {
+    return new Promise((resolve, reject) => {
+        window.worker.postMessage(message)
+            .then(result => resolve(result))
+            .catch(e => {
+                console.log("Error calling command: " + message.command);
+                reject(e.message);
+            });
+    });
+};
 
-const isOk = result => {
-    return result[RESULT_OK] || result[RESULT_OK] === null;
-}
-
-const isError = result => {
-    return result[RESULT_ERR] || result[RESULT_ERR] === null;
-}
-
-const getOk = result => {
-    if (isOk(result)) {
-        return result[RESULT_OK] === null ? {} : result[RESULT_OK];
+const rust_load = async lines => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_load", {lines});
+    } else if (wasm_load) {
+        return callWorkerFunction({command: "load", argument: lines});
     } else {
-        return undefined;
+        throw new Error("Function load does not exist");
     }
-}
+};
 
-const getErr = result => {
-    if (isError(result)) {
-        return result[RESULT_ERR] === null ? {} : result[RESULT_ERR];
+const rust_step = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_step", {});
+    } else if (wasm_step) {
+        return callWorkerFunction({command: "step"});
     } else {
-        return undefined;
+        throw new Error("Function step does not exist");
     }
-}
+};
 
-const isSome = option => {
-    return option !== null;
-}
+const rust_reset = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_reset", {});
+    } else if (wasm_reset) {
+        return callWorkerFunction({command: "reset"});
+    } else {
+        throw new Error("Function reset does not exist");
+    }
+};
+
+const rust_stop = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_stop", {});
+    } else if (wasm_stop) {
+        return callWorkerFunction({command: "stop"});
+    } else {
+        throw new Error("Function stop does not exist");
+    }
+};
+
+const rust_is_completed = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_is_completed", {});
+    } else if (wasm_is_completed) {
+        return callWorkerFunction({command: "is_completed"});
+    } else {
+        throw new Error("Function is_completed does not exist");
+    }
+};
+
+const rust_get_exit_status = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_get_exit_status", {});
+    } else if (wasm_get_exit_status) {
+        return callWorkerFunction({command: "get_exit_status"});
+    } else {
+        throw new Error("Function get_exit_status does not exist");
+    }
+};
+
+const rust_get_register_value = async register => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_get_register_value", {register});
+    } else if (wasm_get_register_value) {
+        return callWorkerFunction({command: "get_register_value", argument: register});
+    } else {
+        throw new Error("Function get_register_value does not exist");
+    }
+};
 
 function App() {
     const [lines, setLines] = useState("");
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
     const [state, setState] = useState(STATE.IDLE);
+    const timerId = useRef(null);
+    const [instructionDelay, setInstructionDelay] = useState(5);
+
+    const disallowExecution = () => {
+        if (timerId.current !== null) {
+            clearTimeout(timerId.current);
+            timerId.current = null;
+        }
+    };
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -64,20 +131,32 @@ function App() {
         return error;
     }, [error]);
 
+    const debounce = useCallback(_.debounce((func, arg) => func(arg), 250,
+        {leading: true, trailing: false, maxWait: 250}), []);
+
     const isCompleted = useCallback(async () => {
-        return await invoke("is_completed", {});
+        return await rust_is_completed();
     }, []);
 
     const getExitStatus = useCallback(async () => {
-        return await invoke("get_exit_status", {});
+        return await rust_get_exit_status();
     }, []);
 
     const getRegisterValue = useCallback(async register => {
-        return await invoke("get_register_value", {register});
+        return await rust_get_register_value(register);
+    }, []);
+
+    const stop = useCallback(async currentState => {
+        disallowExecution();
+        await rust_stop();
+        currentState = STATE.STOPPED;
+        setState(currentState);
+        return currentState;
     }, []);
 
     const reset = useCallback(async () => {
-        await invoke("reset", {});
+        disallowExecution();
+        await rust_reset();
         setState(STATE.IDLE);
         setResult("");
         clearErrorState();
@@ -88,89 +167,110 @@ function App() {
         if (currentState >= STATE.LOADED) {
             return currentState;
         }
-        let result = await invoke("load", {lines});
-        if (isOk(result)) {
-            currentState = STATE.LOADED;
-        } else {
-            setErrorState(getErr(result));
-            currentState = STATE.STOPPED;
-        }
+        await rust_load(lines)
+            .then(() => {
+                currentState = STATE.LOADED;
+            })
+            .catch(error => {
+                setErrorState(error);
+                currentState = STATE.STOPPED;
+            });
+
         setState(currentState);
         return currentState;
     }, [setErrorState, lines]);
 
-    const run = useCallback(async currentState => {
-        currentState = await reset();
-        currentState = await load(currentState);
-        setState(currentState);
+    const reset_load = useCallback(async () => {
+        return reset().then(newState => {
+            setState(STATE.LOADING);
+            return load(newState);
+        });
+    }, [reset, load]);
 
-        if (currentState >= STATE.LOADED) {
-            if (await isCompleted()) {
-                setResult("Program exited with exit code " + await getExitStatus());
-                currentState = STATE.STOPPED;
-                setState(currentState);
-            } else {
-                currentState = STATE.RUNNING;
-                setState(currentState);
-                await invoke("run", {});
-            }
+    const checkAndHandleProgramCompletion = useCallback(async () => {
+        if (await isCompleted() || isErrorState()) {
+            disallowExecution();
+            setState(STATE.STOPPED);
+            setResult("Program exited with exit code " +  await getExitStatus());
+            return true;
+        } else {
+            return false;
         }
-        return currentState;
-    }, [reset, load, getExitStatus, isCompleted]);
+    }, [getExitStatus, isCompleted]);
+
+    const handleStepCall = useCallback(async () => {
+        rust_step()
+            .then(async () => await checkAndHandleProgramCompletion())
+            .catch(error => {
+                setErrorState(error);
+                setState(STATE.STOPPED);
+            });
+    }, [checkAndHandleProgramCompletion, setErrorState]);
 
     const step = useCallback(async currentState => {
         if (currentState < STATE.LOADED) {
-            currentState = await load(currentState);
-            currentState = STATE.PAUSED;
-            setState(currentState);
+            reset_load().then(async () => {
+                if (! await checkAndHandleProgramCompletion()) {
+                    return handleStepCall().then(() => setState(STATE.PAUSED));
+                }
+            });
+        } else if (currentState === STATE.PAUSED || currentState === STATE.RUNNING) {
+            return handleStepCall();
         }
+    }, [reset_load, handleStepCall, checkAndHandleProgramCompletion]);
 
-        if (currentState >= STATE.LOADED && currentState !== STATE.STOPPED) {
-            if (await isCompleted()) {
-                setResult("Program exited with exit code " +  await getExitStatus());
-                currentState = STATE.STOPPED;
-                setState(currentState);
-            } else {
-                currentState = STATE.PAUSED;
-                setState(currentState);
-                await invoke("step", {});
+    const recursivelyCallStep = useCallback(async () => {
+        if (state > STATE.RUNNING) {
+            return;
+        }
+        checkAndHandleProgramCompletion().then(async completed => {
+            if (!completed) {
+                handleStepCall().then(() => {
+                    timerId.current = setTimeout(recursivelyCallStep, instructionDelay);
+                }).catch((e) => {
+                    timerId.current = null;
+                    setErrorState(e);
+                    setState(STATE.STOPPED);
+                });
             }
-        }
-        return currentState
-    }, [load, isErrorState, getExitStatus, isCompleted]);
+        });
+    }, [checkAndHandleProgramCompletion, state, step, instructionDelay]);
 
-    const stop = useCallback(async currentState => {
-        await invoke("stop", {})
-        currentState = STATE.STOPPED;
-        setState(currentState);
-        return currentState;
-    }, []);
+    const run = useCallback(async () => {
+        reset_load().then(async () => {
+            setState(STATE.RUNNING);
+            recursivelyCallStep();
+        });
+        // step(currentState).then(() => {
+        //
+        // });
+    }, [step, isErrorState, recursivelyCallStep]);
 
     useEffect(() => {
-        window.errorCallback = error => {
-            console.log(error);
-            setErrorState(error);
-        };
-
-        window.programCompletionCallback = exitStatus => {
-            setResult("Program exited with exit code " + exitStatus);
-            setState(STATE.STOPPED);
+        if (init) {
+            init();
         }
-    }, [state]);
+        window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
+        window.worker.postMessage({command: "ping"}).then(e => {
+            if (e !== "pong") {
+                throw Error("Could not communicate with the web-worker");
+            }
+        });
+    }, []);
 
     return (
         <div className="container">
             <h1><b>Welcome to rezasm!</b></h1>
             <div className="mt-2 mb-2 row">
-                    { state === STATE.RUNNING ?
-                    <button className="btn-operation bg-red-500 hover:bg-red-700" onClick={(e) => {
-                        stop(state);
+                { state === STATE.RUNNING ?
+                    <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
+                        debounce(stop, state);
                     }}>
                         Stop
                     </button>
                     :
-                    <button className="btn-operation bg-green-500 hover:bg-green-700" onClick={(e) => {
-                        run(state);
+                    <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
+                        debounce(run, state);
                     }}>
                         Start
                     </button>
@@ -184,30 +284,30 @@ function App() {
                     </button>
                     :
                     <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
-                            disabled={state !== STATE.RUNNING}
-                            onClick={(e) => {
+                        disabled={state !== STATE.RUNNING}
+                        onClick={(e) => {
                         // TODO pause
-                    }}>
+                        }}>
                         Pause
                     </button>
                 }
 
                 <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                        disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
-                        onClick={(e) => {
-                    step(state);
-                }}>
+                    disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
+                    onClick={(e) => {
+                        debounce(step, state);
+                    }}>
                     Step
                 </button>
                 <button className="btn-operation bg-teal-600 hover:bg-teal-700"
-                        disabled={state !== STATE.PAUSED}
-                        onClick={(e) => {
-                    // TODO step back
-                }}>
+                    disabled={state !== STATE.PAUSED}
+                    onClick={(e) => {
+                        // TODO step back
+                    }}>
                     Step Back
                 </button>
                 <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
-                    reset();
+                    debounce(reset, state);
                 }}>
                     Reset
                 </button>

@@ -1,11 +1,11 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
-mod instructions;
 mod util;
 
 extern crate lazy_static;
 extern crate rezasm_core;
+extern crate rezasm_instructions;
 extern crate rezasm_macro;
 
 use rezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
@@ -20,9 +20,9 @@ use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::handle_error;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
+use rezasm_instructions::register_instructions;
 use rezasm_macro::instruction;
 
-use crate::instructions::implementation::arithmetic_instructions::register_instructions;
 use crate::util::application::Application;
 use crate::util::cli;
 use crate::util::cli::Arguments;

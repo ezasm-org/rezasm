@@ -1,7 +1,7 @@
 # Setup
 add $t0 0 0
 add $t1 0 1
-add $t9 0 10000
+add $t9 0 10
 add $t8 0 0
 
 # Fibonacci
@@ -11,7 +11,7 @@ add $t0 0 $t1
 add $t1 0 $t2
 add $t8 $t8 1
 
-# If counter < $t9, go back to fib
+# If counter $t8 < $t9, go back to fib
 div $t7 $t8 $t9
 mul $t7 $t7 -1
 add $t7 $t7 1

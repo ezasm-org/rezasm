@@ -1,0 +1,23 @@
+[package]
+name = "rezasm-web-core"
+version = "1.0.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+name = "rezasm_web_core"
+
+
+[build-dependencies]
+tauri-build = { version = "1.4.0", features = [] }
+wasm-pack = "0.12.1"
+
+[dependencies]
+rezasm-core = { path = "../rezasm-core" }
+rezasm-instructions = { path = "../rezasm-instructions" }
+rezasm-macro = { path = "../rezasm-macro" }
+
+lazy_static = "1.4.0"
+serde = { version = "1.0.188", features = ["derive"] }
+serde_json = "1.0.105"
+tokio = { version = "1.32.0", features = ["sync", "rt"] }
