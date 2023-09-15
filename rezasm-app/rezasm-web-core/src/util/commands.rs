@@ -70,20 +70,7 @@ pub fn step() -> Result<(), String> {
     let simulator = get_simulator();
 
     if simulator.is_error() {
-        Err(format!(
-            "Invalid PC: {}",
-            simulator.get_registers().get_pc().get_data().int_value()
-        ))
-    } else if simulator.is_done() {
-        Err(format!(
-            "{}",
-            simulator
-                .get_registers()
-                .get_register(&registry::R0.to_string())
-                .unwrap()
-                .get_data()
-                .int_value(),
-        ))
+        Err(format!("Invalid PC: {}", simulator.get_registers().get_pc().get_data().int_value()))
     } else {
         Ok(())
     }

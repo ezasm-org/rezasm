@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useRef} from "react";
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import WorkerPromise from "webworker-promise";
@@ -103,14 +103,7 @@ function App() {
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
     const [state, setState] = useState(STATE.IDLE);
-    const [stopProgramCallback, setStopProgramCallback] = useState(undefined);
-
-    const callStopProgramCallback = useCallback(() => {
-        if (stopProgramCallback) {
-            stopProgramCallback();
-            setStopProgramCallback(undefined);
-        }
-    }, [stopProgramCallback]);
+    const canExecute = useRef(true);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -145,21 +138,21 @@ function App() {
     }, []);
 
     const stop = useCallback(async currentState => {
-        callStopProgramCallback();
+        canExecute.current = false;
         await rust_stop();
         currentState = STATE.STOPPED;
         setState(currentState);
         return currentState;
-    }, [callStopProgramCallback]);
+    }, []);
 
     const reset = useCallback(async () => {
-        callStopProgramCallback();
+        canExecute.current = false;
         await rust_reset();
         setState(STATE.IDLE);
         setResult("");
         clearErrorState();
         return STATE.IDLE;
-    }, [clearErrorState, callStopProgramCallback]);
+    }, [clearErrorState]);
 
     const load = useCallback(async (currentState) => {
         if (currentState >= STATE.LOADED) {
@@ -185,8 +178,8 @@ function App() {
     }, [reset, load]);
 
     const checkAndHandleProgramCompletion = useCallback(async () => {
-        if (await isCompleted()) {
-            callStopProgramCallback();
+        if (await isCompleted() || isErrorState()) {
+            canExecute.current = false;
             setState(STATE.STOPPED);
             setResult("Program exited with exit code " +  await getExitStatus());
             return true;
@@ -194,7 +187,7 @@ function App() {
             setState(STATE.PAUSED);
             return false;
         }
-    }, [getExitStatus, isCompleted, callStopProgramCallback]);
+    }, [getExitStatus, isCompleted]);
 
     const handleStepCall = useCallback(async () => {
         rust_step()
@@ -217,20 +210,22 @@ function App() {
         }
     }, [reset_load, handleStepCall, checkAndHandleProgramCompletion]);
 
-    const run = useCallback(async currentState => {
-        if (stopProgramCallback) {
-            throw new Error("Program already in progress");
-        } else {
-            step(currentState).then(() => setState(STATE.RUNNING));
-            if (!isErrorState()) {
-                let intervalId = setInterval(() => {
-                    step(currentState).then(() => setState(STATE.RUNNING));
-                }, 5);
-                setStopProgramCallback(() => clearInterval(intervalId));
-            }
+    const recursivelyCallStep = useCallback(() => {
+        if (canExecute.current) {
+            console.log("Exec'd");
+            step(state.PAUSED).then(() => setTimeout(recursivelyCallStep, 100));
         }
+    }, [canExecute, step]);
 
-    }, [step, stopProgramCallback, isErrorState]);
+    const run = useCallback(async currentState => {
+        canExecute.current = true;
+        step(currentState).then(() => {
+            setState(STATE.RUNNING);
+            if (!isErrorState()) {
+                recursivelyCallStep();
+            }
+        });
+    }, [step, isErrorState]);
 
     useEffect(() => {
         if (init) {

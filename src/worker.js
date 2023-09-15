@@ -29,9 +29,7 @@ registerWebworker(async (message, emit) => {
         } else if (command === "is_completed") {
             return wasm_is_completed();
         } else if (command === "get_exit_status") {
-            let x = wasm_get_exit_status();
-            console.log(x);
-            return x;
+            return wasm_get_exit_status();
         } else if (command === "get_register_value") {
             if (data === undefined) {
                 throw "Call to 'get_register_value' without providing string data";
@@ -41,6 +39,7 @@ registerWebworker(async (message, emit) => {
             throw `Invalid command: '${command}'`;
         }
     } catch (error) {
+        console.log(error);
         throw new Error(error);
     }
 });
