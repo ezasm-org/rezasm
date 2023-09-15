@@ -4,17 +4,12 @@ use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::EzasmError;
 use rezasm_core::util::word_size::WordSize;
 use std::fs::File;
-use std::io;
 use std::io::{BufReader, BufWriter};
-use std::os::fd::{AsRawFd, FromRawFd};
 use std::path::Path;
 
 fn get_file_from_path(path_string: &String) -> Result<File, EzasmError> {
     let path = if path_string.starts_with('~') {
-        match expanduser::expanduser(path_string) {
-            Ok(x) => x,
-            Err(_) => return Err(EzasmError::CouldNotOpenFileError(path_string.to_string())),
-        }
+        todo!();
     } else {
         Path::new(path_string).to_path_buf()
     };
@@ -54,16 +49,18 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
     let input_file: BufReader<File> = match arguments.get_input_file() {
         Some(input_file_string) => BufReader::new(get_file_from_path(&input_file_string)?),
         None => {
-            let fd = io::stdin().as_raw_fd();
-            unsafe { BufReader::new(File::from_raw_fd(fd)) }
+            todo!();
+            // let fd = io::stdin().as_raw_fd();
+            // unsafe { BufReader::new(File::from_raw_fd(fd)) }
         }
     };
 
     let output_file: BufWriter<File> = match arguments.get_output_file() {
         Some(input_file_string) => BufWriter::new(get_file_from_path(&input_file_string)?),
         None => {
-            let fd = io::stdin().as_raw_fd();
-            unsafe { BufWriter::new(File::from_raw_fd(fd)) }
+            todo!();
+            // let fd = io::stdin().as_raw_fd();
+            // unsafe { BufWriter::new(File::from_raw_fd(fd)) }
         }
     };
 

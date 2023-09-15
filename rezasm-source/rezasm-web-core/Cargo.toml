@@ -13,9 +13,9 @@ tauri-build = { version = "1.4.0", features = [] }
 wasm-pack = "0.12.1"
 
 [dependencies]
-rezasm-core = { path = "../../rezasm-source/rezasm-core" }
-rezasm-instructions = { path = "../../rezasm-source/rezasm-instructions" }
-rezasm-macro = { path = "../../rezasm-source/rezasm-macro" }
+rezasm-core = { path = "../rezasm-core" }
+rezasm-instructions = { path = "../rezasm-instructions" }
+rezasm-macro = { path = "../rezasm-macro" }
 
 lazy_static = "1.4.0"
 serde = { version = "1.0.188", features = ["derive"] }

@@ -67,6 +67,9 @@ pub enum ParserError {
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
+    #[error("attempted to divide by zero")]
+    DivideByZeroError,
+
     #[error("{0}")]
     ParserError(ParserError),
 

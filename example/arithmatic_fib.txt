@@ -1,7 +1,7 @@
 # Setup
 add $t0 0 0
 add $t1 0 1
-add $t9 0 10000
+add $t9 0 10
 add $t8 0 0
 
 # Fibonacci
