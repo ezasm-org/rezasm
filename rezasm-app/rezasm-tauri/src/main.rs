@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 use rezasm_instructions::register_instructions;
 use rezasm_web_core::util::commands::{
     get_exit_status, get_register_value, get_runtime, initialize_runtime, is_completed, load,
-    register_callbacks, reset, run, step, stop,
+    reset, step, stop,
 };
 use tauri::{Manager, Window};
 use tokio::runtime;
@@ -52,19 +52,8 @@ fn tauri_load(lines: &str) -> Result<(), String> {
 }
 
 #[tauri::command()]
-fn tauri_run() {
-    get_runtime().call(async {
-        run();
-        Ok(())
-    });
-}
-
-#[tauri::command()]
 fn tauri_step() {
-    get_runtime().call(async {
-        step();
-        Ok(())
-    });
+    get_runtime().call(async { step() });
 }
 
 #[tauri::command]
@@ -82,20 +71,6 @@ fn tauri_get_register_value(register: &str) -> Option<i64> {
     get_register_value(register)
 }
 
-fn signal_error(error: &str) {
-    let _ = get_window().eval(format!("window.errorCallback(\"{}\")", error).as_str());
-}
-
-fn signal_program_completion(exit_status: i64) {
-    let _ = get_window()
-        .eval(format!("window.programCompletionCallback(\"{}\")", exit_status).as_str());
-}
-
-fn signal_termination() {
-    let _ = get_window()
-        .eval(format!("window.errorCallback(\"Program terminated forcefully\")").as_str());
-}
-
 fn main() {
     let rt = runtime::Builder::new_multi_thread().build().unwrap();
 
@@ -104,7 +79,6 @@ fn main() {
     });
 
     register_instructions();
-    register_callbacks(signal_error, signal_program_completion, signal_termination);
     initialize_runtime(rt);
 
     tauri::Builder::default()
@@ -112,7 +86,6 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             tauri_load,
             tauri_reset,
-            tauri_run,
             tauri_step,
             tauri_stop,
             tauri_is_completed,

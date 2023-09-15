@@ -1,4 +1,3 @@
-use rezasm_core::util::error::EzasmError;
 use tokio::runtime;
 use tokio::task::JoinHandle;
 
@@ -7,7 +6,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::{thread, time};
 
-type OutputType = Result<(), EzasmError>;
+type OutputType = Result<(), String>;
 
 pub struct Runtime {
     runtime: runtime::Runtime,

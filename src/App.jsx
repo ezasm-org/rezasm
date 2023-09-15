@@ -1,8 +1,10 @@
 import React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
-import { wasm_completion_callback, wasm_load, wasm_run, wasm_step, wasm_stop, wasm_reset, wasm_is_completed,
-    wasm_get_exit_status, wasm_get_register_value } from "../dist/wasm";
+import WorkerPromise from "webworker-promise";
+import {
+    wasm_load, wasm_step, wasm_stop, wasm_reset, wasm_is_completed, wasm_get_exit_status, wasm_get_register_value
+} from "../dist/wasm";
 import init from "../dist/wasm/rezasm_wasm.js";
 import "../dist/output.css";
 import _ from "lodash";
@@ -15,41 +17,24 @@ const STATE = {
     STOPPED: 5,
 };
 
-const isSome = option => {
-    return option !== null;
-};
-
-const isNone = option => {
-    return option === null;
+const callWorkerFunction = message => {
+    return new Promise((resolve, reject) => {
+        window.worker.postMessage(message)
+            .then(result => resolve(result))
+            .catch(e => {
+                console.log("Error calling command: " + message.command);
+                reject(e.message);
+            });
+    });
 };
 
 const rust_load = async lines => {
     if (window.__TAURI_IPC__) {
         return invoke("tauri_load", {lines});
     } else if (wasm_load) {
-        return new Promise((resolve, reject) => {
-            try {
-                wasm_load(lines);
-                resolve(null);
-            } catch (error) {
-                reject(error);
-            }
-        });
+        return callWorkerFunction({command: "load", argument: lines});
     } else {
-        throw "Function load does not exist";
-    }
-};
-
-const rust_run = async () => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_run", {});
-    } else if (wasm_run) {
-        return new Promise((resolve, reject) => {
-            wasm_run();
-            resolve(null);
-        });
-    } else {
-        throw "Function run does not exist";
+        throw new Error("Function load does not exist");
     }
 };
 
@@ -57,12 +42,9 @@ const rust_step = async () => {
     if (window.__TAURI_IPC__) {
         return invoke("tauri_step", {});
     } else if (wasm_step) {
-        return new Promise((resolve, reject) => {
-            wasm_step();
-            resolve(null);
-        });
+        return callWorkerFunction({command: "step"});
     } else {
-        throw "Function step does not exist";
+        throw new Error("Function step does not exist");
     }
 };
 
@@ -70,12 +52,9 @@ const rust_reset = async () => {
     if (window.__TAURI_IPC__) {
         return invoke("tauri_reset", {});
     } else if (wasm_reset) {
-        return new Promise((resolve, reject) => {
-            wasm_reset();
-            resolve(null);
-        });
+        return callWorkerFunction({command: "reset"});
     } else {
-        throw "Function reset does not exist";
+        throw new Error("Function reset does not exist");
     }
 };
 
@@ -83,12 +62,9 @@ const rust_stop = async () => {
     if (window.__TAURI_IPC__) {
         return invoke("tauri_stop", {});
     } else if (wasm_stop) {
-        return new Promise((resolve, reject) => {
-            wasm_stop();
-            resolve(null);
-        });
+        return callWorkerFunction({command: "stop"});
     } else {
-        throw "Function stop does not exist";
+        throw new Error("Function stop does not exist");
     }
 };
 
@@ -96,9 +72,9 @@ const rust_is_completed = async () => {
     if (window.__TAURI_IPC__) {
         return invoke("tauri_is_completed", {});
     } else if (wasm_is_completed) {
-        return new Promise((resolve, reject) => resolve(wasm_is_completed()));
+        return callWorkerFunction({command: "is_completed"});
     } else {
-        throw "Function is_completed does not exist";
+        throw new Error("Function is_completed does not exist");
     }
 };
 
@@ -106,9 +82,9 @@ const rust_get_exit_status = async () => {
     if (window.__TAURI_IPC__) {
         return invoke("tauri_get_exit_status", {});
     } else if (wasm_get_exit_status) {
-        return new Promise((resolve, reject) => resolve(wasm_get_exit_status()));
+        return callWorkerFunction({command: "get_exit_status"});
     } else {
-        throw "Function get_exit_status does not exist";
+        throw new Error("Function get_exit_status does not exist");
     }
 };
 
@@ -116,9 +92,9 @@ const rust_get_register_value = async register => {
     if (window.__TAURI_IPC__) {
         return invoke("tauri_get_register_value", {register});
     } else if (wasm_get_register_value) {
-        return new Promise((resolve, reject) => resolve(wasm_get_register_value(register)));
+        return callWorkerFunction({command: "get_register_value", argument: register});
     } else {
-        throw "Function get_register_value does not exist";
+        throw new Error("Function get_register_value does not exist");
     }
 };
 
@@ -127,6 +103,14 @@ function App() {
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
     const [state, setState] = useState(STATE.IDLE);
+    const [stopProgramCallback, setStopProgramCallback] = useState(undefined);
+
+    const callStopProgramCallback = useCallback(() => {
+        if (stopProgramCallback) {
+            stopProgramCallback();
+            setStopProgramCallback(undefined);
+        }
+    }, [stopProgramCallback]);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -160,13 +144,22 @@ function App() {
         return await rust_get_register_value(register);
     }, []);
 
+    const stop = useCallback(async currentState => {
+        callStopProgramCallback();
+        await rust_stop();
+        currentState = STATE.STOPPED;
+        setState(currentState);
+        return currentState;
+    }, [callStopProgramCallback]);
+
     const reset = useCallback(async () => {
+        callStopProgramCallback();
         await rust_reset();
         setState(STATE.IDLE);
         setResult("");
         clearErrorState();
         return STATE.IDLE;
-    }, [clearErrorState]);
+    }, [clearErrorState, callStopProgramCallback]);
 
     const load = useCallback(async (currentState) => {
         if (currentState >= STATE.LOADED) {
@@ -181,6 +174,7 @@ function App() {
                 currentState = STATE.STOPPED;
             });
 
+        setState(currentState);
         return currentState;
     }, [setErrorState, lines]);
 
@@ -190,82 +184,62 @@ function App() {
         });
     }, [reset, load]);
 
-    const run = useCallback(async currentState => {
-        if (currentState === STATE.RUNNING) {
-            return currentState;
+    const checkAndHandleProgramCompletion = useCallback(async () => {
+        if (await isCompleted()) {
+            callStopProgramCallback();
+            setState(STATE.STOPPED);
+            setResult("Program exited with exit code " +  await getExitStatus());
+            return true;
+        } else {
+            setState(STATE.PAUSED);
+            return false;
         }
+    }, [getExitStatus, isCompleted, callStopProgramCallback]);
 
-        reset_load().then(async newState => {
-            if (newState >= STATE.LOADED && !isErrorState()) {
-                if (await isCompleted()) {
-                    setResult("Program exited with exit code " + await getExitStatus());
-                    setState(currentState);
-                } else {
-                    setState(STATE.RUNNING);
-                    rust_run();
-                }
-            }
-        });
-
-        setState(currentState);
-        return currentState;
-    }, [reset, load, getExitStatus, isCompleted]);
+    const handleStepCall = useCallback(async () => {
+        rust_step()
+            .then(async () => await checkAndHandleProgramCompletion())
+            .catch(error => {
+                setErrorState(error);
+                setState(STATE.STOPPED);
+            });
+    }, [checkAndHandleProgramCompletion, setErrorState]);
 
     const step = useCallback(async currentState => {
         if (currentState < STATE.LOADED) {
             reset_load().then(async () => {
-                if (await isCompleted()) {
-                    currentState = STATE.STOPPED;
-                    setState(currentState);
-                    setResult("Program exited with exit code " +  await getExitStatus());
-                } else {
-                    currentState = STATE.PAUSED;
-                    setState(currentState);
-                    rust_step();
+                if (! await checkAndHandleProgramCompletion()) {
+                    handleStepCall();
                 }
             });
-        } else if (currentState === STATE.PAUSED) {
-            if (await isCompleted()) {
-                currentState = STATE.STOPPED;
-                setState(currentState);
-                setResult("Program exited with exit code " +  await getExitStatus());
-            } else {
-                currentState = STATE.PAUSED;
-                setState(currentState);
-                rust_step();
+        } else if (currentState === STATE.PAUSED || currentState === STATE.RUNNING) {
+            handleStepCall();
+        }
+    }, [reset_load, handleStepCall, checkAndHandleProgramCompletion]);
+
+    const run = useCallback(async currentState => {
+        if (stopProgramCallback) {
+            throw new Error("Program already in progress");
+        } else {
+            step(currentState).then(() => setState(STATE.RUNNING));
+            if (!isErrorState()) {
+                let intervalId = setInterval(() => {
+                    step(currentState).then(() => setState(STATE.RUNNING));
+                }, 5);
+                setStopProgramCallback(() => clearInterval(intervalId));
             }
         }
 
-        return currentState
-    }, [load, isErrorState, getExitStatus, isCompleted]);
-
-    const stop = useCallback(async currentState => {
-        await rust_stop();
-        currentState = STATE.STOPPED;
-        setState(currentState);
-        return currentState;
-    }, []);
-
-    useEffect(() => {
-        window.errorCallback = error => {
-            console.log(error);
-            setErrorState(error);
-        };
-
-        window.programCompletionCallback = exitStatus => {
-            setResult("Program exited with exit code " + exitStatus);
-            setState(STATE.STOPPED);
-        };
-    }, [state]);
+    }, [step, stopProgramCallback, isErrorState]);
 
     useEffect(() => {
         if (init) {
-            init().then(() => {
-                if (wasm_completion_callback) {
-                    window.wasm_completion_callback = wasm_completion_callback;
-                }
-            });
+            init();
         }
+        window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
+        window.worker.postMessage({command: "ping"}).then(e => {
+            console.log(e);
+        });
     }, []);
 
     return (
