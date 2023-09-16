@@ -5,8 +5,6 @@ edition = "2021"
 
 [dependencies]
 rezasm-core = { path = "../../rezasm-source/rezasm-core" }
-rezasm-instructions = { path = "../../rezasm-source/rezasm-instructions" }
-rezasm-macro = { path = "../../rezasm-source/rezasm-macro" }
 
 lazy_static = "1.4.0"
 regex = "1.8.1"

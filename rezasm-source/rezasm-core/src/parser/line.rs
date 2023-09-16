@@ -1,10 +1,13 @@
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction::Instruction;
-use crate::instructions::instruction_registry::{get_instruction, is_instruction_name_registered};
+use crate::instructions::instruction_registry;
+use crate::instructions::instruction_registry::is_instruction_name_registered;
+use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::*;
 use crate::util::error::ParserError;
 use crate::util::word_size::WordSize;
+use std::any::TypeId;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug, Clone)]
@@ -53,16 +56,34 @@ impl Line {
         }
 
         let mut arguments: Vec<ArgumentType> = Vec::new();
-        for argument in args_out {
-            arguments.push(match argument.get_target(word_size) {
-                Ok(arg) => arg,
-                Err(error) => return Err(error),
-            });
+        let instruction_retrieved =
+            match instruction_registry::get_instruction(instruction, args_out.len()) {
+                Ok(instruction) => instruction,
+                Err(e) => return Err(e),
+            };
+
+        if instruction_retrieved.get_types().len() != args_out.len() {
+            return Err(ParserError::InvalidInstructionError(instruction.clone()));
         }
 
-        let matching_instruction = get_instruction(instruction, &arguments)?;
-
-        Ok(Line::Instruction(matching_instruction, arguments))
+        for (argument, type_of) in args_out.iter().zip(instruction_retrieved.get_types()) {
+            if type_of == &TypeId::of::<&mut InputTarget>() {
+                arguments.push(argument.get_input_target(word_size)?);
+            } else if type_of == &TypeId::of::<&mut InputOutputTarget>() {
+                arguments.push(match argument.get_input_output_target(word_size) {
+                    Ok(s) => s,
+                    Err(e) => match e {
+                        ParserError::InternalError => {
+                            return Err(ParserError::InvalidArgumentsError(instruction.clone()))
+                        }
+                        _ => return Err(e),
+                    },
+                });
+            } else {
+                return Err(ParserError::InvalidArgumentsError(instruction.to_string()));
+            }
+        }
+        Ok(Line::Instruction(instruction_retrieved, arguments))
     }
 
     pub fn get_string_immediates(&self) -> Vec<&String> {

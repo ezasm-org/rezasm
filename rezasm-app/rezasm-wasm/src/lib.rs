@@ -1,10 +1,9 @@
 extern crate rezasm_core;
-extern crate rezasm_macro;
 extern crate rezasm_web_core;
 extern crate tokio;
 extern crate wasm_bindgen;
 
-use rezasm_instructions::register_instructions;
+use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::util::commands::{
     get_exit_status, get_register_value, is_completed, load, reset, step, stop,
 };

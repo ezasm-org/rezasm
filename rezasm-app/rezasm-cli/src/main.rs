@@ -5,12 +5,9 @@ mod util;
 
 extern crate lazy_static;
 extern crate rezasm_core;
-extern crate rezasm_instructions;
-extern crate rezasm_macro;
 
-use rezasm_core::instructions::instruction_field::{Subclass, SubclassFactory};
-use rezasm_core::instructions::targets::input_output_target::InputOutputTarget;
-use rezasm_core::instructions::targets::input_target::InputTarget;
+use rezasm_core::instruction;
+use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_core::parser::lexer::{parse_line, text_to_number, tokenize_line, EZNumber};
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
@@ -20,8 +17,6 @@ use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::handle_error;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
-use rezasm_instructions::register_instructions;
-use rezasm_macro::instruction;
 
 use crate::util::application::Application;
 use crate::util::cli;
@@ -34,8 +29,7 @@ fn main() {
     test_text_to_number();
     test_memory();
     test_registry();
-    test_subclasses();
-    test_proc_macro();
+    test_macro();
     test_simulator_instruction();
     test_simulator_labels();
 
@@ -104,15 +98,7 @@ fn test_registry() {
     println!("Registry works");
 }
 
-pub fn test_subclasses() {
-    let input_subclasses = SubclassFactory::<InputTarget>::subclasses();
-    let input_output_subclasses = SubclassFactory::<InputOutputTarget>::subclasses();
-    let input_output_typeid = input_output_subclasses.get(0).unwrap();
-    assert!(input_subclasses.contains(input_output_typeid));
-    println!("Subclasses work")
-}
-
-pub fn test_proc_macro() {
+pub fn test_macro() {
     let mut simulator: Simulator = Simulator::new();
 
     let line: Line = Line::new(
@@ -127,16 +113,9 @@ pub fn test_proc_macro() {
         _ => Vec::new(),
     };
 
-    let foo = instruction!(foo, |simulator: Simulator,
-                                 x: InputOutputTarget,
-                                 y: InputTarget,
-                                 z: InputTarget| {
-        let sum = y.get(simulator)?.int_value() + z.get(simulator)?.int_value();
-        let _ = x.set(simulator, RawData::from(sum));
-        Ok(())
-    });
+    let foo = &rezasm_core::instructions::implementation::arithmetic_instructions::ADD;
 
-    match foo.call_instruction_function(&mut simulator, &args) {
+    match foo.call_function(&mut simulator, &args) {
         Ok(_) => {
             assert_eq!(
                 simulator

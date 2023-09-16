@@ -63,6 +63,9 @@ pub enum ParserError {
 
     #[error("unrecognized token `{0}`")]
     UnknownTokenError(String),
+
+    #[error("internal error")]
+    InternalError,
 }
 
 #[derive(Error, Debug)]
