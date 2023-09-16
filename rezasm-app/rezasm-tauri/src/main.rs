@@ -3,16 +3,13 @@
 
 extern crate lazy_static;
 extern crate tauri;
-extern crate tokio;
 
 use lazy_static::lazy_static;
 use rezasm_instructions::register_instructions;
-use rezasm_web_core::util::commands::{
-    get_exit_status, get_register_value, get_runtime, initialize_runtime, is_completed, load,
-    reset, step, stop,
+use rezasm_web_core::{
+    get_exit_status, get_register_value, is_completed, load, reset, step, stop,
 };
 use tauri::{Manager, Window};
-use tokio::runtime;
 
 use std::sync::{Arc, RwLock};
 
@@ -72,14 +69,7 @@ fn tauri_get_register_value(register: &str) -> Option<i64> {
 }
 
 fn main() {
-    let rt = runtime::Builder::new_multi_thread().build().unwrap();
-
-    rt.block_on(async {
-        tauri::async_runtime::set(runtime::Handle::current());
-    });
-
     register_instructions();
-    initialize_runtime(rt);
 
     tauri::Builder::default()
         .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))
