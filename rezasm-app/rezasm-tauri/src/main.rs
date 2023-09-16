@@ -52,8 +52,8 @@ fn tauri_load(lines: &str) -> Result<(), String> {
 }
 
 #[tauri::command()]
-fn tauri_step() {
-    get_runtime().call(async { step() });
+fn tauri_step() -> Result<(), String> {
+    step()
 }
 
 #[tauri::command]

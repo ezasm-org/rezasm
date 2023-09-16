@@ -1,8 +1,9 @@
-use crate::util::runtime::Runtime;
 use lazy_static::lazy_static;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
+
+use crate::util::runtime::Runtime;
 
 use std::string::ToString;
 use std::sync::atomic::{AtomicBool, Ordering};
