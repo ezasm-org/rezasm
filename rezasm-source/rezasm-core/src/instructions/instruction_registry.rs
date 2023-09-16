@@ -41,7 +41,10 @@ impl InstructionRegistry {
                         return Ok(attempt);
                     }
                 }
-                Err(ParserError::InvalidArgumentsError(name.clone()))
+                Err(ParserError::InvalidArgumentsCountError(
+                    name.to_string(),
+                    argc,
+                ))
             }
         }
     }

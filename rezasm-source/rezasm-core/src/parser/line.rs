@@ -37,21 +37,21 @@ impl Line {
         }
 
         let mut args_out: Vec<Token> = Vec::new();
-        for arg in args {
-            if looks_like_string_immediate(&arg) {
-                args_out.push(Token::StringImmediate(arg));
-            } else if looks_like_dereference(&arg) {
-                args_out.push(get_dereference(&arg)?);
-            } else if looks_like_character_immediate(&arg) {
-                args_out.push(get_character_immediate(&arg)?);
-            } else if looks_like_numerical_immediate(&arg) {
-                args_out.push(get_numerical_immediate(&arg)?);
-            } else if is_register(&arg) {
-                args_out.push(get_register(&arg)?);
-            } else if looks_like_label_reference(&arg) {
-                args_out.push(Token::LabelReference(arg));
+        for arg in &args {
+            if looks_like_string_immediate(arg) {
+                args_out.push(Token::StringImmediate(arg.to_string()));
+            } else if looks_like_dereference(arg) {
+                args_out.push(get_dereference(arg)?);
+            } else if looks_like_character_immediate(arg) {
+                args_out.push(get_character_immediate(arg)?);
+            } else if looks_like_numerical_immediate(arg) {
+                args_out.push(get_numerical_immediate(arg)?);
+            } else if is_register(arg) {
+                args_out.push(get_register(arg)?);
+            } else if looks_like_label_reference(arg) {
+                args_out.push(Token::LabelReference(arg.to_string()));
             } else {
-                return Err(ParserError::UnknownTokenError(arg).into());
+                return Err(ParserError::UnknownTokenError(arg.to_string()).into());
             }
         }
 
@@ -62,25 +62,33 @@ impl Line {
                 Err(e) => return Err(e),
             };
 
-        if instruction_retrieved.get_types().len() != args_out.len() {
-            return Err(ParserError::InvalidInstructionError(instruction.clone()));
-        }
-
-        for (argument, type_of) in args_out.iter().zip(instruction_retrieved.get_types()) {
+        for (index, (argument, type_of)) in args_out
+            .iter()
+            .zip(instruction_retrieved.get_types())
+            .enumerate()
+        {
             if type_of == &TypeId::of::<&mut InputTarget>() {
                 arguments.push(argument.get_input_target(word_size)?);
             } else if type_of == &TypeId::of::<&mut InputOutputTarget>() {
                 arguments.push(match argument.get_input_output_target(word_size) {
                     Ok(s) => s,
-                    Err(e) => match e {
-                        ParserError::InternalError => {
-                            return Err(ParserError::InvalidArgumentsError(instruction.clone()))
+                    Err(e) => {
+                        return match e {
+                            ParserError::InternalError => Err(ParserError::InvalidArgumentsError(
+                                instruction.to_string(),
+                                args[index].to_string(),
+                                index,
+                            )),
+                            _ => Err(e),
                         }
-                        _ => return Err(e),
-                    },
+                    }
                 });
             } else {
-                return Err(ParserError::InvalidArgumentsError(instruction.to_string()));
+                return Err(ParserError::InvalidArgumentsError(
+                    instruction.to_string(),
+                    args[index].to_string(),
+                    index,
+                ));
             }
         }
         Ok(Line::Instruction(instruction_retrieved, arguments))
