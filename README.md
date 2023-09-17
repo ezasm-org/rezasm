@@ -11,7 +11,7 @@ The instructions would be intuitive and simple compared to MIPS (e.g., no system
 ## Getting Started (Windows)
 1. Ensure you have installed [Rust](https://www.rust-lang.org/learn/get-started) and [Node.js](https://nodejs.org/en/download)
 2. Download the [Visual Studio Installer](https://visualstudio.microsoft.com/downloads/) and install the Desktop Development with C++ Workload
-3. Install cargo-tauri using `cargo install tauri-cli` in a terminal emulator
+3. Install cargo-tauri using `cargo install tauri-cli wasm-pack` in a terminal emulator
 4. Install tailwindcss using `npm install -g tailwindcss` in a terminal emulator
 5. Clone this repository to your system
 6. Open this repository in your terminal emulator
@@ -20,7 +20,7 @@ The instructions would be intuitive and simple compared to MIPS (e.g., no system
 
 ## Getting Started (Linux)
 1. Ensure you have installed [Rust](https://www.rust-lang.org/learn/get-started) and [Node.js](https://nodejs.org/en/download)
-2. Install cargo-tauri using `cargo install tauri-cli`
+2. Install cargo-tauri using `cargo install tauri-cli wasm-pack`
 3. Install tailwindcss using `npm install -g tailwindcss`
 4. Clone this repository to your system
 5. Open this repository in your terminal
@@ -30,7 +30,7 @@ The instructions would be intuitive and simple compared to MIPS (e.g., no system
 ## Getting Started (MacOS)
 **Under Construction / May not work yet**
 1. Ensure you have installed [Rust](https://www.rust-lang.org/learn/get-started) and [Node.js](https://nodejs.org/en/download)
-2. Install cargo-tauri using `cargo install tauri-cli`
+2. Install cargo-tauri using `cargo install tauri-cli wasm-pack`
 3. Install tailwindcss using `npm install -g tailwindcss`
 4. Clone this repository to your system
 5. Open this repository in your terminal
