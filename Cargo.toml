@@ -26,6 +26,7 @@ name = "rezasm_wasm"
 
 
 [build-dependencies]
+cargo-watch = "8.4.1"
 tauri-build = { version = "1.4.0", features = [] }
 wasm-pack = "0.12.1"
 
