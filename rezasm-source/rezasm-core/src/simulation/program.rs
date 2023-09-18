@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use bimap::BiHashMap;
 use crate::parser::line::Line;
 use crate::util::error::SimulatorError;
+use bimap::BiHashMap;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Program {
@@ -36,7 +36,7 @@ impl Program {
             Some(file) => match file.get(line_number as usize) {
                 None => Err(SimulatorError::InvalidProgramCounterError(line_number)),
                 Some(line) => Ok(line),
-            }
+            },
         }
     }
 
@@ -55,11 +55,16 @@ impl Program {
                 if self.label_to_line.contains_key(label) {
                     return Err(SimulatorError::LabelInUseError(label.to_string()));
                 } else {
-                    self.label_to_line
-                        .insert(label.to_string(), (file_id, match self.file_id_to_file.get(&file_id) {
-                            None => return Err(SimulatorError::InvalidFileIdentifier(file_id)),
-                            Some(lines) => lines.len() as i64,
-                        }));
+                    self.label_to_line.insert(
+                        label.to_string(),
+                        (
+                            file_id,
+                            match self.file_id_to_file.get(&file_id) {
+                                None => return Err(SimulatorError::InvalidFileIdentifier(file_id)),
+                                Some(lines) => lines.len() as i64,
+                            },
+                        ),
+                    );
                 }
             }
             _ => {}
@@ -68,7 +73,7 @@ impl Program {
         match self.file_id_to_file.get_mut(&file_id) {
             None => {
                 self.file_id_to_file.insert(file_id, vec![line]);
-            },
+            }
             Some(file) => file.push(line),
         }
 
@@ -82,21 +87,21 @@ impl Program {
     pub fn is_error(&self, fid: i64, pc: i64) -> bool {
         match self.file_id_to_file.get(&fid) {
             None => false,
-            Some(file) => pc > file.len() as i64
+            Some(file) => pc > file.len() as i64,
         }
     }
 
     pub fn is_done(&self, fid: i64, pc: i64) -> bool {
         match self.file_id_to_file.get(&fid) {
             None => false,
-            Some(file) => (pc == file.len() as i64) ||  (pc == 0 && file.is_empty())
+            Some(file) => (pc == file.len() as i64) || (pc == 0 && file.is_empty()),
         }
     }
 
     pub fn end_pc(&self, fid: i64) -> usize {
         match self.file_id_to_file.get(&fid) {
             None => 0,
-            Some(file) => file.len()
+            Some(file) => file.len(),
         }
     }
 }

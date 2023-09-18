@@ -101,18 +101,33 @@ impl Simulator {
     }
 
     pub fn end_pc(&self) -> usize {
-        let fid = self.registry.get_register(&registry::FID.to_string()).unwrap().get_data().int_value();
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap()
+            .get_data()
+            .int_value();
         return self.program.end_pc(fid);
     }
 
     pub fn is_done(&self) -> bool {
-        let fid = self.registry.get_register(&registry::FID.to_string()).unwrap().get_data().int_value();
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap()
+            .get_data()
+            .int_value();
         let pc = self.registry.get_pc().get_data().int_value();
         self.program.is_done(fid, pc)
     }
 
     pub fn is_error(&self) -> bool {
-        let fid = self.registry.get_register(&registry::FID.to_string()).unwrap().get_data().int_value();
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap()
+            .get_data()
+            .int_value();
         let pc = self.registry.get_pc().get_data().int_value();
         self.program.is_error(fid, pc)
     }
@@ -149,8 +164,13 @@ impl Simulator {
             Ok(x) => x,
             Err(error) => return Err(error),
         };
-        let fid = self.registry.get_register(&registry::FID.to_string()).unwrap();
-        let line = self.program.get_line(fid.get_data().int_value(), line_number)?;
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap();
+        let line = self
+            .program
+            .get_line(fid.get_data().int_value(), line_number)?;
         self.run_line(&line.clone())
     }
 
