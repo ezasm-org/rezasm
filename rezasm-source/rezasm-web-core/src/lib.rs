@@ -72,7 +72,7 @@ pub fn step() -> Result<(), String> {
 }
 
 pub fn is_completed() -> bool {
-    get_simulator().is_done() || get_simulator().is_error()
+    get_simulator().is_done()
 }
 
 pub fn get_exit_status() -> i64 {
