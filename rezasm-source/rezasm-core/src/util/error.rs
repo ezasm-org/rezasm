@@ -116,6 +116,12 @@ pub enum SimulatorError {
     LabelInUseError(String),
 }
 
+#[derive(Error, Debug)]
+pub enum IoError {
+    #[error("Out of bounds seek of line `{0}`")]
+    SeekOutOfBounds(usize),
+}
+
 impl From<ParserError> for EzasmError {
     fn from(error: ParserError) -> Self {
         EzasmError::ParserError(error)

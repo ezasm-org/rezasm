@@ -38,6 +38,7 @@ fn main() {
     test_proc_macro();
     test_simulator_instruction();
     test_simulator_labels();
+    test_io();
 
     let args: Arguments = cli::get_args();
     let application: Application = match handle_arguments(args) {
@@ -225,4 +226,16 @@ pub fn test_simulator_labels() {
         233i64
     );
     println!("Labels worked (fibonacci test)")
+}
+
+pub fn test_io() {
+    use std::path::PathBuf;
+    use rezasm_core::util::io::RezAsmFile;
+
+    let file_path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/example/arithmatic_fib.ez"));
+    let rezasmfile = RezAsmFile::new(file_path).expect("failed to read file");
+
+    println!("{:?}", rezasmfile);
+
+    println!("Io worked");
 }
