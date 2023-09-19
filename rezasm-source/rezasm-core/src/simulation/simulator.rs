@@ -1,9 +1,9 @@
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 use crate::parser::line::Line;
 use crate::simulation::memory;
 use crate::simulation::memory::Memory;
+use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
 use crate::util::error::SimulatorError;
@@ -14,8 +14,7 @@ use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
 pub struct Simulator {
     memory: Memory,
     registry: Registry,
-    lines: Vec<Line>,
-    label_map: HashMap<String, i64>,
+    program: Program,
     word_size: WordSize,
 }
 
@@ -28,8 +27,7 @@ impl Simulator {
         let mut sim = Simulator {
             memory: Memory::new_sized(word_size, memory_size),
             registry: Registry::new(word_size),
-            lines: Vec::new(),
-            label_map: HashMap::new(),
+            program: Program::new(),
             word_size: word_size.clone(),
         };
         sim.initialize();
@@ -53,23 +51,11 @@ impl Simulator {
 
     pub fn reset(&mut self) {
         self.reset_data();
-        self.lines.clear();
-        self.label_map.clear();
+        self.program.reset();
         self.initialize();
     }
 
     pub fn add_line(&mut self, line: Line) -> Result<(), SimulatorError> {
-        match &line {
-            Line::Label(label) => {
-                if self.label_map.contains_key(label) {
-                    return Err(SimulatorError::LabelInUseError(label.to_string()));
-                } else {
-                    self.label_map
-                        .insert(String::from(label), self.lines.len() as i64);
-                }
-            }
-            _ => {}
-        };
         match self
             .memory
             .add_string_immediates(line.get_string_immediates())
@@ -77,8 +63,7 @@ impl Simulator {
             Ok(_) => {}
             Err(error) => return Err(error),
         };
-        self.lines.push(line);
-        Ok(())
+        self.program.add_line(line, "".to_string())
     }
 
     pub fn add_lines(&mut self, lines: Vec<Line>) -> Result<(), SimulatorError> {
@@ -89,10 +74,6 @@ impl Simulator {
             };
         }
         Ok(())
-    }
-
-    fn get_lines(&self) -> &Vec<Line> {
-        &self.lines
     }
 
     pub fn get_word_size(&self) -> &WordSize {
@@ -120,17 +101,35 @@ impl Simulator {
     }
 
     pub fn end_pc(&self) -> usize {
-        return self.lines.len();
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap()
+            .get_data()
+            .int_value();
+        return self.program.end_pc(fid);
     }
 
     pub fn is_done(&self) -> bool {
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap()
+            .get_data()
+            .int_value();
         let pc = self.registry.get_pc().get_data().int_value();
-        (self.lines.is_empty() && pc == 0) || pc == self.end_pc() as i64
+        self.program.is_done(fid, pc)
     }
 
     pub fn is_error(&self) -> bool {
-        let line = self.registry.get_pc().get_data().int_value();
-        (line > self.lines.len() as i64) || (line < 0)
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap()
+            .get_data()
+            .int_value();
+        let pc = self.registry.get_pc().get_data().int_value();
+        self.program.is_error(fid, pc)
     }
 
     pub fn validate_pc(&self) -> Result<i64, SimulatorError> {
@@ -157,7 +156,6 @@ impl Simulator {
         self.registry
             .get_pc_mut()
             .set_data(RawData::from_int(new_pc, &self.word_size));
-
         result
     }
 
@@ -166,10 +164,13 @@ impl Simulator {
             Ok(x) => x,
             Err(error) => return Err(error),
         };
-        let line = match self.lines.get(line_number as usize) {
-            None => return Err(SimulatorError::InvalidProgramCounterError(line_number)),
-            Some(x) => x,
-        };
+        let fid = self
+            .registry
+            .get_register(&registry::FID.to_string())
+            .unwrap();
+        let line = self
+            .program
+            .get_line(fid.get_data().int_value(), line_number)?;
         self.run_line(&line.clone())
     }
 
@@ -177,9 +178,10 @@ impl Simulator {
         todo!()
     }
 
-    pub fn get_label_line_number(&self, label: &String) -> Result<&i64, SimulatorError> {
-        self.label_map
-            .get(label)
-            .ok_or(SimulatorError::NonExistentLabelError(label.clone()))
+    pub fn get_label_line_number(&self, label: &String) -> Result<i64, SimulatorError> {
+        match self.program.resolve_label(label) {
+            None => Err(SimulatorError::NonExistentLabelError(label.clone())),
+            Some((_, line_number)) => Ok(line_number.clone()),
+        }
     }
 }

@@ -4,9 +4,7 @@ extern crate rezasm_web_core;
 extern crate wasm_bindgen;
 
 use rezasm_instructions::register_instructions;
-use rezasm_web_core::{
-    get_exit_status, get_register_value, is_completed, load, reset, step, stop,
-};
+use rezasm_web_core::{get_exit_status, get_register_value, is_completed, load, reset, step, stop};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
