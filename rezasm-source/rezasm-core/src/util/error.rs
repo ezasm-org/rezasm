@@ -97,6 +97,12 @@ pub enum SimulatorError {
     #[error("invalid program counter `{0}`")]
     InvalidProgramCounterError(i64),
 
+    #[error("invalid line number `{0}`")]
+    InvalidLineNumber(i64),
+
+    #[error("invalid file identifier `{0}`")]
+    InvalidFileIdentifier(i64),
+
     #[error("string immediate `{0}` does not exist")]
     StringImmediateDoesNotExistError(String),
 
