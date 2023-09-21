@@ -7,9 +7,9 @@ assignees: ''
 
 ---
 
-**As a** \<role>
-**I want** \<feature>
-**So that** \<goal>
+**As a** <role>  
+**I want** <feature>  
+**So that** <goal>  
 
 **Request Description**
 A clear description of the feature you wish was present. Ex. "I wish search used multiple fields."
