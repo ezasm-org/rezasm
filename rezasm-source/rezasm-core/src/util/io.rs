@@ -53,17 +53,13 @@ impl RezAsmFile {
     }
     /// Advance the cursor forward by one, returning the byte at that 
     /// position or None if the cursor is out of bounds.
-    pub fn next(&mut self) -> Option<&u8> {
-        let byte = self.bytes.get(self.cursor as usize);
-        self.cursor += 1;
-        byte
+    pub fn next(&mut self) -> Option<u8> {
+        self.seek_absolute_byte(self.cursor + 1).ok()
     }
     /// Advance the cursor backward by one, returning the byte at that 
     /// position or None if the cursor is out of bounds.
-    pub fn prev(&mut self) -> Option<&u8> {
-        let byte = self.bytes.get(self.cursor as usize);
-        self.cursor -= 1;
-        byte
+    pub fn prev(&mut self) -> Option<u8> {
+        self.seek_absolute_byte(self.cursor - 1).ok()
     }
     /// Check validity of cursor.
     pub fn is_cursor_valid(&self) -> bool {

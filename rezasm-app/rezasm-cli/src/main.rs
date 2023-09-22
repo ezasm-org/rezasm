@@ -235,6 +235,7 @@ pub fn test_io() {
     let file_path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/example/arithmatic_fib.ez"));
     let mut rezasmfile = RezAsmFile::new(file_path).expect("failed to read file");
 
+    /* random test stuff lol xd
     println!("{:?}", rezasmfile.bytes());
     println!("{:?}", rezasmfile.seek_absolute_byte(1).unwrap());
     println!("{:?}", rezasmfile.seek_absolute_byte(3).unwrap());
@@ -244,6 +245,7 @@ pub fn test_io() {
         print!("{:?} ", byte);
     }
     println!("\npeek 0 but still no valid {:?} {:?}", rezasmfile.peek_absolute_byte(0), rezasmfile.is_cursor_valid());
+    */
 
     println!("Io worked");
 }
