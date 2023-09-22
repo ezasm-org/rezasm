@@ -118,8 +118,8 @@ pub enum SimulatorError {
 
 #[derive(Error, Debug)]
 pub enum IoError {
-    #[error("Out of bounds seek of line `{0}`")]
-    SeekOutOfBounds(usize),
+    #[error("Out of bounds seek")]
+    OutOfBounds,
 }
 
 impl From<ParserError> for EzasmError {
