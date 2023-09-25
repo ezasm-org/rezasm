@@ -1,3 +1,5 @@
+use std::any::TypeId;
+
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::Token;
@@ -5,10 +7,15 @@ use crate::util::error::ParserError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 
+use super::targets::input_output_target::InputOutput;
+
 #[derive(Debug, Clone)]
 pub enum ArgumentType {
     InputOutput(InputOutputTarget),
     Input(InputTarget),
+}
+
+impl ArgumentType {
 }
 
 impl TryInto<InputOutputTarget> for ArgumentType {
@@ -63,5 +70,13 @@ impl Token {
             Token::Register(r) => InputOutputTarget::new_register(r)?,
             _ => return Err(ParserError::InternalError),
         }))
+    }
+
+    pub fn can_parse_input_output(&self) -> bool {
+        match self {
+            Token::Dereference(_, _) => true,
+            Token::Register(_) => true,
+            _ => false,
+        }
     }
 }
