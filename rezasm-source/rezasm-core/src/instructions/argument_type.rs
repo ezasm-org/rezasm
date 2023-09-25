@@ -15,8 +15,7 @@ pub enum ArgumentType {
     Input(InputTarget),
 }
 
-impl ArgumentType {
-}
+impl ArgumentType {}
 
 impl TryInto<InputOutputTarget> for ArgumentType {
     type Error = ParserError;
