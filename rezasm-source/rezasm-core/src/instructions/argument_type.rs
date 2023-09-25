@@ -1,13 +1,9 @@
-use std::any::TypeId;
-
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::Token;
 use crate::util::error::ParserError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
-
-use super::targets::input_output_target::InputOutput;
 
 #[derive(Debug, Clone)]
 pub enum ArgumentType {
