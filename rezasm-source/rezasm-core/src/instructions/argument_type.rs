@@ -11,23 +11,27 @@ pub enum ArgumentType {
     Input(InputTarget),
 }
 
-impl Into<InputOutputTarget> for ArgumentType {
-    fn into(self) -> InputOutputTarget {
+impl TryInto<InputOutputTarget> for ArgumentType {
+
+    type Error = ParserError;
+    
+    fn try_into(self) -> Result<InputOutputTarget, Self::Error> {
         match self {
-            ArgumentType::InputOutput(s) => s,
-            ArgumentType::Input(_) => panic!("Incorrect Into call (should never ever ever happen)"),
+            ArgumentType::InputOutput(s) => Ok(s),
+            ArgumentType::Input(_) => Err(Self::Error::InternalError),
         }
     }
 }
 
-impl Into<InputTarget> for ArgumentType {
-    fn into(self) -> InputTarget {
+impl TryInto<InputTarget> for ArgumentType {
+    
+    type Error = ParserError;
+   
+    fn try_into(self) -> Result<InputTarget, Self::Error> {
         match self {
-            ArgumentType::InputOutput(_) => {
-                panic!("Incorrect Into call (should neve ever ever happen)")
-            }
-            ArgumentType::Input(s) => s,
-        }
+            ArgumentType::InputOutput(_) => Err(Self::Error::InternalError),
+            ArgumentType::Input(s) => Ok(s),
+        }   
     }
 }
 

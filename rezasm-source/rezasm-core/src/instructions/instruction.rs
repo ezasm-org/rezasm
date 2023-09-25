@@ -60,7 +60,7 @@ macro_rules! instruction {
             let mut _counter: usize = 0;
             $(
                 #[allow(unused_mut)]
-                let mut $names: $types = arguments[_counter].clone().into();
+                let mut $names: $types = Result::unwrap(arguments[_counter].clone().try_into());
                 _counter = _counter + 1;
             )*
             $func
