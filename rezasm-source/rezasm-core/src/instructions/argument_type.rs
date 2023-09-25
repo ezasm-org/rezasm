@@ -12,9 +12,8 @@ pub enum ArgumentType {
 }
 
 impl TryInto<InputOutputTarget> for ArgumentType {
-
     type Error = ParserError;
-    
+
     fn try_into(self) -> Result<InputOutputTarget, Self::Error> {
         match self {
             ArgumentType::InputOutput(s) => Ok(s),
@@ -24,14 +23,13 @@ impl TryInto<InputOutputTarget> for ArgumentType {
 }
 
 impl TryInto<InputTarget> for ArgumentType {
-    
     type Error = ParserError;
-   
+
     fn try_into(self) -> Result<InputTarget, Self::Error> {
         match self {
             ArgumentType::InputOutput(_) => Err(Self::Error::InternalError),
             ArgumentType::Input(s) => Ok(s),
-        }   
+        }
     }
 }
 

@@ -70,19 +70,7 @@ impl Line {
             if type_of == &TypeId::of::<&mut InputTarget>() {
                 arguments.push(argument.get_input_target(word_size)?);
             } else if type_of == &TypeId::of::<&mut InputOutputTarget>() {
-                arguments.push(match argument.get_input_output_target(word_size) {
-                    Ok(s) => s,
-                    Err(e) => {
-                        return match e {
-                            ParserError::InternalError => Err(ParserError::InvalidArgumentsError(
-                                instruction.to_string(),
-                                args[index].to_string(),
-                                index,
-                            )),
-                            _ => Err(e),
-                        }
-                    }
-                });
+                arguments.push(argument.get_input_output_target(word_size)?);
             } else {
                 return Err(ParserError::InvalidArgumentsError(
                     instruction.to_string(),
