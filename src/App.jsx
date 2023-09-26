@@ -8,6 +8,7 @@ import {
 import init from "../dist/wasm/rezasm_wasm.js";
 import "../dist/output.css";
 import _ from "lodash";
+import { CodeArea } from "./components/CodeArea";
 
 const STATE = {
     IDLE: 1,
@@ -315,10 +316,8 @@ function App() {
                 </button>
             </div>
             <div className="mt-2 mb-2 row">
-                <textarea
-                    disabled={state !== STATE.IDLE && state !== STATE.STOPPED}
-                    onChange={(e) => setLines(e.currentTarget.value)}
-                    placeholder="Enter some ezasm code..."
+                <CodeArea
+                    onChange={setLines}
                 />
             </div>
             <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
