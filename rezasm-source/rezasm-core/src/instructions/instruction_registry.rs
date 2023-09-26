@@ -2,13 +2,11 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::instruction::Instruction;
-use crate::instructions::instruction_field::InstructionField;
 use crate::util::error::ParserError;
 
 pub struct InstructionRegistry {
-    instructions: HashMap<String, Vec<&'static InstructionField>>,
+    instructions: HashMap<String, Vec<&'static Instruction>>,
 }
 
 impl InstructionRegistry {
@@ -18,11 +16,11 @@ impl InstructionRegistry {
         }
     }
 
-    fn register_instruction(&mut self, instruction: &'static InstructionField) {
-        match self.instructions.get_mut(instruction.name()) {
+    fn register_instruction(&mut self, instruction: &'static Instruction) {
+        match self.instructions.get_mut(instruction.get_name()) {
             None => self
                 .instructions
-                .insert(instruction.name().to_string(), vec![instruction]),
+                .insert(instruction.get_name().to_string(), vec![instruction]),
             Some(x) => {
                 x.push(instruction);
                 None
@@ -33,18 +31,20 @@ impl InstructionRegistry {
     fn get_instruction(
         &self,
         name: &String,
-        args: &Vec<ArgumentType>,
+        argc: usize,
     ) -> Result<&'static Instruction, ParserError> {
         match self.instructions.get(name) {
             None => Err(ParserError::InvalidInstructionError(name.to_string())),
             Some(group) => {
                 for attempt in group.iter() {
-                    match attempt.get_instruction(args) {
-                        None => {}
-                        Some(instruction) => return Ok(instruction),
+                    if attempt.get_types().len() == argc {
+                        return Ok(attempt);
                     }
                 }
-                Err(ParserError::InvalidArgumentsError(name.to_string()))
+                Err(ParserError::InvalidArgumentsCountError(
+                    name.to_string(),
+                    argc,
+                ))
             }
         }
     }
@@ -54,18 +54,15 @@ lazy_static! {
     static ref INSTRUCTIONS: Mutex<InstructionRegistry> = Mutex::new(InstructionRegistry::new());
 }
 
-pub fn register_instruction(instruction: &'static InstructionField) {
+pub fn register_instruction(instruction: &'static Instruction) {
     INSTRUCTIONS
         .lock()
         .unwrap()
         .register_instruction(instruction);
 }
 
-pub fn get_instruction(
-    name: &String,
-    args: &Vec<ArgumentType>,
-) -> Result<&'static Instruction, ParserError> {
-    INSTRUCTIONS.lock().unwrap().get_instruction(name, args)
+pub fn get_instruction(name: &String, argc: usize) -> Result<&'static Instruction, ParserError> {
+    INSTRUCTIONS.lock().unwrap().get_instruction(name, argc)
 }
 
 pub fn is_instruction_name_registered(instruction: &String) -> bool {

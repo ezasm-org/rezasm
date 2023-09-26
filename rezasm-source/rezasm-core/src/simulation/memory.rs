@@ -99,7 +99,7 @@ impl Memory {
     }
 
     pub fn write(&mut self, address: usize, data: &RawData) -> Result<(), SimulatorError> {
-        if address + data.data.len() > self.memory_size {
+        if address < self.offset_bytes || address + data.data.len() > self.memory_size {
             Err(SimulatorError::WriteOutOfBoundsError(address))
         } else {
             self.unsafe_write(address, data)

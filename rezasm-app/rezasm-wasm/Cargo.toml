@@ -14,8 +14,6 @@ wasm-pack = "0.12.1"
 
 [dependencies]
 rezasm-core = { path = "../../rezasm-source/rezasm-core" }
-rezasm-instructions = { path = "../../rezasm-source/rezasm-instructions" }
-rezasm-macro = { path = "../../rezasm-source/rezasm-macro" }
 rezasm-web-core = { path = "../../rezasm-source/rezasm-web-core" }
 
 lazy_static = "1.4.0"

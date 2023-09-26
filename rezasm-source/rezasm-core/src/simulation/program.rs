@@ -13,17 +13,24 @@ pub struct Program {
 
 impl Program {
     pub fn new() -> Program {
-        Program {
+        let mut program = Program {
             file_identifiers: BiHashMap::new(),
             file_id_to_file: HashMap::new(),
             label_to_line: HashMap::new(),
-        }
+        };
+        program.initialize();
+        program
+    }
+
+    fn initialize(&mut self) {
+        self.file_id_to_file.insert(0, Vec::new());
     }
 
     pub fn reset(&mut self) {
         self.file_identifiers.clear();
         self.file_id_to_file.clear();
         self.label_to_line.clear();
+        self.initialize();
     }
 
     pub fn get_line(&self, file_id: i64, line_number: i64) -> Result<&Line, SimulatorError> {

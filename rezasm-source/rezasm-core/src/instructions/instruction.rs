@@ -1,6 +1,5 @@
 use std::any::TypeId;
 use std::fmt::{Debug, Formatter};
-use std::iter::zip;
 
 use crate::instructions::argument_type::ArgumentType;
 use crate::simulation::simulator::Simulator;
@@ -11,6 +10,7 @@ pub type TInstructionFunction =
 
 #[derive(Clone)]
 pub struct Instruction {
+    name: String,
     types: Vec<TypeId>,
     function: TInstructionFunction,
 }
@@ -22,8 +22,12 @@ impl Debug for Instruction {
 }
 
 impl Instruction {
-    pub fn new(types: Vec<TypeId>, function: TInstructionFunction) -> Self {
-        Instruction { types, function }
+    pub fn new(name: String, types: Vec<TypeId>, function: TInstructionFunction) -> Self {
+        Instruction {
+            name,
+            types,
+            function,
+        }
     }
     pub fn get_types(&self) -> &Vec<TypeId> {
         &self.types
@@ -32,17 +36,40 @@ impl Instruction {
     pub fn get_function(&self) -> &TInstructionFunction {
         &self.function
     }
-}
 
-pub fn matches_argument_types(target: &Vec<TypeId>, attempt: &Vec<ArgumentType>) -> bool {
-    if target.len() != attempt.len() {
-        false
-    } else {
-        for (t, a) in zip(target, attempt) {
-            if t != &a.get_mut_type_id() && t != &a.get_ref_type_id() && t != &a.get_type_id() {
-                return false;
-            }
-        }
-        true
+    pub fn get_name(&self) -> &String {
+        &self.name
+    }
+
+    pub fn call_function(
+        &self,
+        simulator: &mut Simulator,
+        arguments: &Vec<ArgumentType>,
+    ) -> Result<(), SimulatorError> {
+        (self.function)(simulator, &self.types, arguments)
     }
 }
+
+#[macro_export]
+macro_rules! instruction {
+    ($name:ident, |$simulator_name:ident: Simulator, $($names:ident: $types:ty),*| $func:tt) =>
+    ({
+        let mut v: Vec<std::any::TypeId> = Vec::new();
+        $(v.push(std::any::TypeId::of::<&mut $types>());)*
+        fn $name($simulator_name: &mut crate::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<crate::instructions::argument_type::ArgumentType>) -> Result<(), crate::util::error::SimulatorError> {
+            let mut _counter: usize = 0;
+            $(
+                #[allow(unused_mut)]
+                let mut $names: $types = match arguments[_counter].clone().try_into() {
+                    Ok(value) => value,
+                    Err(error) => return Err(error.into()),
+                };
+                _counter = _counter + 1;
+            )*
+            $func
+        }
+
+        Instruction::new( std::stringify!($name).to_string(), v, $name )
+    });
+}
+pub use instruction;

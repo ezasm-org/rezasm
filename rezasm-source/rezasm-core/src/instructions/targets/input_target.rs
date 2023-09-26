@@ -1,7 +1,8 @@
 use std::any::Any;
 
+use crate::simulation::registry;
 use crate::simulation::simulator::Simulator;
-use crate::util::error::SimulatorError;
+use crate::util::error::{ParserError, SimulatorError};
 use crate::{instructions::targets::Target, util::raw_data::RawData};
 
 pub trait Input: Target {
@@ -17,6 +18,8 @@ impl<T: Input> Target for T {
 #[derive(Debug, Clone)]
 pub enum InputTarget {
     ImmediateInput(RawData),
+    RegisterInput(usize),
+    DereferenceInput(usize, i64),
     LabelReferenceInput(String),
     StringInput(String),
 }
@@ -33,6 +36,38 @@ impl InputTarget {
     pub fn new_string(data: &String) -> InputTarget {
         Self::StringInput(data.clone())
     }
+
+    pub fn new_dereference_offset(
+        register: usize,
+        offset: i64,
+    ) -> Result<InputTarget, ParserError> {
+        if registry::is_valid_register_number(register) {
+            Ok(InputTarget::DereferenceInput(register, offset))
+        } else {
+            Err(ParserError::InvalidRegisterNumberError(register))
+        }
+    }
+
+    pub fn new_register(register: &usize) -> Result<InputTarget, ParserError> {
+        Ok(InputTarget::RegisterInput(register.clone()))
+    }
+
+    fn register_data(&self, simulator: &Simulator) -> Result<RawData, ParserError> {
+        let register = match self {
+            InputTarget::DereferenceInput(r, _) => {
+                simulator.get_registers().get_register_by_number(r.clone())
+            }
+            InputTarget::RegisterInput(r) => {
+                simulator.get_registers().get_register_by_number(r.clone())
+            }
+            _ => Err(ParserError::InternalError),
+        };
+
+        match register {
+            Ok(r) => Ok(r.get_data().clone()),
+            Err(error) => Err(error),
+        }
+    }
 }
 
 impl Input for InputTarget {
@@ -46,6 +81,23 @@ impl Input for InputTarget {
                 .get_memory()
                 .get_string_immediate_address(s)
                 .map(|x| x.clone()),
+            InputTarget::DereferenceInput(r, offset) => {
+                let data = self.register_data(simulator);
+                let address = match data {
+                    Ok(x) => x.int_value() + offset,
+                    Err(error) => return Err(error.into()),
+                };
+
+                if address < 0 {
+                    return Err(SimulatorError::ReadNegativeAddressError(address));
+                }
+
+                simulator.get_memory().read(address as usize)
+            }
+            InputTarget::RegisterInput(r) => {
+                let data = self.register_data(simulator);
+                Ok(data?)
+            }
         }
     }
 }
