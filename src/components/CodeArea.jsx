@@ -1,18 +1,22 @@
 import {EditorView, basicSetup} from "codemirror"
-import {EditorState} from "@codemirror/state"
+import {EditorState, Facet} from "@codemirror/state"
 import { useEffect, useRef } from "react"
+import STATE from "../App.jsx"
 
 
-export const CodeArea = ({onChange}) => {
+export const CodeArea = ({onChange, disableState}) => {
     const editor = useRef()
 
     const onUpdate = EditorView.updateListener.of((v) =>
         onChange(v.state.doc.toString())
     )
 
+    const disabledWhen = EditorState.readOnly.of(() => disableState === 1)
+
     const startState = EditorState.create({
         extensions: [basicSetup,
-                    onUpdate],
+                    onUpdate,
+                    disabledWhen],
     })
 
 
@@ -20,7 +24,7 @@ export const CodeArea = ({onChange}) => {
 
         const view = new EditorView({
             state: startState,
-            parent: editor.current,
+            parent: editor.current
         })
 
         return () => {
@@ -28,5 +32,5 @@ export const CodeArea = ({onChange}) => {
         }
     }, [])
 
-    return <div ref={editor}/>
+    return <div className="w-full" ref={editor}/>
 }

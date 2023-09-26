@@ -115,6 +115,11 @@ function App() {
         }
     };
 
+    const shouldDisableEditor = useCallback(() => {
+        console.log(state);
+        return state === STATE.IDLE;
+    }, [state])
+
     const isErrorState = useCallback(() => {
         return error !== "";
     }, [error]);
@@ -315,8 +320,9 @@ function App() {
                     Reset
                 </button>
             </div>
-            <div className="mt-2 mb-2 row">
+            <div className="mt-2 mb-2 row w-full">
                 <CodeArea
+                    disableState={shouldDisableEditor} 
                     onChange={setLines}
                 />
             </div>
