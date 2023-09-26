@@ -1,13 +1,21 @@
-import React, {useRef} from "react";
+import React, {useMemo, useRef} from "react";
 import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/tauri";
 import WorkerPromise from "webworker-promise";
 import {
-    wasm_load, wasm_step, wasm_stop, wasm_reset, wasm_is_completed, wasm_get_exit_status, wasm_get_register_value
+    wasm_load,
+    wasm_step,
+    wasm_stop,
+    wasm_reset,
+    wasm_is_completed,
+    wasm_get_exit_status,
+    wasm_get_register_value,
+    wasm_get_register_names, wasm_get_register_values
 } from "../dist/wasm";
 import init from "../dist/wasm/rezasm_wasm.js";
 import "../dist/output.css";
 import _ from "lodash";
+import RegisterView from "./components/RegisterView.jsx";
 
 const STATE = {
     IDLE: 1,
@@ -99,6 +107,26 @@ const rust_get_register_value = async register => {
     }
 };
 
+const rust_get_register_names = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_get_register_names", {});
+    } else if (wasm_get_register_names) {
+        return callWorkerFunction({command: "get_register_names"});
+    } else {
+        throw new Error("Function get_register_names does not exist");
+    }
+};
+
+const rust_get_register_values = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_get_register_values", {});
+    } else if (wasm_get_register_values) {
+        return callWorkerFunction({command: "get_register_values"});
+    } else {
+        throw new Error("Function get_register_values does not exist");
+    }
+};
+
 function App() {
     const [lines, setLines] = useState("");
     const [error, setError] = useState("");
@@ -106,6 +134,9 @@ function App() {
     const [state, setState] = useState(STATE.IDLE);
     const timerId = useRef(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
+
+    const [registers, setRegisters] = useState([]);
+    const [registerNames, setRegisterNames] = useState([]);
 
     const disallowExecution = () => {
         if (timerId.current !== null) {
@@ -188,6 +219,7 @@ function App() {
     }, [reset, load]);
 
     const checkAndHandleProgramCompletion = useCallback(async () => {
+        setRegisters(await rust_get_register_values());
         if (await isCompleted() || isErrorState()) {
             disallowExecution();
             setState(STATE.STOPPED);
@@ -243,85 +275,88 @@ function App() {
                 recursivelyCallStep();
             }
         });
-        // step(currentState).then(() => {
-        //
-        // });
     }, [step, isErrorState, recursivelyCallStep]);
 
     useEffect(() => {
         if (init) {
-            init();
+            window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
+            init().then(() => {
+                window.worker.postMessage({command: "ping"}).then(e => {
+                    if (e !== "pong") {
+                        throw Error("Could not communicate with the web-worker");
+                    }
+                    rust_get_register_names().then(result => setRegisterNames(result));
+                    rust_get_register_values().then(result => setRegisters(result));
+                });
+            });
         }
-        window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
-        window.worker.postMessage({command: "ping"}).then(e => {
-            if (e !== "pong") {
-                throw Error("Could not communicate with the web-worker");
-            }
-        });
+
     }, []);
 
     return (
         <div className="container">
-            <h1><b>Welcome to rezasm!</b></h1>
-            <div className="mt-2 mb-2 row">
-                { state === STATE.RUNNING ?
-                    <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
-                        debounce(stop, state);
-                    }}>
-                        Stop
-                    </button>
-                    :
-                    <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
-                        debounce(run, state);
-                    }}>
-                        Start
-                    </button>
-                }
-
-                { state === STATE.PAUSED ?
-                    <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
-                        // TODO resume
-                    }}>
-                        Resume
-                    </button>
-                    :
-                    <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
-                        disabled={state !== STATE.RUNNING}
-                        onClick={(e) => {
-                        // TODO pause
+            <div>
+                <div className="mt-2 mb-2 row">
+                    { state === STATE.RUNNING ?
+                        <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
+                            debounce(stop, state);
                         }}>
-                        Pause
-                    </button>
-                }
+                            Stop
+                        </button>
+                        :
+                        <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
+                            debounce(run, state);
+                        }}>
+                            Start
+                        </button>
+                    }
 
-                <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                    disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
-                    onClick={(e) => {
-                        debounce(step, state);
+                    { state === STATE.PAUSED ?
+                        <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
+                            // TODO resume
+                        }}>
+                            Resume
+                        </button>
+                        :
+                        <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
+                            disabled={state !== STATE.RUNNING}
+                            onClick={(e) => {
+                                // TODO pause
+                            }}>
+                            Pause
+                        </button>
+                    }
+
+                    <button className="btn-operation bg-blue-500 hover:bg-blue-700"
+                        disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
+                        onClick={(e) => {
+                            debounce(step, state);
+                        }}>
+                        Step
+                    </button>
+                    <button className="btn-operation bg-teal-600 hover:bg-teal-700"
+                        disabled={state !== STATE.PAUSED}
+                        onClick={(e) => {
+                            // TODO step back
+                        }}>
+                        Step Back
+                    </button>
+                    <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
+                        debounce(reset, state);
                     }}>
-                    Step
-                </button>
-                <button className="btn-operation bg-teal-600 hover:bg-teal-700"
-                    disabled={state !== STATE.PAUSED}
-                    onClick={(e) => {
-                        // TODO step back
-                    }}>
-                    Step Back
-                </button>
-                <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
-                    debounce(reset, state);
-                }}>
-                    Reset
-                </button>
+                        Reset
+                    </button>
+                </div>
+                <div className="mt-2 mb-2 row codearea">
+                    <textarea
+                        disabled={state !== STATE.IDLE && state !== STATE.STOPPED}
+                        onChange={(e) => setLines(e.currentTarget.value)}
+                        placeholder="Enter some ezasm code..."
+                    />
+                    <RegisterView registerNames={registerNames} registers={registers} />
+                </div>
+                <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
             </div>
-            <div className="mt-2 mb-2 row">
-                <textarea
-                    disabled={state !== STATE.IDLE && state !== STATE.STOPPED}
-                    onChange={(e) => setLines(e.currentTarget.value)}
-                    placeholder="Enter some ezasm code..."
-                />
-            </div>
-            <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
         </div>
     );
 }

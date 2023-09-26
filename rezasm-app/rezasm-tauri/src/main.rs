@@ -6,7 +6,7 @@ extern crate tauri;
 
 use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
-use rezasm_web_core::{get_exit_status, get_register_value, is_completed, load, reset, step, stop};
+use rezasm_web_core::{get_exit_status, get_register_names, get_register_value, get_register_values, is_completed, load, reset, step, stop};
 use tauri::{Manager, Window};
 
 use std::sync::{Arc, RwLock};
@@ -66,6 +66,16 @@ fn tauri_get_register_value(register: &str) -> Option<i64> {
     get_register_value(register)
 }
 
+#[tauri::command]
+fn tauri_get_register_names() -> Vec<String> {
+    get_register_names()
+}
+
+#[tauri::command]
+fn tauri_get_register_values() -> Vec<i64> {
+    get_register_values()
+}
+
 fn main() {
     register_instructions();
 
@@ -78,7 +88,9 @@ fn main() {
             tauri_stop,
             tauri_is_completed,
             tauri_get_exit_status,
-            tauri_get_register_value
+            tauri_get_register_value,
+            tauri_get_register_names,
+            tauri_get_register_values,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
