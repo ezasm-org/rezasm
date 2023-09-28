@@ -11,7 +11,8 @@ import {
     rust_get_register_values,
     rust_is_completed,
     rust_load,
-    rust_reset, rust_step,
+    rust_reset,
+    rust_step,
     rust_stop
 } from "./rust_functions.js";
 

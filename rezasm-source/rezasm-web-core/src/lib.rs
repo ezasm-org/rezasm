@@ -102,7 +102,14 @@ pub fn get_register_values() -> Vec<i64> {
     let simulator = get_simulator();
     let mut values = Vec::new();
     for i in 0..registry::ALL_REGISTERS.len() {
-        values.push(simulator.get_registers().get_register_by_number(i).unwrap().get_data().int_value());
+        values.push(
+            simulator
+                .get_registers()
+                .get_register_by_number(i)
+                .unwrap()
+                .get_data()
+                .int_value(),
+        );
     }
     values
 }
