@@ -13,7 +13,7 @@ import {
     rust_load,
     rust_reset, rust_step,
     rust_stop
-} from "./RustFunctions.js";
+} from "./rust_functions.js";
 
 import "../dist/output.css";
 
@@ -108,14 +108,14 @@ function App() {
 
         setState(currentState);
         return currentState;
-    }, [setErrorState, lines]);
+    }, [lines, setErrorState]);
 
     const reset_load = useCallback(async () => {
         return reset().then(newState => {
             setState(STATE.LOADING);
             return load(newState);
         });
-    }, [reset, load]);
+    }, [load, reset]);
 
     const checkAndHandleProgramCompletion = useCallback(async () => {
         setRegisters(await rust_get_register_values());
@@ -127,7 +127,7 @@ function App() {
         } else {
             return false;
         }
-    }, [getExitStatus, isCompleted]);
+    }, [getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
         rust_step()
@@ -148,7 +148,7 @@ function App() {
         } else if (currentState === STATE.PAUSED || currentState === STATE.RUNNING) {
             return handleStepCall();
         }
-    }, [reset_load, handleStepCall, checkAndHandleProgramCompletion]);
+    }, [reset_load, checkAndHandleProgramCompletion, handleStepCall]);
 
     const recursivelyCallStep = useCallback(async () => {
         if (state > STATE.RUNNING) {
@@ -165,7 +165,7 @@ function App() {
                 });
             }
         });
-    }, [checkAndHandleProgramCompletion, state, step, instructionDelay]);
+    }, [state, checkAndHandleProgramCompletion, handleStepCall, instructionDelay, setErrorState]);
 
     const run = useCallback(async () => {
         reset_load().then(async newState => {
@@ -174,7 +174,7 @@ function App() {
                 recursivelyCallStep();
             }
         });
-    }, [step, isErrorState, recursivelyCallStep]);
+    }, [reset_load, recursivelyCallStep]);
 
     useEffect(() => {
         if (init) {
