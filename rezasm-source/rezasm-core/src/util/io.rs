@@ -1,5 +1,5 @@
-use std::{path::{Path, PathBuf}, fs, error::Error};
-use super::error::IoError;
+use std::{path::{Path, PathBuf}, fs};
+use super::error::{IoError, EzasmError};
 
 /// Rezasm file representation.
 #[derive(Debug)]
@@ -11,9 +11,10 @@ pub struct RezAsmFile {
 
 impl RezAsmFile {
     /// Parse a file from path into a rezasm file object.
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, Box<dyn Error>> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, EzasmError> {
         let path_buf = path.as_ref().to_path_buf();
-        let bytes = fs::read(path_buf.clone())?;
+        let bytes = fs::read(path_buf.clone())
+            .map_err(|_| EzasmError::FileDoesNotExistError(path_buf.to_string_lossy().to_string()))?;
         Ok(Self {
             path_buf: path_buf,
             bytes: bytes,
@@ -64,5 +65,12 @@ impl RezAsmFile {
     /// Check validity of cursor.
     pub fn is_cursor_valid(&self) -> bool {
         self.cursor < self.bytes.len()
+    }
+    /// Get the lines of the file.
+    pub fn lines(&mut self) -> Result<Vec<String>, IoError> {
+        let full = String::from_utf8(self.bytes())
+            .map_err(|_| IoError::UnsupportedEncoding)?;
+        let lines = full.lines().map(|line| line.to_string()).collect();
+        Ok(lines)
     }
 }

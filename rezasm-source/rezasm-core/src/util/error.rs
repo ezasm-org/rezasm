@@ -114,12 +114,17 @@ pub enum SimulatorError {
 
     #[error("label `{0}` is already in use")]
     LabelInUseError(String),
+
+    #[error("io failure")]
+    IoError(String),
 }
 
 #[derive(Error, Debug)]
 pub enum IoError {
     #[error("Out of bounds seek")]
     OutOfBounds,
+    #[error("Some bytes are not UTF-8 in file")]
+    UnsupportedEncoding,
 }
 
 impl From<ParserError> for EzasmError {
@@ -149,6 +154,12 @@ impl From<ParseFloatError> for ParserError {
 impl From<ParseIntError> for ParserError {
     fn from(error: ParseIntError) -> Self {
         ParserError::NumericalImmediateError(error.to_string())
+    }
+}
+
+impl From<IoError> for SimulatorError {
+    fn from(error: IoError) -> Self {
+        Self::IoError(error.to_string())
     }
 }
 

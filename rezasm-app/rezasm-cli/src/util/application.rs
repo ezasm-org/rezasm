@@ -1,12 +1,13 @@
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::SimulatorError;
+use rezasm_core::util::io::RezAsmFile;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter};
 
 pub struct Application {
     simulator: Simulator,
-    code_file: BufReader<File>,
+    code_file: RezAsmFile,
     input_file: BufReader<File>,
     output_file: BufWriter<File>,
 }
@@ -14,7 +15,7 @@ pub struct Application {
 impl Application {
     pub fn new(
         simulator: Simulator,
-        code_file: BufReader<File>,
+        code_file: RezAsmFile,
         input_file: BufReader<File>,
         output_file: BufWriter<File>,
     ) -> Application {
@@ -29,9 +30,7 @@ impl Application {
     pub fn run_until_completion(mut self) -> Result<(), SimulatorError> {
         let lines = self
             .code_file
-            .lines()
-            .map(|line| line.unwrap())
-            .collect::<Vec<String>>();
+            .lines().map_err(SimulatorError::from)?;
         for line in lines {
             match lexer::parse_line(&line, self.simulator.get_word_size()) {
                 Some(line_result) => match line_result {

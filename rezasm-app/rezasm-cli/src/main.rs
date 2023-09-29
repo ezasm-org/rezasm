@@ -233,7 +233,7 @@ pub fn test_io() {
     use rezasm_core::util::io::RezAsmFile;
 
     let file_path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/example/arithmatic_fib.ez"));
-    let mut rezasmfile = RezAsmFile::new(file_path).expect("failed to read file");
+    let rezasmfile = RezAsmFile::new(file_path).expect("failed to read file");
 
     /* random test stuff lol xd
     println!("{:?}", rezasmfile.bytes());
