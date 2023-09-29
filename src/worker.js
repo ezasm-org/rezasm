@@ -1,12 +1,16 @@
 import registerWebworker from "webworker-promise/lib/register";
 import init from "../dist/wasm/rezasm_wasm.js";
 import {
-    wasm_load, wasm_step, wasm_stop, wasm_reset, wasm_is_completed, wasm_get_exit_status, wasm_get_register_value
+    wasm_load,
+    wasm_step,
+    wasm_stop,
+    wasm_reset,
+    wasm_is_completed,
+    wasm_get_exit_status,
+    wasm_get_register_value,
+    wasm_get_register_names,
+    wasm_get_register_values,
 } from "../dist/wasm";
-
-init().then(() => {
-    console.log("WebAssembly code loaded");
-});
 
 registerWebworker(async (message, emit) => {
     const command = message.command;
@@ -14,6 +18,8 @@ registerWebworker(async (message, emit) => {
 
     try {
         if (command === "ping") {
+            await init();
+            console.log("WebAssembly code loaded");
             return "pong";
         } else if (command === "load") {
             if (data === undefined) {
@@ -35,6 +41,10 @@ registerWebworker(async (message, emit) => {
                 throw "Call to 'get_register_value' without providing string data";
             }
             return wasm_get_register_value(data);
+        } else if (command === "get_register_names") {
+            return wasm_get_register_names();
+        } else if (command === "get_register_values") {
+            return wasm_get_register_values();
         } else {
             throw `Invalid command: '${command}'`;
         }
