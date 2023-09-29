@@ -35,6 +35,18 @@
   align-items: center;
 }
 
+.fill {
+  width: 100%;
+}
+
+.centered {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
 .row {
   width: 100%;
   display: flex;
@@ -52,7 +64,8 @@ a:hover {
 }
 
 .codearea {
-  height: 80vh;
+  height: 60vh;
+  width: 100%;
 }
 
 textarea {

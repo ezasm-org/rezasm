@@ -7,8 +7,8 @@ extern crate tauri;
 use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
-    get_exit_status, get_register_names, get_register_value, get_register_values, is_completed,
-    load, reset, step, stop,
+    get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
+    get_register_values, get_word_size, is_completed, load, reset, step, stop,
 };
 use tauri::{Manager, Window};
 
@@ -79,6 +79,21 @@ fn tauri_get_register_values() -> Vec<i64> {
     get_register_values()
 }
 
+#[tauri::command]
+fn tauri_get_memory_bounds() -> (usize, usize, usize) {
+    get_memory_bounds()
+}
+
+#[tauri::command]
+fn tauri_get_memory_slice(address: usize, length: usize) -> Result<Vec<i64>, String> {
+    get_memory_slice(address, length)
+}
+
+#[tauri::command]
+fn tauri_get_word_size() -> usize {
+    get_word_size()
+}
+
 fn main() {
     register_instructions();
 
@@ -94,6 +109,9 @@ fn main() {
             tauri_get_register_value,
             tauri_get_register_names,
             tauri_get_register_values,
+            tauri_get_memory_bounds,
+            tauri_get_memory_slice,
+            tauri_get_word_size,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

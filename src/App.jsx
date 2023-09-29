@@ -1,14 +1,11 @@
 import React, {useRef} from "react";
 import {useCallback, useEffect, useState} from "react";
 import _ from "lodash";
-import RegisterView from "./components/RegisterView.jsx";
+import RegistryView from "./components/RegistryView.jsx";
 import WorkerPromise from "webworker-promise";
 import init from "../dist/wasm/rezasm_wasm.js";
 import {
     rust_get_exit_status,
-    rust_get_register_names,
-    rust_get_register_value,
-    rust_get_register_values,
     rust_is_completed,
     rust_load,
     rust_reset,
@@ -17,6 +14,7 @@ import {
 } from "./rust_functions.js";
 
 import "../dist/output.css";
+import MemoryView from "./components/MemoryView.jsx";
 
 const STATE = {
     IDLE: 1,
@@ -27,6 +25,11 @@ const STATE = {
     STOPPED: 1,
 };
 
+const CALLBACKS = {
+    MEMORY: "MEMORY",
+    REGISTRY: "REGISTRY",
+};
+
 function App() {
     const [lines, setLines] = useState("");
     const [error, setError] = useState("");
@@ -34,9 +37,9 @@ function App() {
     const [state, setState] = useState(STATE.IDLE);
     const timerId = useRef(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
+    const [wasmLoaded, setWasmLoaded] = useState(false);
 
-    const [registers, setRegisters] = useState([]);
-    const [registerNames, setRegisterNames] = useState([]);
+    const callbacks = useRef([]);
 
     const disallowExecution = () => {
         if (timerId.current !== null) {
@@ -44,6 +47,14 @@ function App() {
             timerId.current = null;
         }
     };
+
+    const callCallbacks = useCallback(() => {
+        Object.values(callbacks.current).map(callback => callback());
+    }, []);
+
+    const registerCallback = useCallback((name, callback) => {
+        callbacks.current[name] = callback;
+    }, []);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -71,10 +82,6 @@ function App() {
 
     const getExitStatus = useCallback(async () => {
         return await rust_get_exit_status();
-    }, []);
-
-    const getRegisterValue = useCallback(async register => {
-        return await rust_get_register_value(register);
     }, []);
 
     const stop = useCallback(async currentState => {
@@ -119,7 +126,7 @@ function App() {
     }, [load, reset]);
 
     const checkAndHandleProgramCompletion = useCallback(async () => {
-        setRegisters(await rust_get_register_values());
+        callCallbacks();
         if (await isCompleted() || isErrorState()) {
             disallowExecution();
             setState(STATE.STOPPED);
@@ -128,7 +135,7 @@ function App() {
         } else {
             return false;
         }
-    }, [getExitStatus, isCompleted, isErrorState]);
+    }, [callCallbacks, getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
         rust_step()
@@ -185,8 +192,7 @@ function App() {
                     if (e !== "pong") {
                         throw Error("Could not communicate with the web-worker");
                     }
-                    rust_get_register_names().then(result => setRegisterNames(result));
-                    rust_get_register_values().then(result => setRegisters(result));
+                    setWasmLoaded(true);
                 });
             });
         }
@@ -195,7 +201,7 @@ function App() {
 
     return (
         <div className="container">
-            <div>
+            <div className="fill">
                 <div className="mt-2 mb-2 row">
                     { state === STATE.RUNNING ?
                         <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
@@ -253,12 +259,17 @@ function App() {
                         onChange={(e) => setLines(e.currentTarget.value)}
                         placeholder="Enter some ezasm code..."
                     />
-                    <RegisterView registerNames={registerNames} registers={registers} />
+                    <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
                 </div>
-                <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
             </div>
+            <div className="fill">
+                <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
+            </div>
+            <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
         </div>
     );
 }
 
 export default App;
+
+export {STATE, CALLBACKS};
