@@ -238,7 +238,8 @@ pub fn test_io() {
     let mut rezasmfile = RezAsmFile::new(file_path.clone()).expect("failed to read file");
 
     // Reads with fs
-    let reg_read: Vec<String> = fs::read_to_string(file_path)
+    let reg_bytes = fs::read(file_path).unwrap();
+    let reg_read: Vec<String> = String::from_utf8(reg_bytes.clone())
         .unwrap()
         .lines()
         .map(|line| line.to_string())
@@ -255,10 +256,19 @@ pub fn test_io() {
 
     rezasmfile.seek_start();
     
+    let mut bytes = vec![];
     while let Some(byte) = rezasmfile.next() {
-        print!("{:?} ", byte);
+        bytes.push(byte);
     }
-    println!("\npeek 0 but still no valid {:?} {:?}", rezasmfile.peek_absolute_byte(0), rezasmfile.is_cursor_valid());
+
+    // Compare the bytes
+    assert_eq!(reg_bytes, bytes);
+
+    // Cursor should now be at the end. Attempt to peek 0
+    assert_eq!(35, rezasmfile.peek_absolute_byte(0).unwrap());
+
+    // Check validity (should be invalid)
+    assert_eq!(false, rezasmfile.is_cursor_valid());
 
     println!("Io worked");
 }
