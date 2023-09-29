@@ -1,7 +1,7 @@
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::Token;
-use crate::util::error::ParserError;
+use crate::util::error::{ParserError, InternalError};
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 
@@ -12,22 +12,22 @@ pub enum ArgumentType {
 }
 
 impl TryInto<InputOutputTarget> for ArgumentType {
-    type Error = ParserError;
+    type Error = InternalError;
 
     fn try_into(self) -> Result<InputOutputTarget, Self::Error> {
         match self {
             ArgumentType::InputOutput(s) => Ok(s),
-            ArgumentType::Input(_) => Err(Self::Error::InternalError),
+            ArgumentType::Input(_) => Err(Self::Error::MismatchedTryIntoError),
         }
     }
 }
 
 impl TryInto<InputTarget> for ArgumentType {
-    type Error = ParserError;
+    type Error = InternalError;
 
     fn try_into(self) -> Result<InputTarget, Self::Error> {
         match self {
-            ArgumentType::InputOutput(_) => Err(Self::Error::InternalError),
+            ArgumentType::InputOutput(_) => Err(Self::Error::MismatchedTryIntoError),
             ArgumentType::Input(s) => Ok(s),
         }
     }
@@ -55,13 +55,13 @@ impl Token {
     pub fn get_input_output_target(
         &self,
         word_size: &WordSize,
-    ) -> Result<ArgumentType, ParserError> {
+    ) -> Result<ArgumentType, InternalError> {
         Ok(ArgumentType::InputOutput(match self {
             Token::Dereference(o, r) => {
                 InputOutputTarget::new_dereference_offset(r.clone(), o.clone())?
             }
             Token::Register(r) => InputOutputTarget::new_register(r)?,
-            _ => return Err(ParserError::InternalError),
+            _ => return Err(InternalError::GetIOTargetError),
         }))
     }
 
