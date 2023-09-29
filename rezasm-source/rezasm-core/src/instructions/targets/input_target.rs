@@ -60,7 +60,7 @@ impl InputTarget {
             InputTarget::RegisterInput(r) => {
                 simulator.get_registers().get_register_by_number(r.clone())
             }
-            _ => Err(ParserError::InternalError),
+            _ => Err(ParserError::InternalErrorDuringParsing),
         };
 
         match register {

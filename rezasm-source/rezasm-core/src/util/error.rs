@@ -34,6 +34,9 @@ pub enum EzasmError {
 
 #[derive(Error, Debug)]
 pub enum ParserError {
+    #[error("internal error occurred during parsing")]
+    InternalErrorDuringParsing,
+
     #[error("invalid given instruction `{0}`")]
     InvalidInstructionError(String),
 
@@ -159,6 +162,13 @@ impl From<ParserError> for InternalError {
     fn from(error: ParserError) -> Self {
         InternalError::GetIOTargetError
     }
+}
+
+impl From<InternalError> for ParserError {
+    fn from(error: InternalError) -> Self {
+        ParserError::InternalErrorDuringParsing
+    }
+
 }
 
 impl From<InternalError> for SimulatorError {
