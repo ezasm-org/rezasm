@@ -8,7 +8,7 @@ import {
 import init from "../dist/wasm/rezasm_wasm.js";
 import "../dist/output.css";
 import _ from "lodash";
-import { CodeArea } from "./components/CodeArea";
+import CodeArea from "./components/CodeArea";
 
 const STATE = {
     IDLE: 1,
@@ -115,8 +115,7 @@ function App() {
         }
     };
 
-    const shouldDisableEditor = useCallback(() => {
-        console.log(state);
+    const isEditable = useCallback(() => {
         return state === STATE.IDLE;
     }, [state])
 
@@ -321,10 +320,7 @@ function App() {
                 </button>
             </div>
             <div className="mt-2 mb-2 row w-full">
-                <CodeArea
-                    disableState={shouldDisableEditor} 
-                    onChange={setLines}
-                />
+                <CodeArea onChange={setLines} isEditable={isEditable}/>
             </div>
             <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
         </div>

@@ -1,36 +1,37 @@
-import {EditorView, basicSetup} from "codemirror"
-import {EditorState, Facet} from "@codemirror/state"
-import { useEffect, useRef } from "react"
-import STATE from "../App.jsx"
+import CodeMirror from '@uiw/react-codemirror';
+import { useCallback, useState } from 'react';
+import { createTheme } from '@uiw/codemirror-themes';
 
+const myTheme = createTheme({
+  theme: 'light',
+  settings: {
+    background: '#ffffff',
+    backgroundImage: '',
+    foreground: '#75baff',
+    caret: '#5d00ff',
+    selection: '#036dd626',
+    selectionMatch: '#036dd626',
+    lineHighlight: '#8a91991a',
+    gutterBackground: '#fff',
+    gutterForeground: '#8a919966',
+  },
+});
 
-export const CodeArea = ({onChange, disableState}) => {
-    const editor = useRef()
-
-    const onUpdate = EditorView.updateListener.of((v) =>
-        onChange(v.state.doc.toString())
-    )
-
-    const disabledWhen = EditorState.readOnly.of(() => disableState === 1)
-
-    const startState = EditorState.create({
-        extensions: [basicSetup,
-                    onUpdate,
-                    disabledWhen],
-    })
-
-
-    useEffect(() => {
-
-        const view = new EditorView({
-            state: startState,
-            parent: editor.current
-        })
-
-        return () => {
-            view.destroy()
-        }
-    }, [])
-
-    return <div className="w-full" ref={editor}/>
+function CodeArea({onChange, isEditable}) {
+    const [code, setCode] = useState("");
+    const changeCallback = useCallback((val, viewUpdate) => {
+        setCode(val);
+        onChange(val);
+    }, []);
+    return (
+        <CodeMirror value={code} 
+                    heght="200px" 
+                    onChange={changeCallback} 
+                    editable={isEditable()}
+                    theme={myTheme}
+                    indentWithTab="true"
+                    />
+    );
 }
+
+export default CodeArea;
