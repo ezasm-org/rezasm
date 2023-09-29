@@ -31,6 +31,10 @@ impl RezAsmFile {
         self.cursor = abs_offset;
         self.peek_absolute_byte(self.cursor)
     }
+    /// Move the cursor to the start.
+    pub fn seek_start(&mut self) {
+        self.cursor = 0;
+    }
     /// Move the cursor to a specific byte relative to the 
     /// current position, returning that byte.
     pub fn seek_relative_byte(&mut self, rel_offset: isize) -> Result<u8, IoError> {
@@ -52,22 +56,24 @@ impl RezAsmFile {
         let abs_offset = (self.cursor as isize + rel_offset) as usize;
         self.peek_absolute_byte(abs_offset)
     }
-    /// Advance the cursor forward by one, returning the byte at that 
-    /// position or None if the cursor is out of bounds.
+    /// Return the byte at the current position and then advance the cursor forward by one.
+    /// Returns none if out of bounds.
     pub fn next(&mut self) -> Option<u8> {
-        self.seek_absolute_byte(self.cursor + 1).ok()
+        self.cursor += 1;
+        self.peek_relative_byte(-1).ok()
     }
-    /// Advance the cursor backward by one, returning the byte at that 
-    /// position or None if the cursor is out of bounds.
+    /// Return the byte at the current position and then advance the cursor backward by one.
+    /// Returns none if out of bounds.
     pub fn prev(&mut self) -> Option<u8> {
-        self.seek_absolute_byte(self.cursor - 1).ok()
+        self.cursor -= 1;
+        self.peek_relative_byte(1).ok()
     }
     /// Check validity of cursor.
     pub fn is_cursor_valid(&self) -> bool {
         self.cursor < self.bytes.len()
     }
     /// Get the lines of the file.
-    pub fn lines(&mut self) -> Result<Vec<String>, IoError> {
+    pub fn lines(&self) -> Result<Vec<String>, IoError> {
         let full = String::from_utf8(self.bytes())
             .map_err(|_| IoError::UnsupportedEncoding)?;
         let lines = full.lines().map(|line| line.to_string()).collect();

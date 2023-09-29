@@ -230,22 +230,35 @@ pub fn test_simulator_labels() {
 
 pub fn test_io() {
     use std::path::PathBuf;
+    use std::fs;
     use rezasm_core::util::io::RezAsmFile;
 
+    // Read into rezasm file
     let file_path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/example/arithmatic_fib.ez"));
-    let rezasmfile = RezAsmFile::new(file_path).expect("failed to read file");
+    let mut rezasmfile = RezAsmFile::new(file_path.clone()).expect("failed to read file");
 
-    /* random test stuff lol xd
-    println!("{:?}", rezasmfile.bytes());
-    println!("{:?}", rezasmfile.seek_absolute_byte(1).unwrap());
-    println!("{:?}", rezasmfile.seek_absolute_byte(3).unwrap());
-    println!("{:?}", rezasmfile.seek_relative_byte(-2).unwrap());
-    rezasmfile.seek_absolute_byte(0).unwrap();
+    // Reads with fs
+    let reg_read: Vec<String> = fs::read_to_string(file_path)
+        .unwrap()
+        .lines()
+        .map(|line| line.to_string())
+        .collect();
+
+    // Compare
+    assert_eq!(rezasmfile.lines().expect("failed to get lines"), reg_read);
+
+    
+    assert_eq!(32, rezasmfile.seek_absolute_byte(1).unwrap());
+    assert_eq!(101, rezasmfile.seek_absolute_byte(3).unwrap());
+    assert_eq!(32, rezasmfile.seek_relative_byte(-2).unwrap());
+    assert_eq!(35, rezasmfile.peek_absolute_byte(0).unwrap());
+
+    rezasmfile.seek_start();
+    
     while let Some(byte) = rezasmfile.next() {
         print!("{:?} ", byte);
     }
     println!("\npeek 0 but still no valid {:?} {:?}", rezasmfile.peek_absolute_byte(0), rezasmfile.is_cursor_valid());
-    */
 
     println!("Io worked");
 }
