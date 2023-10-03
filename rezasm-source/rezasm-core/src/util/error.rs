@@ -9,8 +9,8 @@ pub enum EzasmError {
 
     #[error("{0}")]
     SimulatorError(SimulatorError),
-    
-    #[error("{0}")]
+
+    #[error("internal error: {0}")]
     InternalError(InternalError),
 
     #[error("invalid given memory size `{0}`")]
@@ -34,8 +34,8 @@ pub enum EzasmError {
 
 #[derive(Error, Debug)]
 pub enum ParserError {
-    #[error("internal error occurred during parsing")]
-    InternalErrorDuringParsing,
+    #[error("internal error: {0}")]
+    InternalError(InternalError),
 
     #[error("invalid given instruction `{0}`")]
     InvalidInstructionError(String),
@@ -80,7 +80,7 @@ pub enum InternalError {
     MismatchedTryIntoError,
 
     #[error("improper usage of get_input_output_target")]
-    GetIOTargetError,
+    GetInputOutputTargetError,
 }
 
 #[derive(Error, Debug)]
@@ -88,7 +88,7 @@ pub enum SimulatorError {
     #[error("{0}")]
     ParserError(ParserError),
 
-    #[error("{0}")]
+    #[error("internal error: {0}")]
     InternalError(InternalError),
 
     #[error("attempted read to address `{0}` which is negative")]
@@ -158,17 +158,10 @@ impl From<ParserError> for SimulatorError {
     }
 }
 
-impl From<ParserError> for InternalError {
-    fn from(error: ParserError) -> Self {
-        InternalError::GetIOTargetError
-    }
-}
-
 impl From<InternalError> for ParserError {
     fn from(error: InternalError) -> Self {
-        ParserError::InternalErrorDuringParsing
+        ParserError::InternalError(error)
     }
-
 }
 
 impl From<InternalError> for SimulatorError {

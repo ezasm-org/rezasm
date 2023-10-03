@@ -2,7 +2,7 @@ use std::any::Any;
 
 use crate::simulation::registry;
 use crate::simulation::simulator::Simulator;
-use crate::util::error::{ParserError, SimulatorError};
+use crate::util::error::{InternalError, ParserError, SimulatorError};
 use crate::{instructions::targets::Target, util::raw_data::RawData};
 
 pub trait Input: Target {
@@ -60,7 +60,7 @@ impl InputTarget {
             InputTarget::RegisterInput(r) => {
                 simulator.get_registers().get_register_by_number(r.clone())
             }
-            _ => Err(ParserError::InternalErrorDuringParsing),
+            _ => Err(InternalError::GetInputOutputTargetError.into()),
         };
 
         match register {

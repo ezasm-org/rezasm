@@ -1,7 +1,7 @@
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::parser::lexer::Token;
-use crate::util::error::{ParserError, InternalError};
+use crate::util::error::{InternalError, ParserError};
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 
@@ -58,10 +58,16 @@ impl Token {
     ) -> Result<ArgumentType, InternalError> {
         Ok(ArgumentType::InputOutput(match self {
             Token::Dereference(o, r) => {
-                InputOutputTarget::new_dereference_offset(r.clone(), o.clone())?
+                match InputOutputTarget::new_dereference_offset(r.clone(), o.clone()) {
+                    Ok(value) => value,
+                    Err(_) => return Err(InternalError::GetInputOutputTargetError),
+                }
             }
-            Token::Register(r) => InputOutputTarget::new_register(r)?,
-            _ => return Err(InternalError::GetIOTargetError),
+            Token::Register(r) => match InputOutputTarget::new_register(r) {
+                Ok(value) => value,
+                Err(_) => return Err(InternalError::GetInputOutputTargetError),
+            },
+            _ => return Err(InternalError::GetInputOutputTargetError),
         }))
     }
 
