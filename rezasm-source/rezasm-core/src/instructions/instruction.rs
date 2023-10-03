@@ -68,8 +68,9 @@ macro_rules! instruction {
             )*
             $func
         }
-
-        Instruction::new( std::stringify!($name).to_string(), v, $name )
+        let mut instruction_name = std::stringify!($name);
+        instruction_name = instruction_name.trim_start_matches('_');
+        Instruction::new( instruction_name.to_string(), v, $name )
     });
 }
 pub use instruction;
