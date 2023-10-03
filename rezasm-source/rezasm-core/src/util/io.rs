@@ -1,16 +1,16 @@
-use std::{path::{Path, PathBuf}, fs};
+use std::{path::{Path, PathBuf}, fs, io::Write, ops::{Deref, DerefMut}};
 use super::error::{IoError, EzasmError};
 
-/// Rezasm file representation.
+/// Rezasm file representation (reader).
 #[derive(Debug)]
-pub struct RezAsmFile {
+pub struct RezasmFileReader {
     path_buf: PathBuf,
     bytes: Vec<u8>,
     cursor: usize,
 }
 
-impl RezAsmFile {
-    /// Parse a file from path into a rezasm file object.
+impl RezasmFileReader {
+    /// Parse a file from path into a Rezasm file object.
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, EzasmError> {
         let path_buf = path.as_ref().to_path_buf();
         let bytes = fs::read(path_buf.clone())
@@ -47,7 +47,7 @@ impl RezAsmFile {
         let byte = self.bytes
             .get(abs_offset)
             .cloned()
-            .ok_or_else(|| IoError::OutOfBounds)?;
+            .ok_or_else(|| IoError::OutOfBoundsError)?;
         Ok(byte)
     }
     /// Peek a byte relative to the current position. 
@@ -75,8 +75,64 @@ impl RezAsmFile {
     /// Get the lines of the file.
     pub fn lines(&self) -> Result<Vec<String>, IoError> {
         let full = String::from_utf8(self.bytes())
-            .map_err(|_| IoError::UnsupportedEncoding)?;
+            .map_err(|_| IoError::UnsupportedEncodingError)?;
         let lines = full.lines().map(|line| line.to_string()).collect();
         Ok(lines)
+    }
+    /// Convert the reader to a writer.
+    /// Moves over the read bytes in the reader to the writer.
+    /// If no path is provided, uses the same path from the reader.
+    /// If you do not want to keep the bytes, just create the writer
+    /// manually.
+    /// This is useful for cases where you are done reading from a specific file
+    /// and would want to edit that file now. Offering a path to this function
+    /// would essentially be equivalent to a 'save as', where flushing would flush to a
+    /// new file, whereas offering no path to this function will edit the same file that
+    /// was read from, essentially acting as a file editor.
+    pub fn into_writer<P: AsRef<Path>>(self, path: Option<P>) -> Result<RezasmFileWriter, IoError> {
+        let path: PathBuf = path
+            .map(|p| p.as_ref().to_path_buf())
+            .unwrap_or(self.path_buf);
+        let mut writer = RezasmFileWriter::new(path)?;
+        writer.extend_from_slice(self.bytes.as_slice());
+        Ok(writer)
+    }
+}
+
+/// Rezasm file representation (writer).
+/// Implicity derefs to its bytes vec.
+#[derive(Debug)]
+pub struct RezasmFileWriter {
+    file: fs::File,
+    bytes: Vec<u8>,
+}
+
+impl RezasmFileWriter {
+    /// Create a Rezasm file writer object and the path to write to.
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, IoError> {
+        let path_buf = path.as_ref().to_path_buf();
+        let file = fs::File::create(path_buf.clone())
+            .map_err(|_| IoError::DirectoryError)?;
+        Ok(Self {
+            file: file,
+            bytes: Vec::new(),
+        })
+    }
+    /// Flush the byte buffer to the file.
+    pub fn flush(&mut self) -> Result<(), IoError> {
+        self.file.write_all(&self.bytes).map_err(|_| IoError::WriteError)
+    }
+}
+
+impl Deref for RezasmFileWriter {
+    type Target = Vec<u8>;
+    fn deref(&self) -> &Self::Target {
+        &self.bytes
+    }
+}
+
+impl DerefMut for RezasmFileWriter {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.bytes
     }
 }

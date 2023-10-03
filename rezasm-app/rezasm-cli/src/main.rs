@@ -231,11 +231,11 @@ pub fn test_simulator_labels() {
 pub fn test_io() {
     use std::path::PathBuf;
     use std::fs;
-    use rezasm_core::util::io::RezAsmFile;
+    use rezasm_core::util::io::RezasmFileReader;
 
     // Read into rezasm file
     let file_path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/example/arithmatic_fib.ez"));
-    let mut rezasmfile = RezAsmFile::new(file_path.clone()).expect("failed to read file");
+    let mut rezasmfile = RezasmFileReader::new(file_path.clone()).expect("failed to read file");
 
     // Reads with fs
     let reg_bytes = fs::read(file_path).unwrap();
@@ -269,6 +269,10 @@ pub fn test_io() {
 
     // Check validity (should be invalid)
     assert_eq!(false, rezasmfile.is_cursor_valid());
+
+    // Convert to a writer.
+    let writer = rezasmfile.into_writer(Some(concat!(env!("CARGO_MANIFEST_DIR"), "/example/arith_modified.ez"))).unwrap();
+    writer.push(b);
 
     println!("Io worked");
 }

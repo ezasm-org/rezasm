@@ -1,13 +1,13 @@
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::SimulatorError;
-use rezasm_core::util::io::RezAsmFile;
+use rezasm_core::util::io::RezasmFileReader;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
 
 pub struct Application {
     simulator: Simulator,
-    code_file: RezAsmFile,
+    code_file: RezasmFileReader,
     input_file: BufReader<File>,
     output_file: BufWriter<File>,
 }
@@ -15,7 +15,7 @@ pub struct Application {
 impl Application {
     pub fn new(
         simulator: Simulator,
-        code_file: RezAsmFile,
+        code_file: RezasmFileReader,
         input_file: BufReader<File>,
         output_file: BufWriter<File>,
     ) -> Application {

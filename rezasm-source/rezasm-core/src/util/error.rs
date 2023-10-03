@@ -25,6 +25,9 @@ pub enum EzasmError {
     #[error("file `{0}` does not exist")]
     FileDoesNotExistError(String),
 
+    #[error("directory does not exist")]
+    DirectoryDoesNotExistError,
+
     #[error("action timed out")]
     TimeoutError(),
 }
@@ -122,9 +125,13 @@ pub enum SimulatorError {
 #[derive(Error, Debug)]
 pub enum IoError {
     #[error("Out of bounds seek")]
-    OutOfBounds,
+    OutOfBoundsError,
     #[error("Some bytes are not UTF-8 in file")]
-    UnsupportedEncoding,
+    UnsupportedEncodingError,
+    #[error("Write failed")]
+    WriteError,
+    #[error("The directory doesn't exist")]
+    DirectoryError,
 }
 
 impl From<ParserError> for EzasmError {
