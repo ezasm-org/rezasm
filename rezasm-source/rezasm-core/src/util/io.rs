@@ -59,7 +59,7 @@ impl RezasmFileReader {
     /// Return the byte at the current position and then advance the cursor forward by one.
     /// Returns none if out of bounds.
     pub fn next(&mut self) -> Option<u8> {
-        if (self.cursor >= self.bytes.len()) {
+        if self.cursor >= self.bytes.len() {
             None
         } else {
             self.cursor += 1;
@@ -69,7 +69,7 @@ impl RezasmFileReader {
     /// Return the byte at the current position and then advance the cursor backward by one.
     /// Returns none if out of bounds.
     pub fn prev(&mut self) -> Option<u8> {
-        if (self.cursor == 0) {
+        if self.cursor == 0 {
             None
         } else {
             self.cursor -= 1;
