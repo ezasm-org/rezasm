@@ -1,0 +1,24 @@
+@top Program { expression }
+
+expression { Label | Instruction }
+
+Instruction { InstructionName Terminal* }
+
+Terminal { Character | StringLiteral | NumberLiteral | Dereference | Register | LabelReference}
+
+@skip { Space | Comment }
+
+@tokens {
+    Comment { "#" ![\n]* }
+    Space { @whitespace+ }
+    Character { "'" ![\n] "'"}
+    StringLiteral { "\"" ![\n]* "\"" }
+    InstructionName { @asciiLowercase ![:]}
+    NumberLiteral { "-"? ((("0B" | "0b") ("0" | "1")+ "."? ("0" | "1")*)
+                 |((("0X" | "0x")) (@digit | ($[a-f] | $[A-F]))+ "."? (@digit | ($[a-f] | $[A-F]))*)
+                 |(@digit+ "."? @digit* @eof))}
+    Label { (@asciiLetter | @digit)+ ":"}
+    Dereference { "-"? @digit* "(" "$" ![$]+ ")" }
+    Register { "$" ![$]+ }
+    LabelReference { @asciiLetter (@asciiLetter | @digit)+ }
+}
