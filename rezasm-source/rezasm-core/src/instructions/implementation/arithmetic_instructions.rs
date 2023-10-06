@@ -70,9 +70,9 @@ lazy_static! {
         });
     pub static ref OR: Instruction =
         instruction!(or, |simulator: Simulator,
-                          output: InputOutputTarget,
-                          input1: InputTarget,
-                          input2: InputTarget| {
+                           output: InputOutputTarget,
+                           input1: InputTarget,
+                           input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             let k = value1 | value2;
@@ -98,15 +98,15 @@ lazy_static! {
         });
     pub static ref MOD: Instruction =
         instruction!(_mod, |simulator: Simulator,
-                            output: InputOutputTarget,
-                            input1: InputTarget,
-                            input2: InputTarget| {
+                           output: InputOutputTarget,
+                           input1: InputTarget,
+                           input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             if value2 == 0 {
                 return Err(SimulatorError::DivideByZeroError);
             } else {
-                let k = value1 % value2;
+                let k = value1 / value2;
                 return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
             }
         });
