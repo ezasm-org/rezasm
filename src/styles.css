@@ -80,8 +80,13 @@ button {
   @apply text-white font-bold py-2 px-4 rounded disabled:bg-gray-500 disabled:hover:bg-gray-500;
 }
 
+.editor_container {
+    @apply overflow-auto w-full text-left;
+    height: 50vh;
+}
+
 .cm-theme {
-    @apply w-full h-7
+    @apply w-full ;
 }
 
 @media (prefers-color-scheme: dark) {

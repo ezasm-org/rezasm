@@ -24,13 +24,15 @@ function CodeArea({onChange, isEditable}) {
         onChange(val);
     }, []);
     return (
+        <div className="editor_container">
         <CodeMirror value={code} 
-                    heght="200px" 
+                    minHeight="50vh"
                     onChange={changeCallback} 
                     editable={isEditable()}
                     theme={myTheme}
                     indentWithTab="true"
                     />
+        </div>
     );
 }
 

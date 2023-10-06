@@ -1,0 +1,29 @@
+// vite.config.js
+import { defineConfig } from "file:///home/wross/Desktop/REzASM/node_modules/vite/dist/node/index.js";
+import react from "file:///home/wross/Desktop/REzASM/node_modules/@vitejs/plugin-react/dist/index.mjs";
+import wasm from "file:///home/wross/Desktop/REzASM/node_modules/vite-plugin-wasm/exports/import.mjs";
+import topLevelAwait from "file:///home/wross/Desktop/REzASM/node_modules/vite-plugin-top-level-await/exports/import.mjs";
+var vite_config_default = defineConfig(async () => ({
+  plugins: [react(), wasm(), topLevelAwait()],
+  build: {
+    root: "src",
+    outDir: "dist",
+    emptyOutDir: true
+  },
+  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
+  //
+  // 1. prevent vite from obscuring rust errors
+  clearScreen: false,
+  // 2. tauri expects a fixed port, fail if that port is not available
+  server: {
+    port: 1420,
+    strictPort: true
+  },
+  // 3. to make use of `TAURI_DEBUG` and other env variables
+  // https://tauri.studio/v1/api/config#buildconfig.beforedevcommand
+  envPrefix: ["VITE_", "TAURI_"]
+}));
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcuanMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCIvaG9tZS93cm9zcy9EZXNrdG9wL1JFekFTTVwiO2NvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9maWxlbmFtZSA9IFwiL2hvbWUvd3Jvc3MvRGVza3RvcC9SRXpBU00vdml0ZS5jb25maWcuanNcIjtjb25zdCBfX3ZpdGVfaW5qZWN0ZWRfb3JpZ2luYWxfaW1wb3J0X21ldGFfdXJsID0gXCJmaWxlOi8vL2hvbWUvd3Jvc3MvRGVza3RvcC9SRXpBU00vdml0ZS5jb25maWcuanNcIjtpbXBvcnQgeyBkZWZpbmVDb25maWcgfSBmcm9tIFwidml0ZVwiO1xuaW1wb3J0IHJlYWN0IGZyb20gXCJAdml0ZWpzL3BsdWdpbi1yZWFjdFwiO1xuaW1wb3J0IHdhc20gZnJvbSBcInZpdGUtcGx1Z2luLXdhc21cIjtcbmltcG9ydCB0b3BMZXZlbEF3YWl0IGZyb20gXCJ2aXRlLXBsdWdpbi10b3AtbGV2ZWwtYXdhaXRcIjtcblxuLy8gaHR0cHM6Ly92aXRlanMuZGV2L2NvbmZpZy9cbmV4cG9ydCBkZWZhdWx0IGRlZmluZUNvbmZpZyhhc3luYyAoKSA9PiAoe1xuICAgIHBsdWdpbnM6IFtyZWFjdCgpLCB3YXNtKCksIHRvcExldmVsQXdhaXQoKV0sXG5cbiAgICBidWlsZDoge1xuICAgICAgICByb290OiBcInNyY1wiLFxuICAgICAgICBvdXREaXI6IFwiZGlzdFwiLFxuICAgICAgICBlbXB0eU91dERpcjogdHJ1ZSxcbiAgICB9LFxuXG4gICAgLy8gVml0ZSBvcHRpb25zIHRhaWxvcmVkIGZvciBUYXVyaSBkZXZlbG9wbWVudCBhbmQgb25seSBhcHBsaWVkIGluIGB0YXVyaSBkZXZgIG9yIGB0YXVyaSBidWlsZGBcbiAgICAvL1xuICAgIC8vIDEuIHByZXZlbnQgdml0ZSBmcm9tIG9ic2N1cmluZyBydXN0IGVycm9yc1xuICAgIGNsZWFyU2NyZWVuOiBmYWxzZSxcbiAgICAvLyAyLiB0YXVyaSBleHBlY3RzIGEgZml4ZWQgcG9ydCwgZmFpbCBpZiB0aGF0IHBvcnQgaXMgbm90IGF2YWlsYWJsZVxuICAgIHNlcnZlcjoge1xuICAgICAgICBwb3J0OiAxNDIwLFxuICAgICAgICBzdHJpY3RQb3J0OiB0cnVlLFxuICAgIH0sXG4gICAgLy8gMy4gdG8gbWFrZSB1c2Ugb2YgYFRBVVJJX0RFQlVHYCBhbmQgb3RoZXIgZW52IHZhcmlhYmxlc1xuICAgIC8vIGh0dHBzOi8vdGF1cmkuc3R1ZGlvL3YxL2FwaS9jb25maWcjYnVpbGRjb25maWcuYmVmb3JlZGV2Y29tbWFuZFxuICAgIGVudlByZWZpeDogW1wiVklURV9cIiwgXCJUQVVSSV9cIl0sXG59KSk7XG4iXSwKICAibWFwcGluZ3MiOiAiO0FBQWdRLFNBQVMsb0JBQW9CO0FBQzdSLE9BQU8sV0FBVztBQUNsQixPQUFPLFVBQVU7QUFDakIsT0FBTyxtQkFBbUI7QUFHMUIsSUFBTyxzQkFBUSxhQUFhLGFBQWE7QUFBQSxFQUNyQyxTQUFTLENBQUMsTUFBTSxHQUFHLEtBQUssR0FBRyxjQUFjLENBQUM7QUFBQSxFQUUxQyxPQUFPO0FBQUEsSUFDSCxNQUFNO0FBQUEsSUFDTixRQUFRO0FBQUEsSUFDUixhQUFhO0FBQUEsRUFDakI7QUFBQTtBQUFBO0FBQUE7QUFBQSxFQUtBLGFBQWE7QUFBQTtBQUFBLEVBRWIsUUFBUTtBQUFBLElBQ0osTUFBTTtBQUFBLElBQ04sWUFBWTtBQUFBLEVBQ2hCO0FBQUE7QUFBQTtBQUFBLEVBR0EsV0FBVyxDQUFDLFNBQVMsUUFBUTtBQUNqQyxFQUFFOyIsCiAgIm5hbWVzIjogW10KfQo=
