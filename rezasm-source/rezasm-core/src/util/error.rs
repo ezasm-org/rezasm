@@ -25,9 +25,6 @@ pub enum EzasmError {
     #[error("file `{0}` does not exist")]
     FileDoesNotExistError(String),
 
-    #[error("directory does not exist")]
-    DirectoryDoesNotExistError,
-
     #[error("action timed out")]
     TimeoutError(),
 }
@@ -118,7 +115,7 @@ pub enum SimulatorError {
     #[error("label `{0}` is already in use")]
     LabelInUseError(String),
 
-    #[error("io failure")]
+    #[error("io failure `{0}`")]
     IoError(String),
 }
 

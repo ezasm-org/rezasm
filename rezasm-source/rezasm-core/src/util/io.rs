@@ -47,7 +47,7 @@ impl RezasmFileReader {
         let byte = self.bytes
             .get(abs_offset)
             .cloned()
-            .ok_or_else(|| IoError::OutOfBoundsError)?;
+            .ok_or(IoError::OutOfBoundsError)?;
         Ok(byte)
     }
     /// Peek a byte relative to the current position. 
@@ -59,14 +59,22 @@ impl RezasmFileReader {
     /// Return the byte at the current position and then advance the cursor forward by one.
     /// Returns none if out of bounds.
     pub fn next(&mut self) -> Option<u8> {
-        self.cursor += 1;
-        self.peek_relative_byte(-1).ok()
+        if (self.cursor >= self.bytes.len()) {
+            None
+        } else {
+            self.cursor += 1;
+            self.peek_relative_byte(-1).ok()
+        }
     }
     /// Return the byte at the current position and then advance the cursor backward by one.
     /// Returns none if out of bounds.
     pub fn prev(&mut self) -> Option<u8> {
-        self.cursor -= 1;
-        self.peek_relative_byte(1).ok()
+        if (self.cursor == 0) {
+            None
+        } else {
+            self.cursor -= 1;
+            self.peek_relative_byte(1).ok()
+        }
     }
     /// Check validity of cursor.
     pub fn is_cursor_valid(&self) -> bool {
