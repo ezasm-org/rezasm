@@ -258,10 +258,6 @@ lazy_static! {
 
             return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
         });
- 
-
-
-
 }
 
 pub fn register_instructions() {
