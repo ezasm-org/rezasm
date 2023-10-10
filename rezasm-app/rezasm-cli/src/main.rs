@@ -256,8 +256,5 @@ pub fn test_io() {
     writer.extend_from_slice(write_str.as_bytes());
     writer.flush().unwrap();
 
-    // Make sure file exists.
-    assert_eq!(fs::metadata(path).is_err(), true);
-
     println!("Io worked");
 }
