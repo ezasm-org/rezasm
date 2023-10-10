@@ -132,6 +132,24 @@ pub enum SimulatorError {
 
     #[error("attempted to divide by zero")]
     DivideByZeroError,
+
+    #[error("io failure `{0}`")]
+    IoError(String),
+}
+
+#[derive(Error, Debug)]
+pub enum IoError {
+    #[error("Out of bounds seek")]
+    OutOfBoundsError,
+
+    #[error("Some bytes are not UTF-8 in file")]
+    UnsupportedEncodingError,
+
+    #[error("Write failed")]
+    WriteError,
+
+    #[error("The directory doesn't exist")]
+    DirectoryError
 }
 
 impl From<InternalError> for EzasmError {
@@ -179,6 +197,12 @@ impl From<ParseFloatError> for ParserError {
 impl From<ParseIntError> for ParserError {
     fn from(error: ParseIntError) -> Self {
         ParserError::NumericalImmediateError(error.to_string())
+    }
+}
+
+impl From<IoError> for SimulatorError {
+    fn from(error: IoError) -> Self {
+        Self::IoError(error.to_string())
     }
 }
 

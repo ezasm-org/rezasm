@@ -2,6 +2,7 @@ use crate::util::application::Application;
 use crate::util::cli::Arguments;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::EzasmError;
+use rezasm_core::util::io::RezasmFileReader;
 use rezasm_core::util::word_size::WordSize;
 use std::fs::File;
 use std::io::{BufReader, BufWriter};
@@ -43,8 +44,7 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
 
     let simulator: Simulator = Simulator::new_custom(&word_size, memory_size);
 
-    let code_file: BufReader<File> =
-        BufReader::new(get_file_from_path(&arguments.get_code_file())?);
+    let code_file = RezasmFileReader::new(arguments.get_code_file())?;
 
     let input_file: BufReader<File> = match arguments.get_input_file() {
         Some(input_file_string) => BufReader::new(get_file_from_path(&input_file_string)?),
