@@ -5,7 +5,7 @@ extern crate lazy_static;
 extern crate tauri;
 
 use lazy_static::lazy_static;
-use rezasm_instructions::register_instructions;
+use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{get_exit_status, get_register_value, is_completed, load, reset, step, stop};
 use tauri::{Manager, Window};
 

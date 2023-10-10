@@ -37,8 +37,11 @@ pub enum ParserError {
     #[error("invalid given instruction `{0}`")]
     InvalidInstructionError(String),
 
-    #[error("arguments do not match that of `{0}`")]
-    InvalidArgumentsError(String),
+    #[error("instruction `{0}` cannot accept argument `{1}` at index {2}")]
+    InvalidArgumentsError(String, String, usize),
+
+    #[error("instruction `{0}` does not accept {1} arguments")]
+    InvalidArgumentsCountError(String, usize),
 
     #[error("invalid register number `{0}`")]
     InvalidRegisterNumberError(usize),
@@ -66,13 +69,13 @@ pub enum ParserError {
 
     #[error("unrecognized token `{0}`")]
     UnknownTokenError(String),
+
+    #[error("internal error")]
+    InternalError,
 }
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
-    #[error("attempted to divide by zero")]
-    DivideByZeroError,
-
     #[error("{0}")]
     ParserError(ParserError),
 
@@ -90,9 +93,6 @@ pub enum SimulatorError {
 
     #[error("attempted write to address `{0}` in read-only memory")]
     WriteToReadOnlyError(usize),
-
-    #[error("invalid given instruction `{0}`")]
-    InvalidInstructionError(String),
 
     #[error("invalid heap pointer `{0}`")]
     InvalidHeapPointerError(usize),
@@ -118,6 +118,9 @@ pub enum SimulatorError {
     #[error("label `{0}` is already in use")]
     LabelInUseError(String),
 
+    #[error("attempted to divide by zero")]
+    DivideByZeroError,
+
     #[error("io failure")]
     IoError(String),
 }
@@ -126,12 +129,15 @@ pub enum SimulatorError {
 pub enum IoError {
     #[error("Out of bounds seek")]
     OutOfBoundsError,
+
     #[error("Some bytes are not UTF-8 in file")]
     UnsupportedEncodingError,
+
     #[error("Write failed")]
     WriteError,
+
     #[error("The directory doesn't exist")]
-    DirectoryError,
+    DirectoryError
 }
 
 impl From<ParserError> for EzasmError {

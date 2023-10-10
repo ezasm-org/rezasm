@@ -173,7 +173,7 @@ function App() {
             })
             .catch(error => {
                 setErrorState(error);
-                currentState = STATE.STOPPED;
+                setState(STATE.STOPPED);
             });
 
         setState(currentState);
@@ -209,8 +209,8 @@ function App() {
 
     const step = useCallback(async currentState => {
         if (currentState < STATE.LOADED) {
-            reset_load().then(async () => {
-                if (! await checkAndHandleProgramCompletion()) {
+            reset_load().then(async newState => {
+                if (newState !== STATE.STOPPED && ! await checkAndHandleProgramCompletion()) {
                     return handleStepCall().then(() => setState(STATE.PAUSED));
                 }
             });
@@ -237,9 +237,11 @@ function App() {
     }, [checkAndHandleProgramCompletion, state, step, instructionDelay]);
 
     const run = useCallback(async () => {
-        reset_load().then(async () => {
-            setState(STATE.RUNNING);
-            recursivelyCallStep();
+        reset_load().then(async newState => {
+            if (newState !== STATE.STOPPED) {
+                setState(STATE.RUNNING);
+                recursivelyCallStep();
+            }
         });
         // step(currentState).then(() => {
         //

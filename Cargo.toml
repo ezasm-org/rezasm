@@ -8,7 +8,6 @@ readme = "README.md"
 homepage = "https://github.com/ezasm-org/rezasm"
 repository = "https://github.com/ezasm-org/rezasm"
 license = "MIT"
-license-file = "LICENSE"
 keywords = ["assembly", "asm", "ezasm", "rezasm", "rcos"]
 categories = ["development-tools", "parser-implementations", "parsing", "simulation", "text-editors"]
 
@@ -32,8 +31,6 @@ wasm-pack = "0.12.1"
 
 [dependencies]
 rezasm-core = { path = "rezasm-source/rezasm-core" }
-rezasm-instructions = { path = "rezasm-source/rezasm-instructions" }
-rezasm-macro = { path = "rezasm-source/rezasm-macro" }
 rezasm-web-core = { path = "rezasm-source/rezasm-web-core" }
 
 rezasm-cli = { path = "rezasm-app/rezasm-cli" }
@@ -52,4 +49,5 @@ thiserror = "1.0.47"
 wasm-bindgen = "0.2.87"
 
 [workspace]
-members = ["rezasm-app/rezasm-cli", "rezasm-app/rezasm-tauri", "rezasm-app/rezasm-wasm", "rezasm-source/rezasm-core", "rezasm-source/rezasm-instructions", "rezasm-source/rezasm-macro", "rezasm-source/rezasm-web-core",]
+members = ["rezasm-app/rezasm-cli", "rezasm-app/rezasm-tauri", "rezasm-app/rezasm-wasm", 
+    "rezasm-source/rezasm-core", "rezasm-source/rezasm-web-core",]
