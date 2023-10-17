@@ -1,6 +1,7 @@
 import CodeMirror from '@uiw/react-codemirror';
 import { useCallback, useState } from 'react';
 import { createTheme } from '@uiw/codemirror-themes';
+import { ez_language_support } from '../parser/meta_parser';
 
 const myTheme = createTheme({
   theme: 'light',
@@ -31,6 +32,7 @@ function CodeArea({onChange, isEditable}) {
                     editable={isEditable()}
                     theme={myTheme}
                     indentWithTab="true"
+                    extensions={ez_language_support}
                     />
         </div>
     );
