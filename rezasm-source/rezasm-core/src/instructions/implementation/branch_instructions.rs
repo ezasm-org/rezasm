@@ -11,22 +11,26 @@ use crate::instructions::targets::output_target::Output;
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
+/*
+Questions:
+- Why can label.get(&simulator) be passed into output.set() when set() is looking for RawData and label.get(&simulator) returns Result<RawData, SimulatorError>
+- Based on whatever was said to the previous question, does returning () get recognized as Result<(), SimulatorError>
+- How do I even test anything I've made
+*/
+
 lazy_static! {
-  //branch on equal
-  //input1 = left hand side
-  //input2 = right hand side
-  //label = destination
   pub static ref BEQ: Instruction = 
     instruction!(beq, |simulator: Simulator,
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
+      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 == value2 {
-        return output.set(simulator, ); //set some address to label??
+        return output.set(simulator, label.get(&simulator)); //set PC to label
       } else {
-        return ();
+        return (); //do nothing
       }
     });
   pub static ref BNE: Instruction = 
@@ -34,12 +38,13 @@ lazy_static! {
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
+      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 != value2 {
-        return output.set(simulator, ); //set some address to label??
+        return output.set(simulator, label.get(&simulator));
       } else {
-        return output.set(); //don't change anything
+        return ();
       }
     });
   pub static ref BLT: Instruction =
@@ -47,12 +52,13 @@ lazy_static! {
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
+      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 < value2 {
-        return output.set(simulator, ); //set some address to label??
+        return output.set(simulator, label.get(&simulator));
       } else {
-        return output.set(); //don't change anything
+        return ();
       }
     });
   pub static ref BLE: Instruction =
@@ -60,12 +66,13 @@ lazy_static! {
                         input1: InputTarget,
                         input2: InputTarget,
                         label: InputTarget| {
+      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());      
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 <= value2 {
-        return output.set(simulator, ); //set some address to label??
+        return output.set(simulator, label.get(&simulator));
       } else {
-        return output.set(); //don't change anything
+        return ();
       }
     });
   pub static ref BGT: Instruction =
@@ -73,12 +80,13 @@ lazy_static! {
                         input1: InputTarget,
                         input2: InputTarget,
                         label: InputTarget| {
+      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 > value2 {
-        return output.set(simulator, ); //set some address to label??
+        return output.set(simulator, label.get(&simulator));
       } else {
-        return output.set(); //don't change anything
+        return ();
       }
     });
   pub static ref BGE: Instruction =
@@ -86,12 +94,22 @@ lazy_static! {
                         input1: InputTarget,
                         input2: InputTarget,
                         label: InputTarget| {
+      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 >= value2 {
-        return output.set(simulator, ); //set some address to label??
+        return output.set(simulator, label.get(&simulator));
       } else {
-        return output.set(); //don't change anything
+        return ();
       }
     });
+}
+
+pub fn register_instructions() {
+  register_instruction(&BEQ);
+  register_instruction(&BNE);
+  register_instruction(&BLT);
+  register_instruction(&BLE);
+  register_instruction(&BGT);
+  register_instruction(&BGE);
 }
