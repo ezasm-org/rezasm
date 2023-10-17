@@ -39,7 +39,7 @@ function App() {
     const [instructionDelay, setInstructionDelay] = useState(5);
     const [wasmLoaded, setWasmLoaded] = useState(false);
 
-    const callbacks = useRef([]);
+    const callbacks = useRef({});
 
     const disallowExecution = () => {
         if (timerId.current !== null) {

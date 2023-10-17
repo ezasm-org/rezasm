@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useRef, useState} from "react";
 import {CALLBACKS} from "../App.jsx";
 
 const WIDTH = 4;
-const HEIGHT = 5;
+const HEIGHT = 4;
 const CELLS = WIDTH * HEIGHT;
 
 function MemoryView({loaded, registerCallback}) {
@@ -15,9 +15,14 @@ function MemoryView({loaded, registerCallback}) {
     let [slice, setSlice] = useState(Array(CELLS).fill(0));
     let wordSize = useRef(4);
 
+    let [addressInput, setAddressInput] = useState("0x" + currentAddress.toString(16));
+    let [selectorOptions, setSelectorOptions] = useState([0, 0, 0]);
+    let [selected, setSelected] = useState(0);
+
     const updateSlice = useCallback(async address => {
         if (address >= lowest.current && address <= (stack.current - CELLS * wordSize.current)) {
             setCurrentAddress(address);
+            setAddressInput("0x" + address.toString(16));
             let array = await rust_get_memory_slice(address, CELLS);
             let numberArray = [];
             for (let i = 0; i < array.length; ++i) {
@@ -25,7 +30,7 @@ function MemoryView({loaded, registerCallback}) {
             }
             setSlice(numberArray);
         }
-    }, [lowest, stack]);
+    }, []);
 
     const updateSliceCurrent = useCallback(async () => {
         updateSlice(currentAddress);
@@ -38,11 +43,14 @@ function MemoryView({loaded, registerCallback}) {
             rust_get_word_size().then(rustWordSize => {
                 wordSize.current = rustWordSize;
                 rust_get_memory_bounds().then(bounds => {
+                    lowest.current = Number(bounds[0]);
                     text.current = Number(bounds[0]);
                     heap.current = Number(bounds[1]);
                     stack.current = Number(bounds[2]);
                     let address = stack.current - CELLS * wordSize.current;
                     updateSlice(address);
+                    setSelectorOptions([address, heap.current, text.current]);
+                    setSelected(stack.current);
                 });
             });
         }
@@ -60,8 +68,52 @@ function MemoryView({loaded, registerCallback}) {
 
     count = 0;
 
+    const seek = useCallback(() => {
+        let address = parseInt(addressInput);
+        if (isNaN(address) || address < lowest.current) {
+            setAddressInput("0x" + currentAddress.toString(16));
+        } else {
+            updateSlice(address);
+        }
+    }, [addressInput, currentAddress, updateSlice]);
+
+    const seekLeft = useCallback(() => {
+        let address = currentAddress - (CELLS * wordSize.current);
+        if (!isNaN(address)) {
+            updateSlice(address);
+        }
+    }, [currentAddress, updateSlice]);
+
+    const seekRight = useCallback(() => {
+        let address = currentAddress + (CELLS * wordSize.current);
+        if (!isNaN(address)) {
+            updateSlice(address);
+        }
+    }, [currentAddress, updateSlice]);
+
     return (
         <div className="scrollbox">
+            <div className="control-panel row fill">
+                <select value={selected} onChange={(e) => {
+                    let selection = Number(e.target.value);
+                    setSelected(selection);
+                    updateSlice(selection);
+                }}>
+                    <option value={selectorOptions[0]}>Stack Top</option>
+                    <option value={selectorOptions[1]}>Heap Bottom</option>
+                    <option value={selectorOptions[2]}>Text Section</option>
+                </select>
+                <input
+                    className="address-input"
+                    value={addressInput}
+                    onChange={(e) => {
+                        setAddressInput(e.target.value);
+                    }}
+                />
+                <button className="btn-basic" onClick={seek}>Seek</button>
+                <button className="btn-basic" onClick={seekLeft}>&lt;---</button>
+                <button className="btn-basic" onClick={seekRight}>---&gt;</button>
+            </div>
             <table className="fill">
                 <thead>
                     <tr>
