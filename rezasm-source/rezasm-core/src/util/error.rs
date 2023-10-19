@@ -13,20 +13,14 @@ pub enum EzasmError {
     #[error("internal error: {0}")]
     InternalError(#[from] InternalError),
 
+    #[error("{0}")]
+    IoError(#[from] IoError),
+
     #[error("invalid given memory size `{0}`")]
     InvalidMemorySizeError(usize),
 
     #[error("invalid word size `{0}`")]
     InvalidWordSizeError(usize),
-
-    #[error("could not open file `{0}`")]
-    CouldNotOpenFileError(String),
-
-    #[error("path `{0}` is not a file")]
-    PathIsNotFileError(String),
-
-    #[error("file `{0}` does not exist")]
-    FileDoesNotExistError(String),
 
     #[error("action timed out")]
     TimeoutError(),
@@ -91,6 +85,9 @@ pub enum SimulatorError {
     #[error("internal error: {0}")]
     InternalError(#[from] InternalError),
 
+    #[error("{0}")]
+    IoError(#[from] IoError),
+
     #[error("attempted read to address `{0}` which is negative")]
     ReadNegativeAddressError(i64),
 
@@ -132,13 +129,25 @@ pub enum SimulatorError {
 
     #[error("attempted to divide by zero")]
     DivideByZeroError,
-
-    #[error("io failure `{0}`")]
-    IoError(String),
 }
 
 #[derive(Error, Debug)]
 pub enum IoError {
+    #[error("{0}")]
+    StdIoError(#[from] std::io::Error),
+
+    #[error("{0}")]
+    ScannerError(#[from] scanner_rust::ScannerError),
+
+    #[error("could not open file `{0}`")]
+    CouldNotOpenFileError(String),
+
+    #[error("path `{0}` is not a file")]
+    PathIsNotFileError(String),
+
+    #[error("file `{0}` does not exist")]
+    FileDoesNotExistError(String),
+
     #[error("Out of bounds seek")]
     OutOfBoundsError,
 
@@ -149,7 +158,7 @@ pub enum IoError {
     WriteError,
 
     #[error("The directory doesn't exist")]
-    DirectoryError
+    DirectoryError,
 }
 
 impl From<ParseFloatError> for ParserError {
@@ -161,12 +170,6 @@ impl From<ParseFloatError> for ParserError {
 impl From<ParseIntError> for ParserError {
     fn from(error: ParseIntError) -> Self {
         ParserError::NumericalImmediateError(error.to_string())
-    }
-}
-
-impl From<IoError> for SimulatorError {
-    fn from(error: IoError) -> Self {
-        Self::IoError(error.to_string())
     }
 }
 

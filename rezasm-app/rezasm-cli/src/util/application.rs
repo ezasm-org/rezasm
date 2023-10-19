@@ -1,23 +1,22 @@
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::simulator::Simulator;
+use rezasm_core::util::cli_io::{InputSource, OutputSink};
 use rezasm_core::util::error::SimulatorError;
 use rezasm_core::util::io::RezasmFileReader;
-use std::fs::File;
-use std::io::{BufReader, BufWriter};
 
 pub struct Application {
     simulator: Simulator,
     code_file: RezasmFileReader,
-    input_file: BufReader<File>,
-    output_file: BufWriter<File>,
+    input_file: InputSource,
+    output_file: OutputSink,
 }
 
 impl Application {
     pub fn new(
         simulator: Simulator,
         code_file: RezasmFileReader,
-        input_file: BufReader<File>,
-        output_file: BufWriter<File>,
+        input_file: InputSource,
+        output_file: OutputSink,
     ) -> Application {
         Application {
             simulator,
@@ -28,9 +27,7 @@ impl Application {
     }
 
     pub fn run_until_completion(mut self) -> Result<(), SimulatorError> {
-        let lines = self
-            .code_file
-            .lines().map_err(SimulatorError::from)?;
+        let lines = self.code_file.lines().map_err(SimulatorError::from)?;
         for line in lines {
             match lexer::parse_line(&line, self.simulator.get_word_size()) {
                 Some(line_result) => match line_result {

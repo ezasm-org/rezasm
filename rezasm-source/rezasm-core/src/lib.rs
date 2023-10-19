@@ -3,6 +3,8 @@
 
 extern crate thiserror;
 
+extern crate scanner_rust;
+
 #[macro_use]
 pub mod instructions;
 

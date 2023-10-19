@@ -1,5 +1,11 @@
-use std::{path::{Path, PathBuf}, fs, io::Write, ops::{Deref, DerefMut}};
-use super::error::{IoError, EzasmError};
+use super::error::IoError;
+use std::io::{BufRead, Read};
+use std::{
+    fs,
+    io::Write,
+    ops::{Deref, DerefMut},
+    path::{Path, PathBuf},
+};
 
 /// Rezasm file representation (reader).
 #[derive(Debug)]
@@ -11,13 +17,13 @@ pub struct RezasmFileReader {
 
 impl RezasmFileReader {
     /// Parse a file from path into a Rezasm file object.
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, EzasmError> {
+    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, IoError> {
         let path_buf = path.as_ref().to_path_buf();
         let bytes = fs::read(path_buf.clone())
-            .map_err(|_| EzasmError::FileDoesNotExistError(path_buf.to_string_lossy().to_string()))?;
+            .map_err(|_| IoError::FileDoesNotExistError(path_buf.to_string_lossy().to_string()))?;
         Ok(Self {
-            path_buf: path_buf,
-            bytes: bytes,
+            path_buf,
+            bytes,
             cursor: 0,
         })
     }
@@ -35,22 +41,23 @@ impl RezasmFileReader {
     pub fn seek_start(&mut self) {
         self.cursor = 0;
     }
-    /// Move the cursor to a specific byte relative to the 
+    /// Move the cursor to a specific byte relative to the
     /// current position, returning that byte.
     pub fn seek_relative_byte(&mut self, rel_offset: isize) -> Result<u8, IoError> {
         let abs_offset = (self.cursor as isize + rel_offset) as usize;
         self.seek_absolute_byte(abs_offset)
     }
-    /// Peek a byte relative to the start position. 
+    /// Peek a byte relative to the start position.
     /// Does not set the cursor.
     pub fn peek_absolute_byte(&mut self, abs_offset: usize) -> Result<u8, IoError> {
-        let byte = self.bytes
+        let byte = self
+            .bytes
             .get(abs_offset)
             .cloned()
             .ok_or(IoError::OutOfBoundsError)?;
         Ok(byte)
     }
-    /// Peek a byte relative to the current position. 
+    /// Peek a byte relative to the current position.
     /// Does not set the cursor.
     pub fn peek_relative_byte(&mut self, rel_offset: isize) -> Result<u8, IoError> {
         let abs_offset = (self.cursor as isize + rel_offset) as usize;
@@ -82,8 +89,8 @@ impl RezasmFileReader {
     }
     /// Get the lines of the file.
     pub fn lines(&self) -> Result<Vec<String>, IoError> {
-        let full = String::from_utf8(self.bytes())
-            .map_err(|_| IoError::UnsupportedEncodingError)?;
+        let full =
+            String::from_utf8(self.bytes()).map_err(|_| IoError::UnsupportedEncodingError)?;
         let lines = full.lines().map(|line| line.to_string()).collect();
         Ok(lines)
     }
@@ -107,6 +114,30 @@ impl RezasmFileReader {
     }
 }
 
+impl Read for RezasmFileReader {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let initial_cursor = self.cursor;
+        while self.cursor - initial_cursor < buf.len() {
+            if let Some(next) = self.next() {
+                buf[self.cursor - initial_cursor] = next;
+            } else {
+                break;
+            }
+        }
+        Ok(self.cursor - initial_cursor)
+    }
+}
+
+impl BufRead for RezasmFileReader {
+    fn fill_buf(&mut self) -> std::io::Result<&[u8]> {
+        Ok(self.bytes.as_slice())
+    }
+
+    fn consume(&mut self, amt: usize) {
+        let _ = self.seek_relative_byte(amt as isize);
+    }
+}
+
 /// Rezasm file representation (writer).
 /// Implicity derefs to its bytes vec.
 #[derive(Debug)]
@@ -119,16 +150,22 @@ impl RezasmFileWriter {
     /// Create a Rezasm file writer object and the path to write to.
     pub fn new<P: AsRef<Path>>(path: P) -> Result<Self, IoError> {
         let path_buf = path.as_ref().to_path_buf();
-        let file = fs::File::create(path_buf.clone())
-            .map_err(|_| IoError::DirectoryError)?;
+        let file = fs::File::create(path_buf.clone()).map_err(|_| IoError::DirectoryError)?;
         Ok(Self {
-            file: file,
+            file,
             bytes: Vec::new(),
         })
     }
-    /// Flush the byte buffer to the file.
-    pub fn flush(&mut self) -> Result<(), IoError> {
-        self.file.write_all(&self.bytes).map_err(|_| IoError::WriteError)
+}
+
+impl Write for RezasmFileWriter {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.bytes.append(&mut buf.to_vec());
+        Ok(buf.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.file.write_all(&self.bytes)
     }
 }
 
