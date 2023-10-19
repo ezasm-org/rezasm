@@ -5,13 +5,13 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum EzasmError {
     #[error("{0}")]
-    ParserError(ParserError),
+    ParserError(#[from] ParserError),
 
     #[error("{0}")]
-    SimulatorError(SimulatorError),
+    SimulatorError(#[from] SimulatorError),
 
     #[error("internal error: {0}")]
-    InternalError(InternalError),
+    InternalError(#[from] InternalError),
 
     #[error("invalid given memory size `{0}`")]
     InvalidMemorySizeError(usize),
@@ -35,7 +35,7 @@ pub enum EzasmError {
 #[derive(Error, Debug)]
 pub enum ParserError {
     #[error("internal error: {0}")]
-    InternalError(InternalError),
+    InternalError(#[from] InternalError),
 
     #[error("invalid given instruction `{0}`")]
     InvalidInstructionError(String),
@@ -86,10 +86,10 @@ pub enum InternalError {
 #[derive(Error, Debug)]
 pub enum SimulatorError {
     #[error("{0}")]
-    ParserError(ParserError),
+    ParserError(#[from] ParserError),
 
     #[error("internal error: {0}")]
-    InternalError(InternalError),
+    InternalError(#[from] InternalError),
 
     #[error("attempted read to address `{0}` which is negative")]
     ReadNegativeAddressError(i64),
@@ -150,42 +150,6 @@ pub enum IoError {
 
     #[error("The directory doesn't exist")]
     DirectoryError
-}
-
-impl From<InternalError> for EzasmError {
-    fn from(error: InternalError) -> Self {
-        EzasmError::InternalError(error)
-    }
-}
-
-impl From<ParserError> for EzasmError {
-    fn from(error: ParserError) -> Self {
-        EzasmError::ParserError(error)
-    }
-}
-
-impl From<SimulatorError> for EzasmError {
-    fn from(error: SimulatorError) -> Self {
-        EzasmError::SimulatorError(error)
-    }
-}
-
-impl From<ParserError> for SimulatorError {
-    fn from(error: ParserError) -> Self {
-        SimulatorError::ParserError(error)
-    }
-}
-
-impl From<InternalError> for ParserError {
-    fn from(error: InternalError) -> Self {
-        ParserError::InternalError(error)
-    }
-}
-
-impl From<InternalError> for SimulatorError {
-    fn from(error: InternalError) -> Self {
-        SimulatorError::InternalError(error)
-    }
 }
 
 impl From<ParseFloatError> for ParserError {
