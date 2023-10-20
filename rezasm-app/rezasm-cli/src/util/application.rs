@@ -43,7 +43,11 @@ impl Application {
             self.simulator.run_line_from_pc()?
         }
 
-        let r = self.simulator.get_registers().get_register(&registry::R0.to_string()).unwrap();
+        let r = self
+            .simulator
+            .get_registers()
+            .get_register(&registry::R0.to_string())
+            .unwrap();
         Ok(r.get_data().int_value())
     }
 }
