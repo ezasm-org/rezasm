@@ -5,8 +5,8 @@ extern crate wasm_bindgen;
 
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
-    get_exit_status, get_register_names, get_register_value, get_register_values, is_completed,
-    load, reset, step, stop,
+    get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
+    get_register_values, get_word_size, is_completed, load, reset, step, stop,
 };
 use wasm_bindgen::prelude::*;
 
@@ -58,6 +58,21 @@ pub fn wasm_get_register_names() -> JsValue {
 #[wasm_bindgen]
 pub fn wasm_get_register_values() -> Vec<i64> {
     get_register_values()
+}
+
+#[wasm_bindgen]
+pub fn wasm_get_memory_bounds() -> JsValue {
+    serde_wasm_bindgen::to_value(&get_memory_bounds()).unwrap()
+}
+
+#[wasm_bindgen]
+pub fn wasm_get_memory_slice(address: usize, length: usize) -> Result<Vec<i64>, String> {
+    get_memory_slice(address, length)
+}
+
+#[wasm_bindgen]
+pub fn wasm_get_word_size() -> usize {
+    get_word_size()
 }
 
 #[wasm_bindgen(start)]

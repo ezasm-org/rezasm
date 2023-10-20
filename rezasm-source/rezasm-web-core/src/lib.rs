@@ -113,3 +113,30 @@ pub fn get_register_values() -> Vec<i64> {
     }
     values
 }
+
+// (text, heap, stack)
+pub fn get_memory_bounds() -> (usize, usize, usize) {
+    let simulator = get_simulator();
+    (
+        simulator.get_memory().initial_text_pointer(),
+        simulator.get_memory().initial_heap_pointer(),
+        simulator.get_memory().initial_stack_pointer(),
+    )
+}
+
+pub fn get_memory_slice(address: usize, length: usize) -> Result<Vec<i64>, String> {
+    let mut result = Vec::new();
+    let simulator = get_simulator();
+    let memory = simulator.get_memory();
+    for offset in 0..length {
+        match memory.read(address + offset * 4) {
+            Ok(value) => result.push(value.int_value()),
+            Err(error) => return Err(format!("{}", error)),
+        }
+    }
+    Ok(result)
+}
+
+pub fn get_word_size() -> usize {
+    get_simulator().get_word_size().value()
+}

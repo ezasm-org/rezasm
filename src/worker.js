@@ -7,9 +7,11 @@ import {
     wasm_reset,
     wasm_is_completed,
     wasm_get_exit_status,
+    wasm_get_memory_bounds,
+    wasm_get_memory_slice,
     wasm_get_register_value,
     wasm_get_register_names,
-    wasm_get_register_values,
+    wasm_get_register_values, wasm_get_word_size,
 } from "../dist/wasm";
 
 registerWebworker(async (message, emit) => {
@@ -45,6 +47,15 @@ registerWebworker(async (message, emit) => {
             return wasm_get_register_names();
         } else if (command === "get_register_values") {
             return wasm_get_register_values();
+        } else if (command === "get_memory_bounds") {
+            return wasm_get_memory_bounds();
+        } else if (command === "get_memory_slice") {
+            if (data === undefined || data.address === undefined || data.length === undefined) {
+                throw "Call to 'get_register_value' without providing address or length data";
+            }
+            return wasm_get_memory_slice(data.address, data.length);
+        } else if (command === "get_word_size") {
+            return wasm_get_word_size();
         } else {
             throw `Invalid command: '${command}'`;
         }
