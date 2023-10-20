@@ -8,6 +8,7 @@ extern crate rezasm_core;
 extern crate scanner_rust;
 
 use std::io::Write;
+use std::process;
 
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_core::parser::lexer::{parse_line, text_to_number, tokenize_line, EZNumber};
@@ -42,10 +43,12 @@ fn main() {
         Err(error) => handle_error(error),
     };
 
-    match application.run_until_completion() {
-        Ok(_) => {}
+    let exit_code = match application.run_until_completion() {
+        Ok(exit_code) => exit_code,
         Err(error) => handle_error(error.into()),
     };
+
+    process::exit(exit_code as i32);
 }
 
 fn test_tokenize_line() {
