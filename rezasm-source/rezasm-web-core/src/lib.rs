@@ -93,3 +93,50 @@ pub fn get_register_value(register: &str) -> Option<i64> {
         Err(_) => None,
     }
 }
+
+pub fn get_register_names() -> Vec<String> {
+    registry::ALL_REGISTERS.map(|s| s.to_string()).to_vec()
+}
+
+pub fn get_register_values() -> Vec<i64> {
+    let simulator = get_simulator();
+    let mut values = Vec::new();
+    for i in 0..registry::ALL_REGISTERS.len() {
+        values.push(
+            simulator
+                .get_registers()
+                .get_register_by_number(i)
+                .unwrap()
+                .get_data()
+                .int_value(),
+        );
+    }
+    values
+}
+
+// (text, heap, stack)
+pub fn get_memory_bounds() -> (usize, usize, usize) {
+    let simulator = get_simulator();
+    (
+        simulator.get_memory().initial_text_pointer(),
+        simulator.get_memory().initial_heap_pointer(),
+        simulator.get_memory().initial_stack_pointer(),
+    )
+}
+
+pub fn get_memory_slice(address: usize, length: usize) -> Result<Vec<i64>, String> {
+    let mut result = Vec::new();
+    let simulator = get_simulator();
+    let memory = simulator.get_memory();
+    for offset in 0..length {
+        match memory.read(address + offset * 4) {
+            Ok(value) => result.push(value.int_value()),
+            Err(error) => return Err(format!("{}", error)),
+        }
+    }
+    Ok(result)
+}
+
+pub fn get_word_size() -> usize {
+    get_simulator().get_word_size().value()
+}

@@ -23,11 +23,23 @@
   position: absolute;
   left: 50%;
   transform: translate(-50%, 0);
-
   width: 50vw;
   min-width: 600px;
+  max-width: 1000px;
   margin: 0;
-  padding-top: 8vh;
+  padding-top: 2vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
+.fill {
+  width: 100%;
+}
+
+.centered {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -51,14 +63,14 @@ a:hover {
   color: #535bf2;
 }
 
-h1 {
-  text-align: center;
-  font-size: 28px;
+.codearea {
+  height: 60vh;
+  width: 100%;
 }
 
 textarea {
   width: 100%;
-  height: 60vh;
+  height: inherit;
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -70,8 +82,26 @@ textarea {
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
 
+.scrollbox {
+  height: inherit;
+  width: inherit;
+  overflow: auto;
+}
+
+.control-panel {
+}
+
+.address-input {
+  @apply font-bold py-2 px-4 rounded
+}
+
 button {
   margin: 2px;
+}
+
+.btn-basic {
+  font-size: 16px;
+  @apply text-white font-bold py-2 px-4 rounded bg-blue-500 hover:bg-blue-700 disabled:bg-gray-500 disabled:hover:bg-gray-500;
 }
 
 .btn-operation {
@@ -81,12 +111,24 @@ button {
 }
 
 .editor_container {
-    @apply overflow-auto w-full text-left;
-    height: 50vh;
+  @apply overflow-auto w-full text-left;
+  height: 50vh;
 }
 
 .cm-theme {
-    @apply w-full ;
+  @apply w-full ;
+}
+
+table {
+  @apply table-auto bg-gray-200 border border-separate border-spacing-0 border-slate-400
+}
+
+th {
+  @apply bg-gray-100 border border-gray-300 text-black font-bold py-2 px-4
+}
+
+td {
+  @apply bg-gray-100 border border-slate-300 text-black py-1 px-4
 }
 
 @media (prefers-color-scheme: dark) {
@@ -102,5 +144,20 @@ button {
   textarea {
     color: #ffffff;
     background-color: #0f0f0f98;
+  }
+
+  table {
+    color: white;
+    background: #2f2f2f;
+  }
+
+  td {
+    color: white;
+    background: #2f2f2f;
+  }
+
+  tr {
+    color: white;
+    background: #2f2f2f;
   }
 }

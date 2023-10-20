@@ -5,32 +5,23 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum EzasmError {
     #[error("{0}")]
-    ParserError(ParserError),
+    ParserError(#[from] ParserError),
 
     #[error("{0}")]
-    SimulatorError(SimulatorError),
+    SimulatorError(#[from] SimulatorError),
 
-    #[error("invalid given memory size `{0}`")]
-    InvalidMemorySizeError(usize),
+    #[error("internal error: {0}")]
+    InternalError(#[from] InternalError),
 
-    #[error("invalid word size `{0}`")]
-    InvalidWordSizeError(usize),
-
-    #[error("could not open file `{0}`")]
-    CouldNotOpenFileError(String),
-
-    #[error("path `{0}` is not a file")]
-    PathIsNotFileError(String),
-
-    #[error("file `{0}` does not exist")]
-    FileDoesNotExistError(String),
-
-    #[error("action timed out")]
-    TimeoutError(),
+    #[error("{0}")]
+    IoError(#[from] IoError),
 }
 
 #[derive(Error, Debug)]
 pub enum ParserError {
+    #[error("internal error: {0}")]
+    InternalError(#[from] InternalError),
+
     #[error("invalid given instruction `{0}`")]
     InvalidInstructionError(String),
 
@@ -66,15 +57,27 @@ pub enum ParserError {
 
     #[error("unrecognized token `{0}`")]
     UnknownTokenError(String),
+}
 
-    #[error("internal error")]
-    InternalError,
+#[derive(Error, Debug)]
+pub enum InternalError {
+    #[error("improper usage of try_into")]
+    MismatchedTryIntoError,
+
+    #[error("improper usage of get_input_output_target")]
+    GetInputOutputTargetError,
 }
 
 #[derive(Error, Debug)]
 pub enum SimulatorError {
     #[error("{0}")]
-    ParserError(ParserError),
+    ParserError(#[from] ParserError),
+
+    #[error("internal error: {0}")]
+    InternalError(#[from] InternalError),
+
+    #[error("{0}")]
+    IoError(#[from] IoError),
 
     #[error("attempted read to address `{0}` which is negative")]
     ReadNegativeAddressError(i64),
@@ -90,6 +93,12 @@ pub enum SimulatorError {
 
     #[error("attempted write to address `{0}` in read-only memory")]
     WriteToReadOnlyError(usize),
+
+    #[error("invalid given memory size `{0}`")]
+    InvalidMemorySizeError(usize),
+
+    #[error("invalid word size `{0}`")]
+    InvalidWordSizeError(usize),
 
     #[error("invalid heap pointer `{0}`")]
     InvalidHeapPointerError(usize),
@@ -119,22 +128,34 @@ pub enum SimulatorError {
     DivideByZeroError,
 }
 
-impl From<ParserError> for EzasmError {
-    fn from(error: ParserError) -> Self {
-        EzasmError::ParserError(error)
-    }
-}
+#[derive(Error, Debug)]
+pub enum IoError {
+    #[error("{0}")]
+    StdIoError(#[from] std::io::Error),
 
-impl From<SimulatorError> for EzasmError {
-    fn from(error: SimulatorError) -> Self {
-        EzasmError::SimulatorError(error)
-    }
-}
+    #[error("{0}")]
+    ScannerError(#[from] scanner_rust::ScannerError),
 
-impl From<ParserError> for SimulatorError {
-    fn from(error: ParserError) -> Self {
-        SimulatorError::ParserError(error)
-    }
+    #[error("could not open file `{0}`")]
+    CouldNotOpenFileError(String),
+
+    #[error("path `{0}` is not a file")]
+    PathIsNotFileError(String),
+
+    #[error("file `{0}` does not exist")]
+    FileDoesNotExistError(String),
+
+    #[error("attempted to seek out of bounds in file")]
+    OutOfBoundsError,
+
+    #[error("some bytes are not UTF-8 in the input file")]
+    UnsupportedEncodingError,
+
+    #[error("write operation failed")]
+    WriteError,
+
+    #[error("the given directory doesn't exist")]
+    DirectoryError,
 }
 
 impl From<ParseFloatError> for ParserError {

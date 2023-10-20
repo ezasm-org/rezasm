@@ -1,14 +1,21 @@
 import React, {useRef} from "react";
-import { useCallback, useEffect, useState } from "react";
-import { invoke } from "@tauri-apps/api/tauri";
-import WorkerPromise from "webworker-promise";
-import {
-    wasm_load, wasm_step, wasm_stop, wasm_reset, wasm_is_completed, wasm_get_exit_status, wasm_get_register_value
-} from "../dist/wasm";
-import init from "../dist/wasm/rezasm_wasm.js";
-import "../dist/output.css";
+import {useCallback, useEffect, useState} from "react";
 import _ from "lodash";
 import CodeArea from "./components/CodeArea";
+import RegistryView from "./components/RegistryView.jsx";
+import WorkerPromise from "webworker-promise";
+import init from "../dist/wasm/rezasm_wasm.js";
+import {
+    rust_get_exit_status,
+    rust_is_completed,
+    rust_load,
+    rust_reset,
+    rust_step,
+    rust_stop
+} from "./rust_functions.js";
+
+import "../dist/output.css";
+import MemoryView from "./components/MemoryView.jsx";
 
 const STATE = {
     IDLE: 1,
@@ -19,85 +26,9 @@ const STATE = {
     STOPPED: 1,
 };
 
-const callWorkerFunction = message => {
-    return new Promise((resolve, reject) => {
-        window.worker.postMessage(message)
-            .then(result => resolve(result))
-            .catch(e => {
-                console.log("Error calling command: " + message.command);
-                reject(e.message);
-            });
-    });
-};
-
-const rust_load = async lines => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_load", {lines});
-    } else if (wasm_load) {
-        return callWorkerFunction({command: "load", argument: lines});
-    } else {
-        throw new Error("Function load does not exist");
-    }
-};
-
-const rust_step = async () => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_step", {});
-    } else if (wasm_step) {
-        return callWorkerFunction({command: "step"});
-    } else {
-        throw new Error("Function step does not exist");
-    }
-};
-
-const rust_reset = async () => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_reset", {});
-    } else if (wasm_reset) {
-        return callWorkerFunction({command: "reset"});
-    } else {
-        throw new Error("Function reset does not exist");
-    }
-};
-
-const rust_stop = async () => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_stop", {});
-    } else if (wasm_stop) {
-        return callWorkerFunction({command: "stop"});
-    } else {
-        throw new Error("Function stop does not exist");
-    }
-};
-
-const rust_is_completed = async () => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_is_completed", {});
-    } else if (wasm_is_completed) {
-        return callWorkerFunction({command: "is_completed"});
-    } else {
-        throw new Error("Function is_completed does not exist");
-    }
-};
-
-const rust_get_exit_status = async () => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_get_exit_status", {});
-    } else if (wasm_get_exit_status) {
-        return callWorkerFunction({command: "get_exit_status"});
-    } else {
-        throw new Error("Function get_exit_status does not exist");
-    }
-};
-
-const rust_get_register_value = async register => {
-    if (window.__TAURI_IPC__) {
-        return invoke("tauri_get_register_value", {register});
-    } else if (wasm_get_register_value) {
-        return callWorkerFunction({command: "get_register_value", argument: register});
-    } else {
-        throw new Error("Function get_register_value does not exist");
-    }
+const CALLBACKS = {
+    MEMORY: "MEMORY",
+    REGISTRY: "REGISTRY",
 };
 
 function App() {
@@ -107,6 +38,9 @@ function App() {
     const [state, setState] = useState(STATE.IDLE);
     const timerId = useRef(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
+    const [wasmLoaded, setWasmLoaded] = useState(false);
+
+    const callbacks = useRef({});
 
     const disallowExecution = () => {
         if (timerId.current !== null) {
@@ -118,6 +52,13 @@ function App() {
     const isEditable = useCallback(() => {
         return state === STATE.IDLE;
     }, [state])
+    const callCallbacks = useCallback(() => {
+        Object.values(callbacks.current).map(callback => callback());
+    }, []);
+
+    const registerCallback = useCallback((name, callback) => {
+        callbacks.current[name] = callback;
+    }, []);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -145,10 +86,6 @@ function App() {
 
     const getExitStatus = useCallback(async () => {
         return await rust_get_exit_status();
-    }, []);
-
-    const getRegisterValue = useCallback(async register => {
-        return await rust_get_register_value(register);
     }, []);
 
     const stop = useCallback(async currentState => {
@@ -183,16 +120,17 @@ function App() {
 
         setState(currentState);
         return currentState;
-    }, [setErrorState, lines]);
+    }, [lines, setErrorState]);
 
     const reset_load = useCallback(async () => {
         return reset().then(newState => {
             setState(STATE.LOADING);
             return load(newState);
         });
-    }, [reset, load]);
+    }, [load, reset]);
 
     const checkAndHandleProgramCompletion = useCallback(async () => {
+        callCallbacks();
         if (await isCompleted() || isErrorState()) {
             disallowExecution();
             setState(STATE.STOPPED);
@@ -201,7 +139,7 @@ function App() {
         } else {
             return false;
         }
-    }, [getExitStatus, isCompleted]);
+    }, [callCallbacks, getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
         rust_step()
@@ -222,7 +160,7 @@ function App() {
         } else if (currentState === STATE.PAUSED || currentState === STATE.RUNNING) {
             return handleStepCall();
         }
-    }, [reset_load, handleStepCall, checkAndHandleProgramCompletion]);
+    }, [reset_load, checkAndHandleProgramCompletion, handleStepCall]);
 
     const recursivelyCallStep = useCallback(async () => {
         if (state > STATE.RUNNING) {
@@ -239,7 +177,7 @@ function App() {
                 });
             }
         });
-    }, [checkAndHandleProgramCompletion, state, step, instructionDelay]);
+    }, [state, checkAndHandleProgramCompletion, handleStepCall, instructionDelay, setErrorState]);
 
     const run = useCallback(async () => {
         reset_load().then(async newState => {
@@ -248,79 +186,84 @@ function App() {
                 recursivelyCallStep();
             }
         });
-        // step(currentState).then(() => {
-        //
-        // });
-    }, [step, isErrorState, recursivelyCallStep]);
+    }, [reset_load, recursivelyCallStep]);
 
     useEffect(() => {
         if (init) {
-            init();
+            window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
+            init().then(() => {
+                window.worker.postMessage({command: "ping"}).then(e => {
+                    if (e !== "pong") {
+                        throw Error("Could not communicate with the web-worker");
+                    }
+                    setWasmLoaded(true);
+                });
+            });
         }
-        window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
-        window.worker.postMessage({command: "ping"}).then(e => {
-            if (e !== "pong") {
-                throw Error("Could not communicate with the web-worker");
-            }
-        });
+
     }, []);
 
     return (
         <div className="container">
-            <h1><b>Welcome to rezasm!</b></h1>
-            <div className="mt-2 mb-2 row">
-                { state === STATE.RUNNING ?
-                    <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
-                        debounce(stop, state);
-                    }}>
-                        Stop
-                    </button>
-                    :
-                    <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
-                        debounce(run, state);
-                    }}>
-                        Start
-                    </button>
-                }
-
-                { state === STATE.PAUSED ?
-                    <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
-                        // TODO resume
-                    }}>
-                        Resume
-                    </button>
-                    :
-                    <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
-                        disabled={state !== STATE.RUNNING}
-                        onClick={(e) => {
-                        // TODO pause
+            <div className="fill">
+                <div className="mt-2 mb-2 row">
+                    { state === STATE.RUNNING ?
+                        <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
+                            debounce(stop, state);
                         }}>
-                        Pause
-                    </button>
-                }
+                            Stop
+                        </button>
+                        :
+                        <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
+                            debounce(run, state);
+                        }}>
+                            Start
+                        </button>
+                    }
 
-                <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                    disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
-                    onClick={(e) => {
-                        debounce(step, state);
+                    { state === STATE.PAUSED ?
+                        <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
+                            // TODO resume
+                        }}>
+                            Resume
+                        </button>
+                        :
+                        <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
+                            disabled={state !== STATE.RUNNING}
+                            onClick={(e) => {
+                                // TODO pause
+                            }}>
+                            Pause
+                        </button>
+                    }
+
+                    <button className="btn-operation bg-blue-500 hover:bg-blue-700"
+                        disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
+                        onClick={(e) => {
+                            debounce(step, state);
+                        }}>
+                        Step
+                    </button>
+                    <button className="btn-operation bg-teal-600 hover:bg-teal-700"
+                        disabled={state !== STATE.PAUSED}
+                        onClick={(e) => {
+                            // TODO step back
+                        }}>
+                        Step Back
+                    </button>
+                    <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
+                        debounce(reset, state);
                     }}>
-                    Step
-                </button>
-                <button className="btn-operation bg-teal-600 hover:bg-teal-700"
-                    disabled={state !== STATE.PAUSED}
-                    onClick={(e) => {
-                        // TODO step back
-                    }}>
-                    Step Back
-                </button>
-                <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
-                    debounce(reset, state);
-                }}>
-                    Reset
-                </button>
+                        Reset
+                    </button>
+                </div>
+                <div className="mt-2 mb-2 row codearea">
+                    <CodeArea onChange={setLines} isEditable={isEditable}/>
+                    <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
+                </div>
             </div>
             <div className="mt-2 mb-2 row w-full">
-                <CodeArea onChange={setLines} isEditable={isEditable}/>
+                <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
             <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
         </div>
@@ -328,3 +271,5 @@ function App() {
 }
 
 export default App;
+
+export {STATE, CALLBACKS};
