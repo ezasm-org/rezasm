@@ -8,8 +8,6 @@ use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::instructions::targets::output_target::Output;
-use crate::util::error::SimulatorError;
-use crate::util::raw_data::RawData;
 
 /*
 Questions:
@@ -24,13 +22,14 @@ lazy_static! {
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
-      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
+      let pc_num = simulator.get_registers_mut().get_pc_mut().get_data().int_value() as usize; //should i do something safer than just using as to convert? (tryfrom?)
+      let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 == value2 {
-        return output.set(simulator, label.get(&simulator)); //set PC to label
+        return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return (); //do nothing
+        return Ok(()); //do nothing
       }
     });
   pub static ref BNE: Instruction = 
@@ -38,13 +37,14 @@ lazy_static! {
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
-      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
+      let pc_num: usize = simulator.get_registers_mut().get_pc_mut().get_data().int_value() as usize; 
+      let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 != value2 {
-        return output.set(simulator, label.get(&simulator));
+        return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return ();
+        return Ok(()); //do nothing
       }
     });
   pub static ref BLT: Instruction =
@@ -52,13 +52,14 @@ lazy_static! {
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
-      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
+      let pc_num: usize = simulator.get_registers_mut().get_pc_mut().get_data().int_value() as usize; 
+      let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 < value2 {
-        return output.set(simulator, label.get(&simulator));
+        return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return ();
+        return Ok(()); //do nothing
       }
     });
   pub static ref BLE: Instruction =
@@ -66,13 +67,14 @@ lazy_static! {
                         input1: InputTarget,
                         input2: InputTarget,
                         label: InputTarget| {
-      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());      
+      let pc_num: usize = simulator.get_registers_mut().get_pc_mut().get_data().int_value() as usize; 
+      let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 <= value2 {
-        return output.set(simulator, label.get(&simulator));
+        return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return ();
+        return Ok(()); //do nothing
       }
     });
   pub static ref BGT: Instruction =
@@ -80,13 +82,14 @@ lazy_static! {
                         input1: InputTarget,
                         input2: InputTarget,
                         label: InputTarget| {
-      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
+      let pc_num: usize = simulator.get_registers_mut().get_pc_mut().get_data().int_value() as usize; 
+      let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 > value2 {
-        return output.set(simulator, label.get(&simulator));
+        return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return ();
+        return Ok(()); //do nothing
       }
     });
   pub static ref BGE: Instruction =
@@ -94,17 +97,19 @@ lazy_static! {
                         input1: InputTarget,
                         input2: InputTarget,
                         label: InputTarget| {
-      let output = InputOutputTarget::RegisterInputOutput(simulator.get_registers_mut().get_pc_mut());
+      let pc_num: usize = simulator.get_registers_mut().get_pc_mut().get_data().int_value() as usize; 
+      let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 >= value2 {
-        return output.set(simulator, label.get(&simulator));
+        return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return ();
+        return Ok(()); //do nothing
       }
     });
 }
 
+//Make sure to add this to mod.rs in implementation folder
 pub fn register_instructions() {
   register_instruction(&BEQ);
   register_instruction(&BNE);
@@ -113,3 +118,10 @@ pub fn register_instructions() {
   register_instruction(&BGT);
   register_instruction(&BGE);
 }
+
+/*
+To do:
+- Get your questions answered (check Trevor dms / EzASM discord)
+- Test your instructions and debug
+- Make a pull request when ready to get your stuff reviewed and fix stuff from there
+*/
