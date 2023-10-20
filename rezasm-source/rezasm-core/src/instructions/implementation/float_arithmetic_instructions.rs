@@ -90,13 +90,6 @@ lazy_static! {
                 return Err(SimulatorError::DivideByZeroError);
             }
 
-            // Used to determine the sign of the mod - note: this may not be necessary and am leaving it
-            // here for now in case it is
-            // let n = match (value1 < 0f64 || value2 < 0f64) && !(value1 < 0f64 && value2 < 0f64) {
-            //     true => value1 - (f64::floor(value1/value2)) * value2,
-            //     false => ...,
-            // };
-
             let divvalue1 = f64::abs(value1);
             let divvalue2 = f64::abs(value2);
 

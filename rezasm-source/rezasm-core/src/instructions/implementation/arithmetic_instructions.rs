@@ -114,10 +114,16 @@ lazy_static! {
                            output: InputOutputTarget,
                            input1: InputTarget,
                            input2: InputTarget| {
+            let maxshift = (simulator.get_word_size().value() as i64 * 8) - 1;
             let value1 = input1.get(&simulator)?.int_value();
-            let value2 = input2.get(&simulator)?.int_value();
-            // Bug: negative values not accounted for!
-            let k = value1 << 68;
+            let negativeshift = input2.get(&simulator)?.int_value() < 0;
+            let shift = input2.get(&simulator)?.int_value().abs().min(maxshift);
+
+            let k = match negativeshift {
+                true => value1 >> shift,
+                false => value1 << shift,
+            };
+            
             return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
         });
     pub static ref SRL: Instruction =
@@ -125,10 +131,36 @@ lazy_static! {
                            output: InputOutputTarget,
                            input1: InputTarget,
                            input2: InputTarget| {
+            let maxshift = (simulator.get_word_size().value() as i64 * 8) - 1;
             let value1 = input1.get(&simulator)?.int_value();
-            let value2 = input2.get(&simulator)?.int_value();
-            // Bug: negative values not accounted for!
-            let k = value1 >> value2;
+            let negativeshift = input2.get(&simulator)?.int_value() < 0;
+            let shift = input2.get(&simulator)?.int_value().abs().min(maxshift);
+
+            let n = if value1 < 0 {-1} else {1};
+            
+            // Account for negative shifts
+            let k = match negativeshift {
+                true => n * (value1 << shift),
+                false => n * (value1 >> shift),
+            };
+
+            return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
+        });
+    pub static ref SRA: Instruction =
+        instruction!(sra, |simulator: Simulator,
+                           output: InputOutputTarget,
+                           input1: InputTarget,
+                           input2: InputTarget| {
+            let maxshift = (simulator.get_word_size().value() as i64 * 8) - 1;
+            let value1 = input1.get(&simulator)?.int_value();
+            let negativeshift = input2.get(&simulator)?.int_value() < 0;
+            let shift = input2.get(&simulator)?.int_value().abs().min(maxshift);
+
+            let k = match negativeshift {
+                true => value1 << shift,
+                false => value1 >> shift,
+            };
+                       
             return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
         });
     pub static ref INC: Instruction =
@@ -160,6 +192,7 @@ pub fn register_instructions() {
     register_instruction(&NOT);
     register_instruction(&SLL);
     register_instruction(&SRL);
+    register_instruction(&SRA);
     register_instruction(&INC);
     register_instruction(&DEC);
 }
