@@ -90,9 +90,8 @@ lazy_static! {
         instruction!(not, |simulator: Simulator,
                            output: InputOutputTarget,
                            input1: InputTarget| {
-            let value1 = input1.get(&simulator)?.int_value();
-            // This may not work, requires further testing!
-            let k = !value1;
+                let value1 = input1.get(&simulator)?.int_value();
+                let k = !value1;
             return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
         });
     pub static ref MOD: Instruction =
