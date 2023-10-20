@@ -109,4 +109,47 @@ const rust_get_register_values = async () => {
     }
 };
 
-export { rust_reset, rust_load, rust_stop, rust_step, rust_is_completed, rust_get_exit_status, rust_get_register_names, rust_get_register_value, rust_get_register_values };
+const rust_get_memory_bounds = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_get_memory_bounds", {});
+    } else if (wasm_get_register_values) {
+        return callWorkerFunction({command: "get_memory_bounds"});
+    } else {
+        throw new Error("Function get_memory_bounds does not exist");
+    }
+};
+
+const rust_get_memory_slice = async (address, length) => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_get_memory_slice", {address, length});
+    } else if (wasm_get_register_value) {
+        return callWorkerFunction({command: "get_memory_slice", argument: {address: address, length: length}});
+    } else {
+        throw new Error("Function get_memory_slice does not exist");
+    }
+};
+
+const rust_get_word_size = async () => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_get_word_size", {});
+    } else if (wasm_get_register_values) {
+        return callWorkerFunction({command: "get_word_size"});
+    } else {
+        throw new Error("Function get_word_size does not exist");
+    }
+};
+
+export {
+    rust_reset,
+    rust_load,
+    rust_stop,
+    rust_step,
+    rust_is_completed,
+    rust_get_exit_status,
+    rust_get_memory_bounds,
+    rust_get_memory_slice,
+    rust_get_register_names,
+    rust_get_register_value,
+    rust_get_register_values,
+    rust_get_word_size
+};

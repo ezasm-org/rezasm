@@ -1,22 +1,23 @@
+use crate::util::cli_io::{InputSource, OutputSink};
 use rezasm_core::parser::lexer;
+use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::SimulatorError;
-use std::fs::File;
-use std::io::{BufRead, BufReader, BufWriter};
+use rezasm_core::util::io::RezasmFileReader;
 
 pub struct Application {
     simulator: Simulator,
-    code_file: BufReader<File>,
-    input_file: BufReader<File>,
-    output_file: BufWriter<File>,
+    code_file: RezasmFileReader,
+    input_file: InputSource,
+    output_file: OutputSink,
 }
 
 impl Application {
     pub fn new(
         simulator: Simulator,
-        code_file: BufReader<File>,
-        input_file: BufReader<File>,
-        output_file: BufWriter<File>,
+        code_file: RezasmFileReader,
+        input_file: InputSource,
+        output_file: OutputSink,
     ) -> Application {
         Application {
             simulator,
@@ -26,12 +27,8 @@ impl Application {
         }
     }
 
-    pub fn run_until_completion(mut self) -> Result<(), SimulatorError> {
-        let lines = self
-            .code_file
-            .lines()
-            .map(|line| line.unwrap())
-            .collect::<Vec<String>>();
+    pub fn run_until_completion(mut self) -> Result<i64, SimulatorError> {
+        let lines = self.code_file.lines().map_err(SimulatorError::from)?;
         for line in lines {
             match lexer::parse_line(&line, self.simulator.get_word_size()) {
                 Some(line_result) => match line_result {
@@ -46,6 +43,11 @@ impl Application {
             self.simulator.run_line_from_pc()?
         }
 
-        Ok(())
+        let r = self
+            .simulator
+            .get_registers()
+            .get_register(&registry::R0.to_string())
+            .unwrap();
+        Ok(r.get_data().int_value())
     }
 }

@@ -1,10 +1,11 @@
 use crate::util::application::Application;
 use crate::util::cli::Arguments;
+use crate::util::cli_io::{InputSource, OutputSink};
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::util::error::EzasmError;
+use rezasm_core::util::error::{EzasmError, IoError, SimulatorError};
+use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use rezasm_core::util::word_size::WordSize;
 use std::fs::File;
-use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
 fn get_file_from_path(path_string: &String) -> Result<File, EzasmError> {
@@ -18,13 +19,13 @@ fn get_file_from_path(path_string: &String) -> Result<File, EzasmError> {
         if path.is_file() {
             match File::open(path) {
                 Ok(file) => file,
-                Err(_) => return Err(EzasmError::CouldNotOpenFileError(path_string.to_string())),
+                Err(_) => return Err(IoError::CouldNotOpenFileError(path_string.to_string()))?,
             }
         } else {
-            return Err(EzasmError::PathIsNotFileError(path_string.to_string()));
+            return Err(IoError::PathIsNotFileError(path_string.to_string()))?;
         }
     } else {
-        return Err(EzasmError::FileDoesNotExistError(path_string.to_string()));
+        return Err(IoError::FileDoesNotExistError(path_string.to_string()))?;
     };
     Ok(file)
 }
@@ -33,35 +34,32 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
     let word_size = match &arguments.get_word_size() {
         4 => WordSize::Four,
         8 => WordSize::Eight,
-        _ => return Err(EzasmError::InvalidWordSizeError(arguments.get_word_size())),
+        _ => {
+            return Err(SimulatorError::InvalidWordSizeError(
+                arguments.get_word_size(),
+            ))?
+        }
     };
 
     let memory_size = match arguments.get_memory_size() {
-        0 => return Err(EzasmError::InvalidMemorySizeError(0)),
+        0 => return Err(SimulatorError::InvalidMemorySizeError(0))?,
         x => x,
     };
 
     let simulator: Simulator = Simulator::new_custom(&word_size, memory_size);
 
-    let code_file: BufReader<File> =
-        BufReader::new(get_file_from_path(&arguments.get_code_file())?);
+    let code_file = RezasmFileReader::new(arguments.get_code_file())?;
 
-    let input_file: BufReader<File> = match arguments.get_input_file() {
-        Some(input_file_string) => BufReader::new(get_file_from_path(&input_file_string)?),
-        None => {
-            todo!();
-            // let fd = io::stdin().as_raw_fd();
-            // unsafe { BufReader::new(File::from_raw_fd(fd)) }
-        }
+    let input_file: InputSource = match arguments.get_input_file() {
+        Some(input_file_string) => InputSource::new_file(RezasmFileReader::new(input_file_string)?),
+        None => InputSource::new_console(),
     };
 
-    let output_file: BufWriter<File> = match arguments.get_output_file() {
-        Some(input_file_string) => BufWriter::new(get_file_from_path(&input_file_string)?),
-        None => {
-            todo!();
-            // let fd = io::stdin().as_raw_fd();
-            // unsafe { BufWriter::new(File::from_raw_fd(fd)) }
+    let output_file: OutputSink = match arguments.get_output_file() {
+        Some(output_file_string) => {
+            OutputSink::new_file(RezasmFileWriter::new(output_file_string)?)
         }
+        None => OutputSink::new_console(),
     };
 
     Ok(Application::new(

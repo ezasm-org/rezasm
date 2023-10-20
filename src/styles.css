@@ -35,6 +35,18 @@
   align-items: center;
 }
 
+.fill {
+  width: 100%;
+}
+
+.centered {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+
 .row {
   width: 100%;
   display: flex;
@@ -52,7 +64,8 @@ a:hover {
 }
 
 .codearea {
-  height: 80vh;
+  height: 60vh;
+  width: 100%;
 }
 
 textarea {
@@ -75,8 +88,20 @@ textarea {
   overflow: auto;
 }
 
+.control-panel {
+}
+
+.address-input {
+  @apply font-bold py-2 px-4 rounded
+}
+
 button {
   margin: 2px;
+}
+
+.btn-basic {
+  font-size: 16px;
+  @apply text-white font-bold py-2 px-4 rounded bg-blue-500 hover:bg-blue-700 disabled:bg-gray-500 disabled:hover:bg-gray-500;
 }
 
 .btn-operation {
