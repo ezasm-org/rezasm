@@ -5,8 +5,11 @@ mod util;
 
 extern crate lazy_static;
 extern crate rezasm_core;
+extern crate scanner_rust;
 
-use rezasm_core::instruction;
+use std::io::Write;
+use std::process;
+
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_core::parser::lexer::{parse_line, text_to_number, tokenize_line, EZNumber};
 use rezasm_core::parser::line::Line;
@@ -40,10 +43,12 @@ fn main() {
         Err(error) => handle_error(error),
     };
 
-    match application.run_until_completion() {
-        Ok(_) => {}
+    let exit_code = match application.run_until_completion() {
+        Ok(exit_code) => exit_code,
         Err(error) => handle_error(error.into()),
     };
+
+    process::exit(exit_code as i32);
 }
 
 fn test_tokenize_line() {
@@ -208,12 +213,15 @@ pub fn test_simulator_labels() {
 }
 
 pub fn test_io() {
-    use std::path::PathBuf;
-    use std::fs;
     use rezasm_core::util::io::RezasmFileReader;
+    use std::fs;
+    use std::path::PathBuf;
 
     // Read into rezasm file
-    let file_path = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/example/arithmatic_fib.ez"));
+    let file_path = PathBuf::from(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/example/arithmatic_fib.ez"
+    ));
     let mut rezasmfile = RezasmFileReader::new(file_path.clone()).expect("failed to read file");
 
     // Reads with fs
@@ -227,14 +235,13 @@ pub fn test_io() {
     // Compare
     assert_eq!(rezasmfile.lines().expect("failed to get lines"), reg_read);
 
-    
     assert_eq!(32, rezasmfile.seek_absolute_byte(1).unwrap());
     assert_eq!(101, rezasmfile.seek_absolute_byte(3).unwrap());
     assert_eq!(32, rezasmfile.seek_relative_byte(-2).unwrap());
     assert_eq!(35, rezasmfile.peek_absolute_byte(0).unwrap());
 
     rezasmfile.seek_start();
-    
+
     let mut bytes = vec![];
     while let Some(byte) = rezasmfile.next() {
         bytes.push(byte);

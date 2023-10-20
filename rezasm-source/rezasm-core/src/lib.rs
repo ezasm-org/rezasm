@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+extern crate scanner_rust;
 extern crate thiserror;
 
 #[macro_use]

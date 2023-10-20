@@ -13,23 +13,8 @@ pub enum EzasmError {
     #[error("internal error: {0}")]
     InternalError(#[from] InternalError),
 
-    #[error("invalid given memory size `{0}`")]
-    InvalidMemorySizeError(usize),
-
-    #[error("invalid word size `{0}`")]
-    InvalidWordSizeError(usize),
-
-    #[error("could not open file `{0}`")]
-    CouldNotOpenFileError(String),
-
-    #[error("path `{0}` is not a file")]
-    PathIsNotFileError(String),
-
-    #[error("file `{0}` does not exist")]
-    FileDoesNotExistError(String),
-
-    #[error("action timed out")]
-    TimeoutError(),
+    #[error("{0}")]
+    IoError(#[from] IoError),
 }
 
 #[derive(Error, Debug)]
@@ -91,6 +76,9 @@ pub enum SimulatorError {
     #[error("internal error: {0}")]
     InternalError(#[from] InternalError),
 
+    #[error("{0}")]
+    IoError(#[from] IoError),
+
     #[error("attempted read to address `{0}` which is negative")]
     ReadNegativeAddressError(i64),
 
@@ -105,6 +93,12 @@ pub enum SimulatorError {
 
     #[error("attempted write to address `{0}` in read-only memory")]
     WriteToReadOnlyError(usize),
+
+    #[error("invalid given memory size `{0}`")]
+    InvalidMemorySizeError(usize),
+
+    #[error("invalid word size `{0}`")]
+    InvalidWordSizeError(usize),
 
     #[error("invalid heap pointer `{0}`")]
     InvalidHeapPointerError(usize),
@@ -132,24 +126,36 @@ pub enum SimulatorError {
 
     #[error("attempted to divide by zero")]
     DivideByZeroError,
-
-    #[error("io failure `{0}`")]
-    IoError(String),
 }
 
 #[derive(Error, Debug)]
 pub enum IoError {
-    #[error("Out of bounds seek")]
+    #[error("{0}")]
+    StdIoError(#[from] std::io::Error),
+
+    #[error("{0}")]
+    ScannerError(#[from] scanner_rust::ScannerError),
+
+    #[error("could not open file `{0}`")]
+    CouldNotOpenFileError(String),
+
+    #[error("path `{0}` is not a file")]
+    PathIsNotFileError(String),
+
+    #[error("file `{0}` does not exist")]
+    FileDoesNotExistError(String),
+
+    #[error("attempted to seek out of bounds in file")]
     OutOfBoundsError,
 
-    #[error("Some bytes are not UTF-8 in file")]
+    #[error("some bytes are not UTF-8 in the input file")]
     UnsupportedEncodingError,
 
-    #[error("Write failed")]
+    #[error("write operation failed")]
     WriteError,
 
-    #[error("The directory doesn't exist")]
-    DirectoryError
+    #[error("the given directory doesn't exist")]
+    DirectoryError,
 }
 
 impl From<ParseFloatError> for ParserError {
@@ -161,12 +167,6 @@ impl From<ParseFloatError> for ParserError {
 impl From<ParseIntError> for ParserError {
     fn from(error: ParseIntError) -> Self {
         ParserError::NumericalImmediateError(error.to_string())
-    }
-}
-
-impl From<IoError> for SimulatorError {
-    fn from(error: IoError) -> Self {
-        Self::IoError(error.to_string())
     }
 }
 
