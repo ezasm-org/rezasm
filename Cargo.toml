@@ -1,6 +1,6 @@
 [package]
 name = "rezasm"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Trevor Brunette <trevorbrunette@gmail.com>"]
 edition = "2021"
 description = "An assembly-like programming language for use in education"

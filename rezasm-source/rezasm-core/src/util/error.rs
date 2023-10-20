@@ -145,16 +145,16 @@ pub enum IoError {
     #[error("file `{0}` does not exist")]
     FileDoesNotExistError(String),
 
-    #[error("Out of bounds seek")]
+    #[error("attempted to seek out of bounds in file")]
     OutOfBoundsError,
 
-    #[error("Some bytes are not UTF-8 in file")]
+    #[error("some bytes are not UTF-8 in the input file")]
     UnsupportedEncodingError,
 
-    #[error("Write failed")]
+    #[error("write operation failed")]
     WriteError,
 
-    #[error("The directory doesn't exist")]
+    #[error("the given directory doesn't exist")]
     DirectoryError,
 }
 
