@@ -11,28 +11,20 @@ use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::instructions::targets::output_target::Output;
 
-/*
-Questions:
-- Why can label.get(&simulator) be passed into output.set() when set() is looking for RawData and label.get(&simulator) returns Result<RawData, SimulatorError>
-- Based on whatever was said to the previous question, does returning () get recognized as Result<(), SimulatorError>
-- How do I even test anything I've made
-*/
-
 lazy_static! {
   pub static ref BEQ: Instruction = 
     instruction!(beq, |simulator: Simulator,
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
-      // let pc_num = registry::get_register_number(&registry::PC.to_string()).unwrap();
-      let pc_num: usize = 3;
+      let pc_num = registry::get_register_number(&registry::PC.to_string()).unwrap();
       let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 == value2 {
-        return output.set(simulator, label.get(&simulator).unwrap()); //set PC to label
+        return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return Ok(()); //do nothing
+        return Ok(());
       }
     });
   pub static ref BNE: Instruction = 
@@ -47,7 +39,7 @@ lazy_static! {
       if value1 != value2 {
         return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return Ok(()); //do nothing
+        return Ok(());
       }
     });
   pub static ref BLT: Instruction =
@@ -62,7 +54,7 @@ lazy_static! {
       if value1 < value2 {
         return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return Ok(()); //do nothing
+        return Ok(());
       }
     });
   pub static ref BLE: Instruction =
@@ -77,7 +69,7 @@ lazy_static! {
       if value1 <= value2 {
         return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return Ok(()); //do nothing
+        return Ok(());
       }
     });
   pub static ref BGT: Instruction =
@@ -92,7 +84,7 @@ lazy_static! {
       if value1 > value2 {
         return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return Ok(()); //do nothing
+        return Ok(());
       }
     });
   pub static ref BGE: Instruction =
@@ -107,12 +99,11 @@ lazy_static! {
       if value1 >= value2 {
         return output.set(simulator, label.get(&simulator).unwrap());
       } else {
-        return Ok(()); //do nothing
+        return Ok(());
       }
     });
 }
 
-//Make sure to add this to mod.rs in implementation folder
 pub fn register_instructions() {
   register_instruction(&BEQ);
   register_instruction(&BNE);
@@ -121,10 +112,3 @@ pub fn register_instructions() {
   register_instruction(&BGT);
   register_instruction(&BGE);
 }
-
-/*
-To do:
-- Get your questions answered (check Trevor dms / EzASM discord)
-- Test your instructions and debug
-- Make a pull request when ready to get your stuff reviewed and fix stuff from there
-*/
