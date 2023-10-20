@@ -24,7 +24,8 @@ lazy_static! {
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
-      let pc_num = registry::get_register_number(&registry::PC.to_string()).unwrap();
+      // let pc_num = registry::get_register_number(&registry::PC.to_string()).unwrap();
+      let pc_num: usize = 3;
       let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
