@@ -22,12 +22,14 @@ lazy_static! {
                        input1: InputTarget,
                        input2: InputTarget,
                        label: InputTarget| {
+      print!("in beq");
       let pc_num = simulator.get_registers_mut().get_pc_mut().get_data().int_value() as usize; //should i do something safer than just using as to convert? (tryfrom?)
       let output = InputOutputTarget::RegisterInputOutput(pc_num);
       let value1 = input1.get(&simulator)?.int_value();
       let value2 = input2.get(&simulator)?.int_value();
       if value1 == value2 {
-        return output.set(simulator, label.get(&simulator).unwrap());
+        print!("value 1 == value 2");
+        return output.set(simulator, label.get(&simulator).unwrap()); //set PC to label
       } else {
         return Ok(()); //do nothing
       }
