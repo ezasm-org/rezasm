@@ -98,9 +98,17 @@ pub const ALL_REGISTERS: [&str; REGISTERS_COUNT] = [
     FT2, FT3, FT4, FT5, FT6, FT7, FT8, FT9, LO, HI,
 ];
 
+fn remove_dollar(string: &String) -> String {
+    if string.starts_with('$') {
+        string[1..].to_string()
+    } else {
+        string.to_string()
+    }
+}
+
 pub fn get_register_number(register: &String) -> Result<usize, ParserError> {
     REGISTERS_MAP
-        .get_by_left(register[1..].to_uppercase().as_str())
+        .get_by_left(remove_dollar(register).to_uppercase().as_str())
         .map(|r| r.clone())
         .ok_or(ParserError::InvalidRegisterNameError(register.to_string()))
 }
