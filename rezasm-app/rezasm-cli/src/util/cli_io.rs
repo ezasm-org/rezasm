@@ -1,7 +1,7 @@
 use crate::util::cli_io::InputSource::{ConsoleInput, FileInput};
 use crate::util::cli_io::OutputSink::{ConsoleOutput, FileOutput};
-use crate::util::error::IoError;
-use crate::util::io::{RezasmFileReader, RezasmFileWriter};
+use rezasm_core::util::error::IoError;
+use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use scanner_rust::Scanner;
 use std::io::{stdin, stdout, Stdin, Write};
 

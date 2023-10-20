@@ -5,6 +5,7 @@ mod util;
 
 extern crate lazy_static;
 extern crate rezasm_core;
+extern crate scanner_rust;
 
 use std::io::Write;
 

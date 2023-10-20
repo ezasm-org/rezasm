@@ -3,6 +3,8 @@ target
 package-lock.json
 Cargo.lock
 
+/example/arith_modified.ez
+
 # Logs
 logs
 *.log

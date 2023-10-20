@@ -1,9 +1,8 @@
 use crate::util::application::Application;
 use crate::util::cli::Arguments;
+use crate::util::cli_io::{InputSource, OutputSink};
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::util::cli_io::{InputSource, OutputSink};
-use rezasm_core::util::error::EzasmError;
-use rezasm_core::util::error::IoError;
+use rezasm_core::util::error::{EzasmError, IoError, SimulatorError};
 use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use rezasm_core::util::word_size::WordSize;
 use std::fs::File;
@@ -35,11 +34,15 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
     let word_size = match &arguments.get_word_size() {
         4 => WordSize::Four,
         8 => WordSize::Eight,
-        _ => return Err(EzasmError::InvalidWordSizeError(arguments.get_word_size())),
+        _ => {
+            return Err(SimulatorError::InvalidWordSizeError(
+                arguments.get_word_size(),
+            ))?
+        }
     };
 
     let memory_size = match arguments.get_memory_size() {
-        0 => return Err(EzasmError::InvalidMemorySizeError(0)),
+        0 => return Err(SimulatorError::InvalidMemorySizeError(0))?,
         x => x,
     };
 

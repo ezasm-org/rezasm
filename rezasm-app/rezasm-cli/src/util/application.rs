@@ -1,6 +1,6 @@
+use crate::util::cli_io::{InputSource, OutputSink};
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::util::cli_io::{InputSource, OutputSink};
 use rezasm_core::util::error::SimulatorError;
 use rezasm_core::util::io::RezasmFileReader;
 

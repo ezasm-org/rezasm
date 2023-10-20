@@ -15,15 +15,6 @@ pub enum EzasmError {
 
     #[error("{0}")]
     IoError(#[from] IoError),
-
-    #[error("invalid given memory size `{0}`")]
-    InvalidMemorySizeError(usize),
-
-    #[error("invalid word size `{0}`")]
-    InvalidWordSizeError(usize),
-
-    #[error("action timed out")]
-    TimeoutError(),
 }
 
 #[derive(Error, Debug)]
@@ -102,6 +93,12 @@ pub enum SimulatorError {
 
     #[error("attempted write to address `{0}` in read-only memory")]
     WriteToReadOnlyError(usize),
+
+    #[error("invalid given memory size `{0}`")]
+    InvalidMemorySizeError(usize),
+
+    #[error("invalid word size `{0}`")]
+    InvalidWordSizeError(usize),
 
     #[error("invalid heap pointer `{0}`")]
     InvalidHeapPointerError(usize),
