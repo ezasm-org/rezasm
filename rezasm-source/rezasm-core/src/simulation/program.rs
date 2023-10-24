@@ -83,6 +83,7 @@ impl Program {
             }
             Some(file) => file.push(line),
         }
+        
 
         Ok(())
     }

@@ -2,6 +2,8 @@ import CodeMirror from "@uiw/react-codemirror";
 import { useCallback, useState } from "react";
 import { createTheme } from "@uiw/codemirror-themes";
 import { ez_language_support } from "../parser/meta_parser";
+import { tags as t } from "@lezer/highlight";
+import { ezasmHighlighting } from "../parser/highlight.js";
 
 const myTheme = createTheme({
     theme: "light",
@@ -16,6 +18,22 @@ const myTheme = createTheme({
         gutterBackground: "#fff",
         gutterForeground: "#8a919966",
     },
+    styles: [
+        { tag: t.comment, color: "#787b8099" },
+        { tag: t.variableName, color: "#0080ff" },
+        { tag: [t.string, t.special(t.brace)], color: "#5c6166" },
+        { tag: t.number, color: "#5c6166" },
+        { tag: t.bool, color: "#5c6166" },
+        { tag: t.null, color: "#5c6166" },
+        { tag: t.keyword, color: "#5c6166" },
+        { tag: t.operator, color: "#5c6166" },
+        { tag: t.className, color: "#5c6166" },
+        { tag: t.definition(t.typeName), color: "#5c6166" },
+        { tag: t.typeName, color: "#5c6166" },
+        { tag: t.angleBracket, color: "#5c6166" },
+        { tag: t.tagName, color: "#5c6166" },
+        { tag: t.attributeName, color: "#5c6166" },
+    ],
 });
 
 function CodeArea({onChange, isEditable}) {
@@ -23,7 +41,7 @@ function CodeArea({onChange, isEditable}) {
     const changeCallback = useCallback((val, viewUpdate) => {
         setCode(val);
         onChange(val);
-    }, []);
+    }, [onChange]);
     return (
         <div className="editor_container">
             <CodeMirror value={code}
@@ -32,7 +50,7 @@ function CodeArea({onChange, isEditable}) {
                 editable={isEditable()}
                 theme={myTheme}
                 indentWithTab="true"
-                extensions={ez_language_support}
+                extensions={[ez_language_support()]}
             />
         </div>
     );

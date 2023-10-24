@@ -9,8 +9,8 @@ Terminal { Character | StringLiteral | NumberLiteral | Dereference | Register | 
 @skip { Space | Comment }
 
 @tokens {
-    Comment { "#" ![\n]* }
     Space { @whitespace+ }
+    Comment { "#" ![\n]* }
     Character { "'" ![\n] "'"}
     StringLiteral { "\"" ![\n]* "\"" }
     InstructionName { @asciiLowercase ![:]}

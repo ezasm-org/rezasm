@@ -35,7 +35,7 @@ function App() {
     const [lines, setLines] = useState("");
     const [error, setError] = useState("");
     const [result, setResult] = useState("");
-    const [state, setState] = useState(STATE.IDLE);
+    const [programState, setProgramState] = useState(STATE.IDLE);
     const timerId = useRef(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
     const [wasmLoaded, setWasmLoaded] = useState(false);
@@ -50,8 +50,9 @@ function App() {
     };
 
     const isEditable = useCallback(() => {
-        return state === STATE.IDLE;
-    }, [state])
+        return programState === STATE.IDLE;
+    }, [programState]);
+
     const callCallbacks = useCallback(() => {
         Object.values(callbacks.current).map(callback => callback());
     }, []);
@@ -70,7 +71,7 @@ function App() {
 
     const setErrorState = useCallback(newState => {
         setError(newState);
-        setState(STATE.STOPPED);
+        setProgramState(STATE.STOPPED);
     }, []);
 
     const getErrorState = useCallback(() => {
@@ -92,14 +93,14 @@ function App() {
         disallowExecution();
         await rust_stop();
         currentState = STATE.STOPPED;
-        setState(currentState);
+        setProgramState(currentState);
         return currentState;
     }, []);
 
     const reset = useCallback(async () => {
         disallowExecution();
         await rust_reset();
-        setState(STATE.IDLE);
+        setProgramState(STATE.IDLE);
         setResult("");
         clearErrorState();
         return STATE.IDLE;
@@ -115,16 +116,16 @@ function App() {
             })
             .catch(error => {
                 setErrorState(error);
-                setState(STATE.STOPPED);
+                setProgramState(STATE.STOPPED);
             });
 
-        setState(currentState);
+        setProgramState(currentState);
         return currentState;
     }, [lines, setErrorState]);
 
     const reset_load = useCallback(async () => {
         return reset().then(newState => {
-            setState(STATE.LOADING);
+            setProgramState(STATE.LOADING);
             return load(newState);
         });
     }, [load, reset]);
@@ -133,7 +134,7 @@ function App() {
         callCallbacks();
         if (await isCompleted() || isErrorState()) {
             disallowExecution();
-            setState(STATE.STOPPED);
+            setProgramState(STATE.STOPPED);
             setResult("Program exited with exit code " +  await getExitStatus());
             return true;
         } else {
@@ -146,7 +147,7 @@ function App() {
             .then(async () => await checkAndHandleProgramCompletion())
             .catch(error => {
                 setErrorState(error);
-                setState(STATE.STOPPED);
+                setProgramState(STATE.STOPPED);
             });
     }, [checkAndHandleProgramCompletion, setErrorState]);
 
@@ -154,7 +155,7 @@ function App() {
         if (currentState < STATE.LOADED) {
             reset_load().then(async newState => {
                 if (newState !== STATE.STOPPED && ! await checkAndHandleProgramCompletion()) {
-                    return handleStepCall().then(() => setState(STATE.PAUSED));
+                    return handleStepCall().then(() => setProgramState(STATE.PAUSED));
                 }
             });
         } else if (currentState === STATE.PAUSED || currentState === STATE.RUNNING) {
@@ -163,7 +164,7 @@ function App() {
     }, [reset_load, checkAndHandleProgramCompletion, handleStepCall]);
 
     const recursivelyCallStep = useCallback(async () => {
-        if (state > STATE.RUNNING) {
+        if (programState > STATE.RUNNING) {
             return;
         }
         checkAndHandleProgramCompletion().then(async completed => {
@@ -173,16 +174,16 @@ function App() {
                 }).catch((e) => {
                     timerId.current = null;
                     setErrorState(e);
-                    setState(STATE.STOPPED);
+                    setProgramState(STATE.STOPPED);
                 });
             }
         });
-    }, [state, checkAndHandleProgramCompletion, handleStepCall, instructionDelay, setErrorState]);
+    }, [programState, checkAndHandleProgramCompletion, handleStepCall, instructionDelay, setErrorState]);
 
     const run = useCallback(async () => {
         reset_load().then(async newState => {
             if (newState !== STATE.STOPPED) {
-                setState(STATE.RUNNING);
+                setProgramState(STATE.RUNNING);
                 recursivelyCallStep();
             }
         });
@@ -207,21 +208,21 @@ function App() {
         <div className="container">
             <div className="fill">
                 <div className="mt-2 mb-2 row">
-                    { state === STATE.RUNNING ?
-                        <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
-                            debounce(stop, state);
+                    { programState === STATE.RUNNING ?
+                        <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={programState !== STATE.RUNNING || isErrorState()} onClick={(e) => {
+                            debounce(stop, programState);
                         }}>
                             Stop
                         </button>
                         :
-                        <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
-                            debounce(run, state);
+                        <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={programState !== STATE.IDLE || isErrorState()} onClick={(e) => {
+                            debounce(run, programState);
                         }}>
                             Start
                         </button>
                     }
 
-                    { state === STATE.PAUSED ?
+                    { programState === STATE.PAUSED ?
                         <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
                             // TODO resume
                         }}>
@@ -229,7 +230,7 @@ function App() {
                         </button>
                         :
                         <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
-                            disabled={state !== STATE.RUNNING}
+                            disabled={programState !== STATE.RUNNING}
                             onClick={(e) => {
                                 // TODO pause
                             }}>
@@ -238,21 +239,21 @@ function App() {
                     }
 
                     <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                        disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
+                        disabled={(programState !== STATE.PAUSED && programState !== STATE.IDLE) || isErrorState()}
                         onClick={(e) => {
-                            debounce(step, state);
+                            debounce(step, programState);
                         }}>
                         Step
                     </button>
                     <button className="btn-operation bg-teal-600 hover:bg-teal-700"
-                        disabled={state !== STATE.PAUSED}
+                        disabled={programState !== STATE.PAUSED}
                         onClick={(e) => {
                             // TODO step back
                         }}>
                         Step Back
                     </button>
                     <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
-                        debounce(reset, state);
+                        debounce(reset, programState);
                     }}>
                         Reset
                     </button>
