@@ -12,6 +12,7 @@ use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
 lazy_static! {
+    /*
     pub static ref PUSH: Instruction =
         instruction!(push, |simulator: Simulator, input: InputTarget| {
             let word_size = simulator.get_word_size().clone();
@@ -24,10 +25,33 @@ lazy_static! {
             );
 
             let rd2 = input.get(simulator)?;
+
+            println!("{:?} {:?}", rd1.int_value(), rd2.int_value());
             Ok(())
+        });
+    */
+    pub static ref LOAD: Instruction =
+        instruction!(load, |simulator: Simulator, 
+                            output: InputOutputTarget,
+                            input: InputTarget| {
+            let memory = simulator.get_memory();
+            let word = memory.read(input.get(simulator)?.int_value() as usize)?;
+            output.set(simulator, word)
+        });
+    
+    pub static ref STORE: Instruction =
+        instruction!(store, |simulator: Simulator,
+                            input1: InputTarget,
+                            input2: InputTarget| {
+            let v1 = input2.get(simulator)?.int_value() as usize;
+            let v2 = input1.get(simulator)?;
+            let memory = simulator.get_memory_mut();
+            memory.write(v1, &v2)
         });
 }
 
 pub fn register_instructions() {
-    register_instruction(&PUSH)
+    // register_instruction(&PUSH);
+    register_instruction(&LOAD);
+    register_instruction(&STORE);
 }
