@@ -43,10 +43,19 @@ lazy_static! {
         instruction!(store, |simulator: Simulator,
                             input1: InputTarget,
                             input2: InputTarget| {
-            let v1 = input2.get(simulator)?.int_value() as usize;
-            let v2 = input1.get(simulator)?;
+            let address = input2.get(simulator)?.int_value() as usize;
+            let data = input1.get(simulator)?;
             let memory = simulator.get_memory_mut();
-            memory.write(v1, &v2)
+            memory.write(address, &data)
+        });
+
+    pub static ref ALLOC: Instruction =
+        instruction!(alloc, |simulator: Simulator,
+                            output: InputOutputTarget,
+                            input: InputTarget| {
+            let memory = simulator.get_memory();
+            let bytes = RawData::from_int(input.get(simulator)?.int_value(), memory.word_size());
+            output.set(simulator, bytes)
         });
 }
 
@@ -54,4 +63,5 @@ pub fn register_instructions() {
     // register_instruction(&PUSH);
     register_instruction(&LOAD);
     register_instruction(&STORE);
+    register_instruction(&ALLOC);
 }
