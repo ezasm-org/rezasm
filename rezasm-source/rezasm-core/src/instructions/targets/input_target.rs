@@ -77,7 +77,7 @@ impl Input for InputTarget {
             InputTarget::LabelReferenceInput(s) => {
                 let line = simulator.get_label_line_number(s)?;
                 Ok(RawData::from_int(line, simulator.get_word_size()))
-            },
+            }
             InputTarget::StringInput(s) => simulator
                 .get_memory()
                 .get_string_immediate_address(s)
