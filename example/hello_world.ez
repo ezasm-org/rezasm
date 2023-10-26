@@ -1,3 +1,21 @@
+# Hello World!
+push 0
+push '\n'
+push '!'
+push 'd'
+push 'l'
+push 'r'
+push 'o'
+push 'W'
+push ' '
+push ','
+push 'o'
+push 'l'
+push 'l'
+push 'e'
+push 'H'
+prints $sp
+
 # Memory stuff
 sub $sp $sp 4
 add $t0 2 2

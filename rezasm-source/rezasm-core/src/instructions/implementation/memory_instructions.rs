@@ -12,24 +12,27 @@ use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
 lazy_static! {
-    /*
     pub static ref PUSH: Instruction =
-        instruction!(push, |simulator: Simulator, input: InputTarget| {
-            let word_size = simulator.get_word_size().clone();
-            let sp = simulator
-                .get_registers_mut()
-                .get_register_mut(&"$sp".into())?;
-            let rd1 = RawData::from_int(
-                sp.get_data().int_value() - word_size.value() as i64,
-                &word_size,
-            );
+        instruction!(push, |simulator: Simulator, 
+                            input: InputTarget| {
+            let ws = simulator.get_word_size().clone();
+            let data = input.get(simulator)?;
+            let sp = simulator.get_registers_mut().get_register_mut(&"$sp".into())?.get_data().int_value() - ws.value() as i64;
+            simulator.get_registers_mut().get_register_mut(&"$sp".into())?.set_data(RawData::from_int(sp, &ws));
+            simulator.get_memory_mut().write(sp as usize, &data)
+        });
 
-            let rd2 = input.get(simulator)?;
-
-            println!("{:?} {:?}", rd1.int_value(), rd2.int_value());
+    pub static ref POP: Instruction =
+        instruction!(pop, |simulator: Simulator, 
+                            output: InputOutputTarget| {
+            let ws = simulator.get_word_size().clone();
+            let wsv = ws.value() as i64;
+            let sp = simulator.get_registers_mut().get_register_mut(&"$sp".into())?.get_data().int_value() - wsv;
+            output.set(simulator, simulator.get_memory().read(sp as usize)?)?;
+            simulator.get_registers_mut().get_register_mut(&"$sp".into())?.set_data(RawData::from_int(sp + wsv, &ws));
             Ok(())
         });
-    */
+
     pub static ref LOAD: Instruction =
         instruction!(load, |simulator: Simulator, 
                             output: InputOutputTarget,
@@ -60,7 +63,8 @@ lazy_static! {
 }
 
 pub fn register_instructions() {
-    // register_instruction(&PUSH);
+    register_instruction(&PUSH);
+    register_instruction(&POP);
     register_instruction(&LOAD);
     register_instruction(&STORE);
     register_instruction(&ALLOC);
