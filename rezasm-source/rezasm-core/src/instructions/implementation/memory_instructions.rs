@@ -8,7 +8,6 @@ use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::instructions::targets::output_target::Output;
-use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
 lazy_static! {
@@ -60,6 +59,13 @@ lazy_static! {
             let bytes = RawData::from_int(input.get(simulator)?.int_value(), memory.word_size());
             output.set(simulator, bytes)
         });
+
+    pub static ref MOVE: Instruction =
+        instruction!(_move, |simulator: Simulator, 
+                            output: InputOutputTarget,
+                            input: InputTarget| {
+            output.set(simulator, input.get(simulator)?)
+        });
 }
 
 pub fn register_instructions() {
@@ -68,4 +74,5 @@ pub fn register_instructions() {
     register_instruction(&LOAD);
     register_instruction(&STORE);
     register_instruction(&ALLOC);
+    register_instruction(&MOVE);
 }
