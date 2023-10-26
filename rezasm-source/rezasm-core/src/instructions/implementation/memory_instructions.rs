@@ -12,58 +12,67 @@ use crate::util::raw_data::RawData;
 
 lazy_static! {
     pub static ref PUSH: Instruction =
-        instruction!(push, |simulator: Simulator, 
-                            input: InputTarget| {
+        instruction!(push, |simulator: Simulator, input: InputTarget| {
             let ws = simulator.get_word_size().clone();
             let data = input.get(simulator)?;
-            let sp = simulator.get_registers_mut().get_register_mut(&"$sp".into())?.get_data().int_value() - ws.value() as i64;
-            simulator.get_registers_mut().get_register_mut(&"$sp".into())?.set_data(RawData::from_int(sp, &ws));
+            let sp = simulator
+                .get_registers_mut()
+                .get_register_mut(&"$sp".into())?
+                .get_data()
+                .int_value()
+                - ws.value() as i64;
+            simulator
+                .get_registers_mut()
+                .get_register_mut(&"$sp".into())?
+                .set_data(RawData::from_int(sp, &ws));
             simulator.get_memory_mut().write(sp as usize, &data)
         });
-
     pub static ref POP: Instruction =
-        instruction!(pop, |simulator: Simulator, 
-                            output: InputOutputTarget| {
+        instruction!(pop, |simulator: Simulator, output: InputOutputTarget| {
             let ws = simulator.get_word_size().clone();
             let wsv = ws.value() as i64;
-            let sp = simulator.get_registers_mut().get_register_mut(&"$sp".into())?.get_data().int_value() - wsv;
+            let sp = simulator
+                .get_registers_mut()
+                .get_register_mut(&"$sp".into())?
+                .get_data()
+                .int_value()
+                - wsv;
             output.set(simulator, simulator.get_memory().read(sp as usize)?)?;
-            simulator.get_registers_mut().get_register_mut(&"$sp".into())?.set_data(RawData::from_int(sp + wsv, &ws));
+            simulator
+                .get_registers_mut()
+                .get_register_mut(&"$sp".into())?
+                .set_data(RawData::from_int(sp + wsv, &ws));
             Ok(())
         });
-
     pub static ref LOAD: Instruction =
-        instruction!(load, |simulator: Simulator, 
+        instruction!(load, |simulator: Simulator,
                             output: InputOutputTarget,
                             input: InputTarget| {
             let memory = simulator.get_memory();
             let word = memory.read(input.get(simulator)?.int_value() as usize)?;
             output.set(simulator, word)
         });
-    
     pub static ref STORE: Instruction =
         instruction!(store, |simulator: Simulator,
-                            input1: InputTarget,
-                            input2: InputTarget| {
+                             input1: InputTarget,
+                             input2: InputTarget| {
             let address = input2.get(simulator)?.int_value() as usize;
             let data = input1.get(simulator)?;
             let memory = simulator.get_memory_mut();
             memory.write(address, &data)
         });
-
     pub static ref ALLOC: Instruction =
         instruction!(alloc, |simulator: Simulator,
-                            output: InputOutputTarget,
-                            input: InputTarget| {
+                             output: InputOutputTarget,
+                             input: InputTarget| {
             let memory = simulator.get_memory();
             let bytes = RawData::from_int(input.get(simulator)?.int_value(), memory.word_size());
             output.set(simulator, bytes)
         });
-
     pub static ref MOVE: Instruction =
-        instruction!(_move, |simulator: Simulator, 
-                            output: InputOutputTarget,
-                            input: InputTarget| {
+        instruction!(_move, |simulator: Simulator,
+                             output: InputOutputTarget,
+                             input: InputTarget| {
             output.set(simulator, input.get(simulator)?)
         });
 }
