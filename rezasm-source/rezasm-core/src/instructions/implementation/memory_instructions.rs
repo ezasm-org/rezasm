@@ -8,6 +8,7 @@ use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::instructions::targets::output_target::Output;
+use crate::simulation::registry;
 use crate::util::raw_data::RawData;
 
 lazy_static! {
@@ -17,13 +18,13 @@ lazy_static! {
             let data = input.get(simulator)?;
             let sp = simulator
                 .get_registers_mut()
-                .get_register_mut(&"$sp".into())?
+                .get_register_mut(&registry::SP.into())?
                 .get_data()
                 .int_value()
                 - ws.value() as i64;
             simulator
                 .get_registers_mut()
-                .get_register_mut(&"$sp".into())?
+                .get_register_mut(&registry::SP.into())?
                 .set_data(RawData::from_int(sp, &ws));
             simulator.get_memory_mut().write(sp as usize, &data)
         });
@@ -33,14 +34,14 @@ lazy_static! {
             let wsv = ws.value() as i64;
             let sp = simulator
                 .get_registers_mut()
-                .get_register_mut(&"$sp".into())?
+                .get_register_mut(&registry::SP.into())?
                 .get_data()
                 .int_value()
                 - wsv;
             output.set(simulator, simulator.get_memory().read(sp as usize)?)?;
             simulator
                 .get_registers_mut()
-                .get_register_mut(&"$sp".into())?
+                .get_register_mut(&registry::SP.into())?
                 .set_data(RawData::from_int(sp + wsv, &ws));
             Ok(())
         });
@@ -65,8 +66,11 @@ lazy_static! {
         instruction!(alloc, |simulator: Simulator,
                              output: InputOutputTarget,
                              input: InputTarget| {
-            let memory = simulator.get_memory();
-            let bytes = RawData::from_int(input.get(simulator)?.int_value(), memory.word_size());
+            let offset = input.get(simulator)?.int_value() as usize;
+            let mut memory = simulator.get_memory_mut();
+            let heap_pointer = memory.current_heap_pointer();
+            memory.set_heap_pointer(heap_pointer + offset)?;
+            let bytes = RawData::from_int(heap_pointer as i64, simulator.get_word_size());
             output.set(simulator, bytes)
         });
     pub static ref MOVE: Instruction =
