@@ -96,10 +96,11 @@ function App() {
         disallowExecution();
         await rust_reset();
         setState(STATE.IDLE);
+        callCallbacks();
         setResult("");
         clearErrorState();
         return STATE.IDLE;
-    }, [clearErrorState]);
+    }, [callCallbacks, clearErrorState]);
 
     const load = useCallback(async (currentState) => {
         if (currentState >= STATE.LOADED) {
