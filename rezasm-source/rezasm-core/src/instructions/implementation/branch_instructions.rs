@@ -22,7 +22,7 @@ lazy_static! {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             if value1 == value2 {
-                return output.set(simulator, label.get(&simulator).unwrap());
+                return output.set(simulator, label.get(&simulator)?);
             } else {
                 return Ok(());
             }
@@ -37,7 +37,7 @@ lazy_static! {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             if value1 != value2 {
-                return output.set(simulator, label.get(&simulator).unwrap());
+                return output.set(simulator, label.get(&simulator)?);
             } else {
                 return Ok(());
             }
@@ -52,7 +52,7 @@ lazy_static! {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             if value1 < value2 {
-                return output.set(simulator, label.get(&simulator).unwrap());
+                return output.set(simulator, label.get(&simulator)?);
             } else {
                 return Ok(());
             }
@@ -67,7 +67,7 @@ lazy_static! {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             if value1 <= value2 {
-                return output.set(simulator, label.get(&simulator).unwrap());
+                return output.set(simulator, label.get(&simulator)?);
             } else {
                 return Ok(());
             }
@@ -82,7 +82,7 @@ lazy_static! {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             if value1 > value2 {
-                return output.set(simulator, label.get(&simulator).unwrap());
+                return output.set(simulator, label.get(&simulator)?);
             } else {
                 return Ok(());
             }
@@ -97,7 +97,7 @@ lazy_static! {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
             if value1 >= value2 {
-                return output.set(simulator, label.get(&simulator).unwrap());
+                return output.set(simulator, label.get(&simulator)?);
             } else {
                 return Ok(());
             }
