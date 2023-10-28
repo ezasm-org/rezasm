@@ -66,9 +66,6 @@ pub enum InternalError {
 
     #[error("improper usage of get_input_output_target")]
     GetInputOutputTargetError,
-
-    #[error("transformable synchronization is incorrect")]
-    TransformableError,
 }
 
 #[derive(Error, Debug)]

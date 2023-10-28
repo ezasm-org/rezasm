@@ -1,4 +1,7 @@
-use crate::{util::{raw_data::RawData, error::SimulatorError}, simulation::simulator::Simulator};
+use crate::{
+    simulation::simulator::Simulator,
+    util::{error::SimulatorError, raw_data::RawData},
+};
 
 use super::transformable::Transformable;
 
@@ -10,7 +13,11 @@ pub struct Transformation {
 
 impl Transformation {
     pub fn invert(&mut self) -> Transformation {
-        Transformation { output: self.output.clone(), from: self.to.clone(), to: self.from.clone() }
+        Transformation {
+            output: self.output.clone(),
+            from: self.to.clone(),
+            to: self.from.clone(),
+        }
     }
 
     pub fn apply(&mut self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
