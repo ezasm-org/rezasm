@@ -7,7 +7,7 @@ use crate::util::raw_data::RawData;
 
 pub trait InputOutput: Input + Output {}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum InputOutputTarget {
     DereferenceInputOutput(usize, i64),
     RegisterInputOutput(usize),
