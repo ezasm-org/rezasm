@@ -40,10 +40,7 @@ impl Transformable {
             Transformable::MemoryTransformable(address) => {
                 simulator.get_memory_mut().write(address.clone(), &data)
             }
-            Transformable::FileReadTransformable(cursor) => todo!(), //must be todo
-                                                                     //until read
-                                                                     //instructions
-                                                                     //are done?
+            Transformable::FileReadTransformable(cursor) => todo!(), //must be todo until read instructions are done
         }
     }
 }
