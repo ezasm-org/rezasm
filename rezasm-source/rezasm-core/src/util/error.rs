@@ -1,3 +1,4 @@
+use std::char::ParseCharError;
 use std::num::{ParseFloatError, ParseIntError};
 use std::process;
 use thiserror::Error;
@@ -167,6 +168,12 @@ impl From<ParseFloatError> for ParserError {
 impl From<ParseIntError> for ParserError {
     fn from(error: ParseIntError) -> Self {
         ParserError::NumericalImmediateError(error.to_string())
+    }
+}
+
+impl From<ParseCharError> for ParserError {
+    fn from(error: ParseCharError) -> Self {
+        ParserError::StringImmediateError(error.to_string())
     }
 }
 

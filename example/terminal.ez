@@ -1,0 +1,3 @@
+readi $t0
+readf $t1
+readc $t2

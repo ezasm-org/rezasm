@@ -65,6 +65,14 @@ impl RawData {
             data: buffer.into_vec(),
         }
     }
+
+    pub fn from_char(ch: char) -> RawData {
+        let mut buffer = ByteBuffer::new();
+        buffer.write_string(&ch.to_string());
+        RawData {
+            data: buffer.into_vec(),
+        }
+    }
 }
 
 impl From<i64> for RawData {
