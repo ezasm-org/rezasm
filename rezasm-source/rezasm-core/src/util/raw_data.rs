@@ -43,8 +43,7 @@ impl RawData {
     }
 
     pub fn string_value(&self) -> String {
-        let mut buffer = ByteBuffer::from(self.data.clone());
-        buffer.read_string().unwrap()
+        String::from_utf8(self.data.clone()).unwrap()
     }
 
     pub fn from_int(int: i64, size: &WordSize) -> RawData {
