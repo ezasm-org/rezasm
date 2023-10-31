@@ -1,5 +1,8 @@
+use std::error::Error;
 use std::fmt::Debug;
+use std::path::Path;
 
+use crate::parser::lexer;
 use crate::parser::line::Line;
 use crate::simulation::memory;
 use crate::simulation::memory::Memory;
@@ -7,6 +10,7 @@ use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
 use crate::util::error::SimulatorError;
+use crate::util::io::RezasmFileReader;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
 
@@ -53,6 +57,18 @@ impl Simulator {
         self.reset_data();
         self.program.reset();
         self.initialize();
+    }
+
+    /// Import a file.
+    pub fn import_lines_from_file(&mut self, path: impl AsRef<Path>) -> Result<(), SimulatorError> {
+        let reader = RezasmFileReader::new(path)?;
+        let mut lines = Vec::new();
+        for line in reader.lines()?.iter() {
+            if let Some(parsed_line) = lexer::parse_line(line, &self.word_size) {
+                lines.push(parsed_line?);
+            }
+        }
+        self.add_lines(lines)
     }
 
     pub fn add_line(&mut self, line: Line) -> Result<(), SimulatorError> {
