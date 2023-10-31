@@ -1,0 +1,3 @@
+import "import_1.ez"
+
+move $r0 0x20

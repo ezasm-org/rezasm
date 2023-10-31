@@ -55,23 +55,15 @@ impl Simulator {
         self.initialize();
     }
 
-    pub fn add_line(&mut self, line: Line) -> Result<(), SimulatorError> {
-        match self
-            .memory
-            .add_string_immediates(line.get_string_immediates())
-        {
-            Ok(_) => {}
-            Err(error) => return Err(error),
-        };
-        self.program.add_line(line, "".to_string())
+    pub fn add_line(&mut self, line: Line, file: String) -> Result<(), SimulatorError> {
+        self.memory
+            .add_string_immediates(line.get_string_immediates())?;
+        self.program.add_line(line, file)
     }
 
-    pub fn add_lines(&mut self, lines: Vec<Line>) -> Result<(), SimulatorError> {
+    pub fn add_lines(&mut self, lines: Vec<Line>, file: String) -> Result<(), SimulatorError> {
         for line in lines {
-            match self.add_line(line) {
-                Ok(_) => {}
-                Err(error) => return Err(error),
-            };
+            self.add_line(line, file.clone())?;
         }
         Ok(())
     }
