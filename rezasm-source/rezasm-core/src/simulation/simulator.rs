@@ -80,6 +80,10 @@ impl Simulator {
         &self.registry
     }
 
+    pub fn get_program(&self) -> &Program {
+        &self.program
+    }
+
     pub fn get_word_size_mut(&mut self) -> &mut WordSize {
         &mut self.word_size
     }
@@ -90,6 +94,10 @@ impl Simulator {
 
     pub fn get_registers_mut(&mut self) -> &mut Registry {
         &mut self.registry
+    }
+
+    pub fn get_program_mut(&mut self) -> &mut Program {
+        &mut self.program
     }
 
     pub fn end_pc(&self) -> usize {
