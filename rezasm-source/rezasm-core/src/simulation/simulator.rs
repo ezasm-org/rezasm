@@ -123,6 +123,10 @@ impl Simulator {
         self.writer
     }
 
+    pub fn get_program_mut(&mut self) -> &mut Program {
+        &mut self.program
+    }
+
     pub fn end_pc(&self) -> usize {
         let fid = self
             .registry
