@@ -22,11 +22,10 @@ lazy_static! {
             let mut relative_location = simulator.get_program().main_file();
             let relative_location_split = relative_location =
                 match relative_location.rsplit_once('/') {
-                    Some((first, _)) => first.into(),
+                    Some((first, _)) => format!("{}/", first),
                     None => String::new(),
                 };
-            let file = RezasmFileReader::new(&format!("{}/{}", relative_location, file_path))?;
-            println!("{}", file.get_path().to_string_lossy());
+            let file = RezasmFileReader::new(&format!("{}{}", relative_location, file_path))?;
             let line_results: Vec<Option<Result<Line, ParserError>>> = file
                 .lines()?
                 .iter()
