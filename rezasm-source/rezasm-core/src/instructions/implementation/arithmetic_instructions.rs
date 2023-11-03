@@ -48,20 +48,16 @@ lazy_static! {
             let ws = wstemp.clone();
 
             let hi: &mut Register = simulator.get_registers_mut().get_register_mut(&registry::HI.to_string())?;
-            let upper: i64 = value1 * value2 >> match ws {
-               WordSize::Four => 16, 
-               WordSize::Eight => 32, 
-               _ => 0, 
-            };
-            hi.set_data(RawData::from_int(upper, &ws));
+            let full: i128 = (value1 as i128) * (value2 as i128);
 
+            hi.set_data(RawData::from_int(match ws {
+                WordSize::Four => (i128::abs(full) >> 32) as i64, 
+                WordSize::Eight => (i128::abs(full) >> 64) as i64, 
+                _ => full as i64,
+            } , &ws));
+            
             let lo: &mut Register = simulator.get_registers_mut().get_register_mut(&registry::LO.to_string())?;
-            let lower: i64 = value1 * value2 >> match ws {
-               WordSize::Four => 32, 
-               WordSize::Eight => 64, 
-               _ => 0, 
-            };
-            lo.set_data(RawData::from_int(lower, &ws));
+            lo.set_data(RawData::from_int(full as i64, &ws));
 
             let k = value1 * value2;
 
