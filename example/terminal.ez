@@ -1,4 +1,5 @@
 readi $t0
 readf $t1
 readc $t2
+alloc $s0 $t0
 reads $s0 $t0

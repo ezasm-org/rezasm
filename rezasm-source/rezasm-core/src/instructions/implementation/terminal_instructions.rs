@@ -41,7 +41,6 @@ lazy_static! {
             io::stdin().read_line(&mut buf).map_err(IoError::from)?;
             let mut s: String = buf.trim().parse().unwrap();
             s.truncate(max_size as usize);
-            println!("{} {} {}", address, s, max_size);
             for c in s.chars() {
                 simulator.get_memory_mut().write(address as usize, &RawData::from_char(c))?;
                 address += simulator.get_memory().word_size().value() as i64;
