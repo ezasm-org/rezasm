@@ -46,16 +46,23 @@ lazy_static! {
 
             let word_size = simulator.get_word_size().clone();
 
-            let hi: &mut Register = simulator.get_registers_mut().get_register_mut(&registry::HI.to_string())?;
+            let hi: &mut Register = simulator
+                .get_registers_mut()
+                .get_register_mut(&registry::HI.to_string())?;
             let full: i128 = (value1 as i128) * (value2 as i128);
 
-            hi.set_data(RawData::from_int(match word_size {
-                WordSize::Four => (i128::abs(full) >> 32) as i64, 
-                WordSize::Eight => (i128::abs(full) >> 64) as i64, 
-                _ => 0i64,
-            } , &word_size));
-            
-            let lo: &mut Register = simulator.get_registers_mut().get_register_mut(&registry::LO.to_string())?;
+            hi.set_data(RawData::from_int(
+                match word_size {
+                    WordSize::Four => (i128::abs(full) >> 32) as i64,
+                    WordSize::Eight => (i128::abs(full) >> 64) as i64,
+                    _ => 0i64,
+                },
+                &word_size,
+            ));
+
+            let lo: &mut Register = simulator
+                .get_registers_mut()
+                .get_register_mut(&registry::LO.to_string())?;
             lo.set_data(RawData::from_int(full as i64, &word_size));
 
             let k = value1 * value2;
