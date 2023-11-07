@@ -165,7 +165,7 @@ impl Simulator {
         }
     }
 
-    pub fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
+    fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
         let result = match line {
             Line::Instruction(instruction, args) => {
                 instruction.get_function()(self, instruction.get_types(), &args)
