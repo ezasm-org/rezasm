@@ -115,6 +115,10 @@ pub static ref FTOI: Instruction =
 
         // This has a "feature" due to lack of precision in float representations for some floats... This is
         // not a particularly fixable thing without getting too complicated.
+        
+        if value1.is_nan() {
+            return Err(SimulatorError::NaNConversionError);
+        }
         let k = value1 as i64;
 
         return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
