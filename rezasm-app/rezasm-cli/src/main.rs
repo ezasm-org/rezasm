@@ -11,7 +11,7 @@ use std::io::Write;
 use std::process;
 
 use rezasm_core::instructions::implementation::register_instructions;
-use rezasm_core::parser::lexer::{parse_line, text_to_number, tokenize_line, EZNumber};
+use rezasm_core::parser::lexer::{parse_line, parse_lines, text_to_number, tokenize_line, EZNumber};
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::registry;
@@ -35,6 +35,7 @@ fn main() {
     test_macro();
     test_simulator_instruction();
     test_simulator_labels();
+    test_print_instructions();
     test_io();
 
     let args: Arguments = cli::get_args();
@@ -161,6 +162,25 @@ pub fn test_simulator_instruction() {
     );
 
     println!("Instruction Registry and Simulator work");
+}
+
+pub fn test_print_instructions() {
+    let mut simulator: Simulator = Simulator::new();
+    let program = "
+        move $s2 \"Print Instructions Work!\\n\"
+        add $s1 '\\n' 0
+        add $t0 1 2
+        printi $t0
+        printc $s1
+        addf $t1 1.5 0
+        printf $t1
+        printc $s1
+        prints $s2";
+    let lines = parse_lines(&program.to_string(), simulator.get_word_size()).unwrap();
+    simulator.add_lines(lines, "".to_string()).unwrap();
+    while !simulator.is_done() {
+        simulator.run_line_from_pc().unwrap();
+    }
 }
 
 pub fn test_simulator_labels() {

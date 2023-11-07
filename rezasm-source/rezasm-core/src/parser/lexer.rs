@@ -281,6 +281,18 @@ pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, Pa
     }
 }
 
+// TODO ake the simulator use this
+pub fn parse_lines(lines: &String, word_size: &WordSize) -> Result<Vec<Line>, ParserError> {
+    let mut output: Vec<Line> = Vec::new();
+    for s in lines.lines() {
+        output.push(match parse_line(&s.into(), word_size) {
+            Some(v) => v,
+            None => continue,
+        }?);
+    }
+    Ok(output)
+}
+
 pub fn get_string_immediate(token: &String) -> Result<String, ParserError> {
     if token.len() < 2 {
         return Err(ParserError::StringImmediateError(token.to_string()).into());
