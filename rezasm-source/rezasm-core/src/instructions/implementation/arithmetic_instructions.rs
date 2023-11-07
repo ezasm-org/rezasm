@@ -8,6 +8,8 @@ use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::instructions::targets::output_target::Output;
+use crate::simulation::register::Register;
+use crate::simulation::registry;
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
@@ -40,7 +42,24 @@ lazy_static! {
                            input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
+            let result: i128 = value1 as i128 * value2 as i128;
+
+            let word_size = simulator.get_word_size().clone();
+
+            let hi: &mut Register = simulator.get_registers_mut().get_register_mut(&registry::HI.to_string())?;
+            let full: i128 = (value1 as i128) * (value2 as i128);
+
+            hi.set_data(RawData::from_int(match word_size {
+                WordSize::Four => (i128::abs(full) >> 32) as i64, 
+                WordSize::Eight => (i128::abs(full) >> 64) as i64, 
+                _ => 0i64,
+            } , &word_size));
+            
+            let lo: &mut Register = simulator.get_registers_mut().get_register_mut(&registry::LO.to_string())?;
+            lo.set_data(RawData::from_int(full as i64, &word_size));
+
             let k = value1 * value2;
+
             return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
         });
     pub static ref DIV: Instruction =
