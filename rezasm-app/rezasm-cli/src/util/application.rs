@@ -32,7 +32,10 @@ impl Application {
         for line in lines {
             match lexer::parse_line(&line, self.simulator.get_word_size()) {
                 Some(line_result) => match line_result {
-                    Ok(line) => self.simulator.add_line(line)?,
+                    Ok(line) => self.simulator.add_line(
+                        line,
+                        self.code_file.get_path().to_string_lossy().to_string(),
+                    )?,
                     Err(error) => return Err(error.into()),
                 },
                 None => {}

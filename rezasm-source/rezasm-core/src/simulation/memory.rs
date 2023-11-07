@@ -117,34 +117,31 @@ impl Memory {
         }
     }
 
-    pub fn add_string_immediates(&mut self, strings: Vec<&String>) -> Result<(), SimulatorError> {
+    pub fn add_string_immediates(&mut self, strings: Vec<String>) -> Result<(), SimulatorError> {
         for string in strings {
-            if !self.string_address_map.contains_key(string) {
-                if self.string_alloc_index + string.len() >= self.offset_bytes {
+            if !self.string_address_map.contains_key(&string) {
+                if self.string_alloc_index + string.len() + 1 >= self.offset_bytes {
                     return Err(SimulatorError::StringRegionOutOfMemoryError(
                         string.to_string(),
                     ));
                 }
+                let word_size_offset = self.word_size.value();
                 for (index, c) in string.as_bytes().iter().enumerate() {
-                    match self.unsafe_write(
-                        self.string_alloc_index + index * self.word_size.value(),
-                        &RawData::from(c.clone() as i64),
-                    ) {
-                        Ok(_) => {}
-                        Err(error) => return Err(error),
-                    };
+                    self.unsafe_write(
+                        self.string_alloc_index + index * word_size_offset,
+                        &RawData::from_int(c.clone() as i64, &self.word_size),
+                    )?;
                 }
-                match self.unsafe_write(
-                    self.string_alloc_index + string.len() * self.word_size.value(),
+                self.unsafe_write(
+                    self.string_alloc_index + string.len() * word_size_offset,
                     &RawData::empty_data(&self.word_size),
-                ) {
-                    Ok(_) => {}
-                    Err(error) => return Err(error),
-                };
+                )?;
+                let new_alloc_offset = (string.len() + 1) * word_size_offset;
                 self.string_address_map.insert(
-                    string.clone(),
-                    RawData::from(self.string_alloc_index as i64),
+                    string,
+                    RawData::from_int(self.string_alloc_index as i64, &self.word_size),
                 );
+                self.string_alloc_index += new_alloc_offset;
             }
         }
         Ok(())
@@ -159,6 +156,21 @@ impl Memory {
             None => Err(SimulatorError::StringImmediateDoesNotExistError(
                 string.to_string(),
             )),
+        }
+    }
+
+    pub fn get_string(&self, address: usize) -> Result<String, SimulatorError> {
+        let word_size = self.word_size.value();
+        let mut offset = 0;
+        let mut out = String::new();
+        loop {
+            let value = self.read(address + offset)?;
+            let int_value = value.int_value();
+            if int_value == 0 {
+                return Ok(out);
+            }
+            out = format!("{}{}", out, int_value as u8 as char);
+            offset += word_size;
         }
     }
 }

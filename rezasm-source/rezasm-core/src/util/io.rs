@@ -27,6 +27,11 @@ impl RezasmFileReader {
             cursor: 0,
         })
     }
+    /// Get a clone of the path buffer.
+    pub fn get_path(&self) -> PathBuf {
+        self.path_buf.clone()
+    }
+
     /// Get a clone of the bytes.
     pub fn bytes(&self) -> Vec<u8> {
         self.bytes.clone()

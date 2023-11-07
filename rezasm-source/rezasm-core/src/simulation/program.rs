@@ -111,4 +111,11 @@ impl Program {
             Some(file) => file.len(),
         }
     }
+
+    pub fn main_file(&self) -> String {
+        match self.file_identifiers.get_by_right(&0i64) {
+            Some(x) => x.into(),
+            None => "".into(),
+        }
+    }
 }

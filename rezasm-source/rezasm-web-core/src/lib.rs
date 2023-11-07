@@ -42,7 +42,7 @@ pub fn load(lines: &str) -> Result<(), String> {
         match line_parse {
             None => { /* no-op */ }
             Some(x) => match x {
-                Ok(line) => match simulator.add_line(line) {
+                Ok(line) => match simulator.add_line(line, "".into()) {
                     Ok(_) => {}
                     Err(error) => return Err(format!("Error parsing program: {}", error)),
                 },
