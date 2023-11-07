@@ -115,7 +115,7 @@ pub static ref FTOI: Instruction =
 
         // This has a "feature" due to lack of precision in float representations for some floats... This is
         // not a particularly fixable thing without getting too complicated.
-        
+
         if value1.is_nan() {
             return Err(SimulatorError::NaNConversionError);
         }
