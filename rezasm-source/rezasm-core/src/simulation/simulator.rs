@@ -1,4 +1,7 @@
 use std::fmt::Debug;
+use std::io::{self, Stdin};
+
+use scanner_rust::Scanner;
 
 use crate::parser::line::Line;
 use crate::simulation::memory;
@@ -9,6 +12,7 @@ use crate::simulation::registry::Registry;
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
+use super::stream::StreamManager;
 
 #[derive(Debug)]
 pub struct Simulator {
@@ -16,6 +20,7 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
+    stream_manager: StreamManager,
 }
 
 impl Simulator {
@@ -29,6 +34,7 @@ impl Simulator {
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
+            stream_manager: StreamManager::Terminal(Scanner::new(io::stdin())),
         };
         sim.initialize();
         sim
@@ -182,6 +188,14 @@ impl Simulator {
         match self.program.resolve_label(label) {
             None => Err(SimulatorError::NonExistentLabelError(label.clone())),
             Some((_, line_number)) => Ok(line_number.clone()),
+        }
+    }
+
+    pub fn terminal_stream(&mut self) -> Option<&mut Scanner<io::Stdin>> {
+        if let StreamManager::Terminal(scanner) = &mut self.stream_manager {
+            Some(scanner)
+        } else {
+            None
         }
     }
 }
