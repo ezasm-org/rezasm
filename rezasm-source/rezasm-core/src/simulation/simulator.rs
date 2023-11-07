@@ -9,6 +9,7 @@ use crate::simulation::registry::Registry;
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
+use crate::util::writer::Writer;
 
 #[derive(Debug)]
 pub struct Simulator {
@@ -16,11 +17,16 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
+    writer: Writer,
 }
 
 impl Simulator {
     pub fn new() -> Simulator {
         Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS)
+    }
+
+    pub fn new_gui() -> Simulator {
+        Simulator::new_custom_gui(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS)
     }
 
     pub fn new_custom(word_size: &WordSize, memory_size: usize) -> Simulator {
@@ -29,6 +35,19 @@ impl Simulator {
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
+            writer: Writer::CLIApplication,
+        };
+        sim.initialize();
+        sim
+    }
+
+    pub fn new_custom_gui(word_size: &WordSize, memory_size: usize) -> Simulator {
+        let mut sim = Simulator {
+            memory: Memory::new_sized(word_size, memory_size),
+            registry: Registry::new(word_size),
+            program: Program::new(),
+            word_size: word_size.clone(),
+            writer: Writer::GraphicalWriter,
         };
         sim.initialize();
         sim
@@ -98,6 +117,10 @@ impl Simulator {
 
     pub fn get_program_mut(&mut self) -> &mut Program {
         &mut self.program
+    }
+
+    pub fn get_writer(&self) -> Writer {
+        self.writer
     }
 
     pub fn end_pc(&self) -> usize {
