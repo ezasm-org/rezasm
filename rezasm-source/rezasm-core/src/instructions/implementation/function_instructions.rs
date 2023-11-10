@@ -3,6 +3,7 @@
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::implementation::memory_instructions::POP;
 use crate::instructions::implementation::memory_instructions::PUSH;
+use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::simulation::registry::FID_NUMBER;
 use crate::simulation::registry::PC_NUMBER;
 use lazy_static::lazy_static;
@@ -11,18 +12,14 @@ use crate::instructions::instruction::instruction;
 use crate::instructions::instruction::Instruction;
 use crate::instructions::instruction_registry::register_instruction;
 
-use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::targets::output_target::Output;
 use crate::parser::lexer::parse_line;
 use crate::parser::line::Line;
 use crate::simulation::registry;
-use crate::simulation::simulator::Simulator;
 use crate::util::error::{ParserError, SimulatorError};
 use crate::util::io::RezasmFileReader;
 use crate::util::raw_data::RawData;
-use crate::util::word_size::WordSize;
 
 lazy_static! {
     pub static ref IMPORT: Instruction =

@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::sync::Mutex;
 
 use crate::parser::line::Line;
 use crate::simulation::memory;
@@ -6,6 +7,7 @@ use crate::simulation::memory::Memory;
 use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
+use crate::simulation::writer::{DummyWriter, Writer};
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
@@ -16,19 +18,33 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
+    writer: Mutex<Box<dyn Writer>>,
 }
 
 impl Simulator {
     pub fn new() -> Simulator {
-        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS)
+        Simulator::new_custom(
+            &DEFAULT_WORD_SIZE,
+            memory::DEFAULT_MEMORY_WORDS,
+            Mutex::new(Box::new(DummyWriter::new())),
+        )
     }
 
-    pub fn new_custom(word_size: &WordSize, memory_size: usize) -> Simulator {
+    pub fn new_writer(writer: Mutex<Box<dyn Writer>>) -> Simulator {
+        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, writer)
+    }
+
+    pub fn new_custom(
+        word_size: &WordSize,
+        memory_size: usize,
+        writer: Mutex<Box<dyn Writer>>,
+    ) -> Simulator {
         let mut sim = Simulator {
             memory: Memory::new_sized(word_size, memory_size),
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
+            writer,
         };
         sim.initialize();
         sim
@@ -96,6 +112,14 @@ impl Simulator {
         &mut self.registry
     }
 
+    pub fn get_writer(&self) -> &Mutex<Box<dyn Writer>> {
+        &self.writer
+    }
+
+    pub fn get_writer_mut(&mut self) -> &Mutex<Box<dyn Writer>> {
+        &self.writer
+    }
+
     pub fn get_program_mut(&mut self) -> &mut Program {
         &mut self.program
     }
@@ -142,7 +166,7 @@ impl Simulator {
         }
     }
 
-    pub fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
+    fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
         let result = match line {
             Line::Instruction(instruction, args) => {
                 instruction.get_function()(self, instruction.get_types(), &args)

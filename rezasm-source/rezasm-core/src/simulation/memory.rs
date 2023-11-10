@@ -173,4 +173,20 @@ impl Memory {
             offset += word_size;
         }
     }
+
+    pub fn get_string_sized(&self, address: usize, size: usize) -> Result<String, SimulatorError> {
+        let word_size = self.word_size.value();
+        let mut offset = 0;
+        let mut out = String::new();
+        for i in 0..size {
+            let value = self.read(address + offset)?;
+            let int_value = value.int_value();
+            if int_value == 0 {
+                return Ok(out);
+            }
+            out = format!("{}{}", out, int_value as u8 as char);
+            offset += word_size;
+        }
+        Ok(out)
+    }
 }

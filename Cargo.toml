@@ -53,3 +53,4 @@ wasm-bindgen = "0.2.87"
 [workspace]
 members = ["rezasm-app/rezasm-cli", "rezasm-app/rezasm-tauri", "rezasm-app/rezasm-wasm", 
     "rezasm-source/rezasm-core", "rezasm-source/rezasm-web-core",]
+default-members = ["rezasm-app/rezasm-cli", "rezasm-source/rezasm-core"]

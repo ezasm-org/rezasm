@@ -170,7 +170,9 @@ impl Write for RezasmFileWriter {
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
-        self.file.write_all(&self.bytes)
+        self.file.write_all(&self.bytes)?;
+        self.bytes.clear();
+        Ok(())
     }
 }
 
