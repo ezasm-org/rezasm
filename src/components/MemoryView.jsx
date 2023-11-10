@@ -7,39 +7,39 @@ const HEIGHT = 4;
 const CELLS = WIDTH * HEIGHT;
 
 function MemoryView({loaded, registerCallback}) {
-    let lowest = useRef(0);
+    let lowest = useRef(0); //useRef(0) makes lowest.current = 0 initially
     let text = useRef(0);
     let heap = useRef(0);
     let stack = useRef(0);
-    let [currentAddress, setCurrentAddress] = useState(0);
-    let [slice, setSlice] = useState(Array(CELLS).fill(0));
+    let [currentAddress, setCurrentAddress] = useState(0); //currentAddress is a state variable (state persists through re-renders, use setCurrentAddress to update currentAddress which will cause page to re-render)
+    let [slice, setSlice] = useState(Array(CELLS).fill(0)); //Array(CELLS).fill(0) creates an array of size 16 filled with 0s
     let wordSize = useRef(4);
 
-    let [addressInput, setAddressInput] = useState("0x" + currentAddress.toString(16));
+    let [addressInput, setAddressInput] = useState("0x" + currentAddress.toString(16)); //converting currentAddress to a hexadecimal number as a string and appending 0x in front of it
     let [selectorOptions, setSelectorOptions] = useState([0, 0, 0]);
     let [selected, setSelected] = useState(0);
 
     const updateSlice = useCallback(async address => {
-        if (address >= lowest.current && address <= (stack.current - CELLS * wordSize.current)) {
-            setCurrentAddress(address);
-            setAddressInput("0x" + address.toString(16));
-            let array = await rust_get_memory_slice(address, CELLS);
+        if (address >= lowest.current && address <= (stack.current - CELLS * wordSize.current)) { //checking if address is valid?
+            setCurrentAddress(address); //update currentAddress to address
+            setAddressInput("0x" + address.toString(16)); //update addressInput to hex version of address
+            let array = await rust_get_memory_slice(address, CELLS); //gives an array of addresses from address to address + cells*4
             let numberArray = [];
-            for (let i = 0; i < array.length; ++i) {
+            for (let i = 0; i < array.length; ++i) { //converting array[i] into numbers
                 numberArray.push(Number(array[i]));
             }
-            setSlice(numberArray);
+            setSlice(numberArray); //update slice to numberArray
         }
     }, []);
 
     const updateSliceCurrent = useCallback(async () => {
         updateSlice(currentAddress);
-    }, [currentAddress, updateSlice]);
+    }, [currentAddress, updateSlice]); //currentAddress and updateSlice are dependencies because if they change, then they need to know to be updated?
 
-    registerCallback(CALLBACKS.MEMORY, updateSliceCurrent);
+    registerCallback(CALLBACKS.MEMORY, updateSliceCurrent); // callbacks = {..., MEMORY => updateSliceCurrent()}
 
     useEffect(() => {
-        if (loaded) {
+        if (loaded) { //wasmLoaded = true
             rust_get_word_size().then(rustWordSize => {
                 wordSize.current = rustWordSize;
                 rust_get_memory_bounds().then(bounds => {

@@ -52,7 +52,7 @@ function App() {
         Object.values(callbacks.current).map(callback => callback());
     }, []);
 
-    const registerCallback = useCallback((name, callback) => {
+    const registerCallback = useCallback((name, callback) => { //adds in a new callback to the callbacks object
         callbacks.current[name] = callback;
     }, []);
 
