@@ -10,7 +10,6 @@ use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
 use crate::simulation::simulator::Writer;
 use crate::util::error::IoError;
-use crate::util::error::SimulatorError;
 
 lazy_static! {
     pub static ref PRINTI: Instruction =

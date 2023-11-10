@@ -9,6 +9,7 @@ extern crate scanner_rust;
 
 use std::process;
 
+use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_core::util::error::handle_error;
 
 use crate::util::application::Application;
@@ -17,6 +18,7 @@ use crate::util::cli::Arguments;
 use crate::util::cli_arguments::handle_arguments;
 
 fn main() {
+    register_instructions();
     let args: Arguments = cli::get_args();
     let application: Application = match handle_arguments(args) {
         Ok(app) => app,

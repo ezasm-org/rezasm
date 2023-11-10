@@ -1,4 +1,4 @@
-use crate::util::cli_io::{InputSource, OutputSink};
+use crate::util::cli_io::InputSource;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
