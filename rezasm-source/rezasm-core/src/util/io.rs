@@ -1,5 +1,3 @@
-use crate::simulation::simulator::Writer;
-
 use super::error::IoError;
 use std::io::{BufRead, Read};
 use std::{
@@ -188,26 +186,5 @@ impl Deref for RezasmFileWriter {
 impl DerefMut for RezasmFileWriter {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.bytes
-    }
-}
-
-#[derive(Debug)]
-pub struct DummyWriter {}
-
-impl DummyWriter {
-    pub fn new() -> DummyWriter {
-        DummyWriter {}
-    }
-}
-
-impl Writer for DummyWriter {}
-
-impl Write for DummyWriter {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        Ok(0usize)
-    }
-
-    fn flush(&mut self) -> std::io::Result<()> {
-        Ok(())
     }
 }

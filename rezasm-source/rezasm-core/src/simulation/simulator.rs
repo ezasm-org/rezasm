@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-use std::io::Write;
 use std::sync::Mutex;
 
 use crate::parser::line::Line;
@@ -8,12 +7,10 @@ use crate::simulation::memory::Memory;
 use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
+use crate::simulation::writer::{DummyWriter, Writer};
 use crate::util::error::SimulatorError;
-use crate::util::io::DummyWriter;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
-
-pub trait Writer: Write + Send + Debug {}
 
 #[derive(Debug)]
 pub struct Simulator {

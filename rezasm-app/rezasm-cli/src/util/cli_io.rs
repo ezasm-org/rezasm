@@ -1,6 +1,6 @@
 use crate::util::cli_io::InputSource::{ConsoleInput, FileInput};
 use crate::util::cli_io::OutputSink::{ConsoleOutput, FileOutput};
-use rezasm_core::simulation::simulator::Writer;
+use rezasm_core::simulation::writer::Writer;
 use rezasm_core::util::error::IoError;
 use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use scanner_rust::Scanner;

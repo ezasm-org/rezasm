@@ -8,7 +8,7 @@ use crate::instructions::instruction_registry::register_instruction;
 
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::simulation::simulator::Writer;
+use crate::simulation::writer::Writer;
 use crate::util::error::IoError;
 
 lazy_static! {
