@@ -14,30 +14,30 @@ use crate::util::error::IoError;
 lazy_static! {
     pub static ref PRINTI: Instruction =
         instruction!(printi, |simulator: Simulator, input: InputTarget| {
-            let value1 = input.get(&simulator)?.int_value();
-            let output = format!("{}", value1);
+            let value = input.get(&simulator)?.int_value();
+            let output = format!("{}", value);
             write(simulator.get_writer(), &output)?;
             Ok(())
         });
     pub static ref PRINTF: Instruction =
         instruction!(printf, |simulator: Simulator, input: InputTarget| {
-            let value1 = input.get(&simulator)?.float_value();
-            let output = format!("{}", value1);
+            let value = input.get(&simulator)?.float_value();
+            let output = format!("{}", value);
             write(simulator.get_writer(), &output)?;
             Ok(())
         });
     pub static ref PRINTC: Instruction =
         instruction!(printc, |simulator: Simulator, input: InputTarget| {
-            let value1 = input.get(&simulator)?.int_value();
-            let output = format!("{}", value1 as u8 as char);
+            let value = input.get(&simulator)?.int_value();
+            let output = format!("{}", value as u8 as char);
             write(simulator.get_writer(), &output)?;
             Ok(())
         });
     pub static ref PRINTS_SIZED: Instruction =
         instruction!(prints, |simulator: Simulator,
-                              input: InputTarget,
+                              input1: InputTarget,
                               input2: InputTarget| {
-            let address = input.get(&simulator)?.int_value();
+            let address = input1.get(&simulator)?.int_value();
             let size = input2.get(&simulator)?.int_value();
             let output = simulator
                 .get_memory()
