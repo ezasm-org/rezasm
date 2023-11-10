@@ -40,7 +40,7 @@ lazy_static! {
             simulator.get_memory_mut().write(address as usize, &RawData::from_char('\0'))?;
             Ok(())
         });
-    pub static ref READS2: Instruction =
+    pub static ref READS_SIZED: Instruction =
         instruction!(reads, |simulator: Simulator,
                             input1: InputOutputTarget| {
             let mut address = input1.get(simulator)?.int_value();
@@ -83,7 +83,7 @@ lazy_static! {
             simulator.get_memory_mut().write(address as usize, &RawData::from_char('\0'))?;
             Ok(())
         });
-    pub static ref READLN2: Instruction =
+    pub static ref READLN_SIZED: Instruction =
         instruction!(readln, |simulator: Simulator,
                             input1: InputOutputTarget| {
             let mut address = input1.get(simulator)?.int_value();
@@ -103,7 +103,7 @@ pub fn register_instructions() {
     register_instruction(&READF);
     register_instruction(&READC);
     register_instruction(&READS);
-    register_instruction(&READS2);
+    register_instruction(&READS_SIZED);
     register_instruction(&READLN);
-    register_instruction(&READLN2);
+    register_instruction(&READLN_SIZED);
 }
