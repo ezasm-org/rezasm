@@ -1,3 +1,6 @@
+use crate::instructions::argument_type::ArgumentType;
+use crate::instructions::implementation::memory_instructions::POP;
+use crate::instructions::implementation::memory_instructions::PUSH;
 use lazy_static::lazy_static;
 
 use crate::instructions::instruction::instruction;
@@ -47,16 +50,85 @@ lazy_static! {
         instruction!(jump, |simulator: Simulator, input: InputTarget| {
             let word_size = simulator.get_word_size().clone();
             let value = input.get(&simulator)?;
-            let mut pc = simulator.get_registers_mut().get_pc_mut();
+            let pc = simulator.get_registers_mut().get_pc_mut();
             pc.set_data(value.clone());
             Ok(())
         });
     pub static ref CALL: Instruction =
         instruction!(call, |simulator: Simulator, input: InputTarget| {
             let word_size = simulator.get_word_size().clone();
-            let value = input.get(&simulator)?;
-            let mut pc = simulator.get_registers_mut().get_pc_mut();
-            pc.set_data(value.clone());
+            let (fid, pc) = match input {
+                InputTarget::LabelReferenceInput(label) => {
+                    match simulator.get_program().resolve_label(&label) {
+                        Some(value) => value.clone(),
+                        None => return Err(SimulatorError::NonExistentLabelError(label)),
+                    }
+                }
+                _ => (
+                    input.get(&simulator)?.int_value(),
+                    simulator.get_registers().get_fid().get_data().int_value(),
+                ),
+            };
+            let pc_register = ArgumentType::Input(InputTarget::RegisterInput(
+                registry::get_register_number(&registry::PC.into())?,
+            ));
+            let fid_register = ArgumentType::Input(InputTarget::RegisterInput(
+                registry::get_register_number(&registry::FID.into())?,
+            ));
+            PUSH.call_function(simulator, &vec![pc_register])?;
+            PUSH.call_function(simulator, &vec![fid_register])?;
+            simulator
+                .get_registers_mut()
+                .get_pc_mut()
+                .set_data(RawData::from_int(pc, &word_size));
+            simulator
+                .get_registers_mut()
+                .get_fid_mut()
+                .set_data(RawData::from_int(fid, &word_size));
+            Ok(())
+        });
+    pub static ref RETURN: Instruction = instruction!(_return, |simulator: Simulator| {
+        let pc_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(
+            registry::get_register_number(&registry::PC.into())?,
+        ));
+        let fid_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(
+            registry::get_register_number(&registry::FID.into())?,
+        ));
+        POP.call_function(simulator, &vec![fid_register])?;
+        POP.call_function(simulator, &vec![pc_register])?;
+        Ok(())
+    });
+    pub static ref EXIT: Instruction = instruction!(exit, |simulator: Simulator| {
+        let word_size = simulator.get_word_size().clone();
+        let end = simulator.get_program().end_pc(0) - 1;
+        simulator
+            .get_registers_mut()
+            .get_pc_mut()
+            .set_data(RawData::from_int(end as i64, &word_size));
+        simulator
+            .get_registers_mut()
+            .get_fid_mut()
+            .set_data(RawData::from_int(0i64, &word_size));
+        Ok(())
+    });
+    pub static ref EXIT_STATUS: Instruction =
+        instruction!(exit, |simulator: Simulator, input: InputTarget| {
+            let return_value = input.get(&simulator)?;
+            let r0 = simulator
+                .get_registers_mut()
+                .get_register_mut(&registry::R0.into())
+                .unwrap();
+            r0.set_data(return_value);
+            let word_size = simulator.get_word_size().clone();
+            let end = simulator.get_program().end_pc(0) - 1;
+            simulator
+                .get_registers_mut()
+                .get_pc_mut()
+                .set_data(RawData::from_int(end as i64, &word_size));
+            simulator
+                .get_registers_mut()
+                .get_fid_mut()
+                .set_data(RawData::from_int(0i64, &word_size));
             Ok(())
         });
 }
@@ -65,4 +137,7 @@ pub fn register_instructions() {
     register_instruction(&IMPORT);
     register_instruction(&JUMP);
     register_instruction(&CALL);
+    register_instruction(&RETURN);
+    register_instruction(&EXIT);
+    register_instruction(&EXIT_STATUS);
 }

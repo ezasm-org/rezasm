@@ -1,3 +1,11 @@
 import "import_1.ez"
 
-move $r0 0x20
+bar:
+  move $a0 5
+	call foo
+	# Expect 23 in r0
+	bne $r0 23 error
+	exit 0
+
+error:
+  exit 1

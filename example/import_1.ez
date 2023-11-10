@@ -1,3 +1,9 @@
 import "import_2.ez"
 
-move $r0 0x10
+call bar
+
+# Multiply by 4 and add 3
+foo:
+	sll $t0 $a0 2
+	add $r0 $t0 3
+	return

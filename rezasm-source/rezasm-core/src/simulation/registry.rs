@@ -216,4 +216,12 @@ impl Registry {
     pub fn get_sp_mut(&mut self) -> &mut Register {
         self.get_register_by_number_mut(4).unwrap()
     }
+
+    pub fn get_fid(&self) -> &Register {
+        self.get_register_by_number(2).unwrap()
+    }
+
+    pub fn get_fid_mut(&mut self) -> &mut Register {
+        self.get_register_by_number_mut(2).unwrap()
+    }
 }
