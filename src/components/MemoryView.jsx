@@ -38,7 +38,7 @@ function MemoryView({loaded, registerCallback}) {
 
     registerCallback(CALLBACKS.MEMORY, updateSliceCurrent); // callbacks = {..., MEMORY => updateSliceCurrent()}
 
-    useEffect(() => {
+    useEffect(() => { //useEffect is used here to make React work with stuff from rust
         if (loaded) { //wasmLoaded = true
             rust_get_word_size().then(rustWordSize => {
                 wordSize.current = rustWordSize;
