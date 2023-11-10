@@ -1,9 +1,8 @@
 use lazy_static::lazy_static;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
-use rezasm_core::simulation::simulator::{Simulator, Writer};
+use rezasm_core::simulation::simulator::Simulator;
 
-use std::io::Write;
 use std::string::ToString;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock, RwLockWriteGuard};

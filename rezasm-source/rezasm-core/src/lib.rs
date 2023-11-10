@@ -15,9 +15,18 @@ pub mod util;
 
 #[cfg(test)]
 mod tests {
+    use crate::instructions::implementation::arithmetic_instructions::ADD;
+    use crate::instructions::implementation::register_instructions;
+    use crate::parser::lexer::{parse_line, parse_lines, text_to_number, tokenize_line, EZNumber};
+    use crate::parser::line::Line;
+    use crate::simulation::memory::Memory;
+    use crate::simulation::registry;
+    use crate::simulation::registry::Registry;
+    use crate::simulation::simulator::Simulator;
+    use crate::util::io::RezasmFileReader;
+    use crate::util::raw_data::RawData;
+    use crate::util::word_size::DEFAULT_WORD_SIZE;
     use std::io::Write;
-
-    use crate::{parser::{lexer::{tokenize_line, EZNumber, text_to_number, parse_line, parse_lines}, line::Line}, util::{raw_data::RawData, word_size::DEFAULT_WORD_SIZE, io::RezasmFileReader}, simulation::{memory::Memory, simulator::Simulator, registry::{self, Registry}}, instructions::implementation::{arithmetic_instructions::ADD, register_instructions}};
 
     #[test]
     fn test_tokenize_line() {
@@ -25,9 +34,9 @@ mod tests {
             std::format!(
                 "{:?}",
                 tokenize_line(&String::from("add $t0 1 2 # this - is = a # comment"))
-                ),
-                "[\"add\", \"$t0\", \"1\", \"2\"]"
-                );
+            ),
+            "[\"add\", \"$t0\", \"1\", \"2\"]"
+        );
     }
 
     #[test]
@@ -38,7 +47,7 @@ mod tests {
                 EZNumber::Float(x) => x,
             },
             16.5
-            );
+        );
     }
 
     #[test]
@@ -48,11 +57,11 @@ mod tests {
         memory.write(memory.current_heap_pointer(), &data).unwrap();
         assert_eq!(
             memory
-            .read(memory.current_heap_pointer())
-            .unwrap()
-            .int_value(),
+                .read(memory.current_heap_pointer())
+                .unwrap()
+                .int_value(),
             100
-            );
+        );
     }
 
     #[test]
@@ -64,12 +73,12 @@ mod tests {
             .set_data(RawData::from(255i32));
         assert_eq!(
             registry
-            .get_register(&String::from(registry::T0))
-            .unwrap()
-            .get_data()
-            .int_value(),
+                .get_register(&String::from(registry::T0))
+                .unwrap()
+                .get_data()
+                .int_value(),
             255
-            );
+        );
     }
 
     #[test]
@@ -81,8 +90,8 @@ mod tests {
             &String::from("add"),
             ["$T0".to_string(), "$T0".to_string(), "121".to_string()].to_vec(),
             simulator.get_word_size(),
-            )
-            .unwrap();
+        )
+        .unwrap();
 
         let args = match line {
             Line::Instruction(_, args) => args,
@@ -95,13 +104,13 @@ mod tests {
             Ok(_) => {
                 assert_eq!(
                     simulator
-                    .get_registers()
-                    .get_register(&registry::T0.to_string())
-                    .unwrap()
-                    .get_data()
-                    .int_value(),
+                        .get_registers()
+                        .get_register(&registry::T0.to_string())
+                        .unwrap()
+                        .get_data()
+                        .int_value(),
                     121
-                    );
+                );
             }
             Err(e) => {
                 assert!(false);
@@ -122,13 +131,13 @@ mod tests {
 
         assert_eq!(
             simulator
-            .get_registers()
-            .get_register(&registry::T0.to_string())
-            .unwrap()
-            .get_data()
-            .int_value(),
+                .get_registers()
+                .get_register(&registry::T0.to_string())
+                .unwrap()
+                .get_data()
+                .int_value(),
             1i64
-            );
+        );
     }
 
     #[test]
@@ -182,7 +191,7 @@ mod tests {
         match simulator.add_lines(
             vec![line1, line2, line3, line4, line5, line6, line7],
             "".into(),
-            ) {
+        ) {
             Ok(_) => {}
             Err(e) => assert!(false),
         }
@@ -196,13 +205,13 @@ mod tests {
 
         assert_eq!(
             simulator
-            .get_registers()
-            .get_register(&registry::T1.to_string())
-            .unwrap()
-            .get_data()
-            .int_value(),
+                .get_registers()
+                .get_register(&registry::T1.to_string())
+                .unwrap()
+                .get_data()
+                .int_value(),
             233i64
-            );
+        );
     }
 
     #[test]
@@ -213,9 +222,9 @@ mod tests {
 
         // Read into rezasm file
         let file_path = PathBuf::from(concat!(
-                env!("CARGO_MANIFEST_DIR"),
-                "/example/arithmatic_fib.ez"
-                ));
+            env!("CARGO_MANIFEST_DIR"),
+            "/example/arithmatic_fib.ez"
+        ));
         let mut rezasmfile = RezasmFileReader::new(file_path.clone()).expect("failed to read file");
 
         // Reads with fs
@@ -256,6 +265,5 @@ mod tests {
         let write_str = "\n# This comment was generated by io test!";
         writer.extend_from_slice(write_str.as_bytes());
         writer.flush().unwrap();
-
     }
 }
