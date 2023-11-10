@@ -1,4 +1,6 @@
 use std::fmt::Debug;
+use std::io::Write;
+use std::sync::Mutex;
 
 use crate::parser::line::Line;
 use crate::simulation::memory;
@@ -7,9 +9,11 @@ use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
 use crate::util::error::SimulatorError;
+use crate::util::io::DummyWriter;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
-use crate::util::writer::Writer;
+
+pub trait Writer: Write + Send + Debug {}
 
 #[derive(Debug)]
 pub struct Simulator {
@@ -17,37 +21,33 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
-    writer: Writer,
+    writer: Mutex<Box<dyn Writer>>,
 }
 
 impl Simulator {
     pub fn new() -> Simulator {
-        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS)
+        Simulator::new_custom(
+            &DEFAULT_WORD_SIZE,
+            memory::DEFAULT_MEMORY_WORDS,
+            Mutex::new(Box::new(DummyWriter::new())),
+        )
     }
 
-    pub fn new_gui() -> Simulator {
-        Simulator::new_custom_gui(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS)
+    pub fn new_writer(writer: Mutex<Box<dyn Writer>>) -> Simulator {
+        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, writer)
     }
 
-    pub fn new_custom(word_size: &WordSize, memory_size: usize) -> Simulator {
+    pub fn new_custom(
+        word_size: &WordSize,
+        memory_size: usize,
+        writer: Mutex<Box<dyn Writer>>,
+    ) -> Simulator {
         let mut sim = Simulator {
             memory: Memory::new_sized(word_size, memory_size),
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
-            writer: Writer::CLIApplication,
-        };
-        sim.initialize();
-        sim
-    }
-
-    pub fn new_custom_gui(word_size: &WordSize, memory_size: usize) -> Simulator {
-        let mut sim = Simulator {
-            memory: Memory::new_sized(word_size, memory_size),
-            registry: Registry::new(word_size),
-            program: Program::new(),
-            word_size: word_size.clone(),
-            writer: Writer::GraphicalWriter,
+            writer,
         };
         sim.initialize();
         sim
@@ -115,12 +115,12 @@ impl Simulator {
         &mut self.registry
     }
 
-    pub fn get_program_mut(&mut self) -> &mut Program {
-        &mut self.program
+    pub fn get_writer(&self) -> &Mutex<Box<dyn Writer>> {
+        &self.writer
     }
 
-    pub fn get_writer(&self) -> Writer {
-        self.writer
+    pub fn get_writer_mut(&mut self) -> &Mutex<Box<dyn Writer>> {
+        &self.writer
     }
 
     pub fn get_program_mut(&mut self) -> &mut Program {

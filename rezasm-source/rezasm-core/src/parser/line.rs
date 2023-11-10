@@ -41,7 +41,9 @@ impl Line {
         let mut args_out: Vec<Token> = Vec::new();
         for arg in &args {
             if looks_like_string_immediate(arg) {
-                args_out.push(Token::StringImmediate(lexer::get_string_immediate(&arg.trim_matches('"').to_string())?));
+                args_out.push(Token::StringImmediate(lexer::get_string_immediate(
+                    &arg.trim_matches('"').to_string(),
+                )?));
             } else if looks_like_dereference(arg) {
                 args_out.push(get_dereference(arg)?);
             } else if looks_like_character_immediate(arg) {

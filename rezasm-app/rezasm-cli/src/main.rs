@@ -9,9 +9,12 @@ extern crate scanner_rust;
 
 use std::io::Write;
 use std::process;
+use std::sync::Mutex;
 
 use rezasm_core::instructions::implementation::register_instructions;
-use rezasm_core::parser::lexer::{parse_line, parse_lines, text_to_number, tokenize_line, EZNumber};
+use rezasm_core::parser::lexer::{
+    parse_line, parse_lines, text_to_number, tokenize_line, EZNumber,
+};
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::registry;
@@ -20,6 +23,7 @@ use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::handle_error;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
+use util::cli_io::OutputSink;
 
 use crate::util::application::Application;
 use crate::util::cli;
@@ -165,7 +169,8 @@ pub fn test_simulator_instruction() {
 }
 
 pub fn test_print_instructions() {
-    let mut simulator: Simulator = Simulator::new();
+    let mut simulator: Simulator =
+        Simulator::new_writer(Mutex::new(Box::new(OutputSink::new_console())));
     let program = "
         move $s2 \"Print Instructions Work!\\n\"
         add $s1 '\\n' 0

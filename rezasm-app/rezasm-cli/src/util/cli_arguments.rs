@@ -7,6 +7,7 @@ use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use rezasm_core::util::word_size::WordSize;
 use std::fs::File;
 use std::path::Path;
+use std::sync::Mutex;
 
 fn get_file_from_path(path_string: &String) -> Result<File, EzasmError> {
     let path = if path_string.starts_with('~') {
@@ -46,8 +47,6 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
         x => x,
     };
 
-    let simulator: Simulator = Simulator::new_custom(&word_size, memory_size);
-
     let code_file = RezasmFileReader::new(arguments.get_code_file())?;
 
     let input_file: InputSource = match arguments.get_input_file() {
@@ -62,10 +61,8 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
         None => OutputSink::new_console(),
     };
 
-    Ok(Application::new(
-        simulator,
-        code_file,
-        input_file,
-        output_file,
-    ))
+    let simulator: Simulator =
+        Simulator::new_custom(&word_size, memory_size, Mutex::new(Box::new(output_file)));
+
+    Ok(Application::new(simulator, code_file, input_file))
 }

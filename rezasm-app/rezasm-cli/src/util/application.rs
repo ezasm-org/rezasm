@@ -9,7 +9,6 @@ pub struct Application {
     simulator: Simulator,
     code_file: RezasmFileReader,
     input_file: InputSource,
-    output_file: OutputSink,
 }
 
 impl Application {
@@ -17,13 +16,11 @@ impl Application {
         simulator: Simulator,
         code_file: RezasmFileReader,
         input_file: InputSource,
-        output_file: OutputSink,
     ) -> Application {
         Application {
             simulator,
             code_file,
             input_file,
-            output_file,
         }
     }
 
