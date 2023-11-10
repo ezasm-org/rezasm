@@ -15,6 +15,7 @@ function MemoryView({loaded, registerCallback}) {
     let [slice, setSlice] = useState(Array(CELLS).fill(0)); //Array(CELLS).fill(0) creates an array of size 16 filled with 0s
     let wordSize = useRef(4);
 
+    affected
     let [addressInput, setAddressInput] = useState("0x" + currentAddress.toString(16)); //converting currentAddress to a hexadecimal number as a string and appending 0x in front of it
     let [selectorOptions, setSelectorOptions] = useState([0, 0, 0]);
     let [selected, setSelected] = useState(0);
@@ -22,6 +23,7 @@ function MemoryView({loaded, registerCallback}) {
     const updateSlice = useCallback(async address => {
         if (address >= lowest.current && address <= (stack.current - CELLS * wordSize.current)) { //checking if address is valid?
             setCurrentAddress(address); //update currentAddress to address
+            affected
             setAddressInput("0x" + address.toString(16)); //update addressInput to hex version of address
             let array = await rust_get_memory_slice(address, CELLS); //gives an array of addresses from address to address + cells*4
             let numberArray = [];
@@ -58,33 +60,34 @@ function MemoryView({loaded, registerCallback}) {
 
     let count = 0;
 
-    let headers = Array(WIDTH).fill(0).map(() => `+0x${(count++ * wordSize.current).toString(16)}`);
+    affected
+    let headers = Array(WIDTH).fill(0).map(() => `+0x${(count++ * wordSize.current).toString(16)}`); //sets headers of memory viewer to +0x0, +0x4, +0x8, +0xc
 
     let table = [];
 
-    while (table.length < slice.length / WIDTH) {
-        table.push(slice.slice(table.length * WIDTH, (table.length + 1) * WIDTH));
-    }
+    while (table.length < slice.length / WIDTH) { //table.length < 4
+        table.push(slice.slice(table.length * WIDTH, (table.length + 1) * WIDTH)); //[0-4], [4-8], [8-12], [12-16]
+    } //this seems to pretty much just copy all of slice to table
 
     count = 0;
 
-    const seek = useCallback(() => {
-        let address = parseInt(addressInput);
-        if (isNaN(address) || address < lowest.current) {
-            setAddressInput("0x" + currentAddress.toString(16));
+    const seek = useCallback(() => { //goes to address that user inputted
+        let address = parseInt(addressInput); //address that user inputted
+        if (isNaN(address) || address < lowest.current) { //if address isn't valid, then go to currentAddress
+            setAddressInput("0x" + currentAddress.toString(16)); affected
         } else {
-            updateSlice(address);
+            updateSlice(address); //updates currentAddress to addressInput
         }
     }, [addressInput, currentAddress, updateSlice]);
 
-    const seekLeft = useCallback(() => {
+    const seekLeft = useCallback(() => { //goes to previous 4 addresses
         let address = currentAddress - (CELLS * wordSize.current);
         if (!isNaN(address)) {
             updateSlice(address);
         }
     }, [currentAddress, updateSlice]);
 
-    const seekRight = useCallback(() => {
+    const seekRight = useCallback(() => { //goes to next 4 addresses
         let address = currentAddress + (CELLS * wordSize.current);
         if (!isNaN(address)) {
             updateSlice(address);
@@ -124,10 +127,10 @@ function MemoryView({loaded, registerCallback}) {
                 <tbody>
                     {table.map(row =>
                         <tr key={count}>
-                            <td>{`0x${(currentAddress + count++ * wordSize.current * WIDTH).toString(16)}`}</td>
+                            <td>{`0x${(currentAddress + count++ * wordSize.current * WIDTH).toString(16)}`}</td> affected
                             {row.map(value =>
                                 <td>
-                                    {`0x${value.toString(16)}`}
+                                    {`0x${value.toString(16)}`} affected
                                 </td>
                             )}
                         </tr>
