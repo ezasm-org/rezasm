@@ -7,8 +7,11 @@ use crate::instructions::instruction_registry::register_instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
+use crate::instructions::targets::output_target::Output;
 use crate::parser::lexer::parse_line;
 use crate::parser::line::Line;
+use crate::simulation::registry;
+use crate::simulation::simulator::Simulator;
 use crate::util::error::{ParserError, SimulatorError};
 use crate::util::io::RezasmFileReader;
 use crate::util::raw_data::RawData;
@@ -40,8 +43,26 @@ lazy_static! {
             }
             simulator.add_lines(lines, file_path)
         });
+    pub static ref JUMP: Instruction =
+        instruction!(jump, |simulator: Simulator, input: InputTarget| {
+            let word_size = simulator.get_word_size().clone();
+            let value = input.get(&simulator)?;
+            let mut pc = simulator.get_registers_mut().get_pc_mut();
+            pc.set_data(value.clone());
+            Ok(())
+        });
+    pub static ref CALL: Instruction =
+        instruction!(call, |simulator: Simulator, input: InputTarget| {
+            let word_size = simulator.get_word_size().clone();
+            let value = input.get(&simulator)?;
+            let mut pc = simulator.get_registers_mut().get_pc_mut();
+            pc.set_data(value.clone());
+            Ok(())
+        });
 }
 
 pub fn register_instructions() {
     register_instruction(&IMPORT);
+    register_instruction(&JUMP);
+    register_instruction(&CALL);
 }

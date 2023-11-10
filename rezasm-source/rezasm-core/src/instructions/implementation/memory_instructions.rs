@@ -36,8 +36,7 @@ lazy_static! {
                 .get_registers_mut()
                 .get_register_mut(&registry::SP.into())?
                 .get_data()
-                .int_value()
-                - wsv;
+                .int_value();
             output.set(simulator, simulator.get_memory().read(sp as usize)?)?;
             simulator
                 .get_registers_mut()

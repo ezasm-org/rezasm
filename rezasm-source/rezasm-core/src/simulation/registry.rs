@@ -208,4 +208,12 @@ impl Registry {
     pub fn get_pc_mut(&mut self) -> &mut Register {
         self.get_register_by_number_mut(3).unwrap()
     }
+
+    pub fn get_sp(&self) -> &Register {
+        self.get_register_by_number(4).unwrap()
+    }
+
+    pub fn get_sp_mut(&mut self) -> &mut Register {
+        self.get_register_by_number_mut(4).unwrap()
+    }
 }
