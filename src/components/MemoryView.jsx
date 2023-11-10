@@ -1,6 +1,7 @@
 import {rust_get_memory_bounds, rust_get_memory_slice, rust_get_word_size} from "../rust_functions.js";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {CALLBACKS} from "../App.jsx";
+import { words } from "lodash";
 
 const WIDTH = 4;
 const HEIGHT = 4;
@@ -15,16 +16,31 @@ function MemoryView({loaded, registerCallback}) {
     let [slice, setSlice] = useState(Array(CELLS).fill(0)); //Array(CELLS).fill(0) creates an array of size 16 filled with 0s
     let wordSize = useRef(4);
 
-    affected
-    let [addressInput, setAddressInput] = useState("0x" + currentAddress.toString(16)); //converting currentAddress to a hexadecimal number as a string and appending 0x in front of it
+    // stuff about toggle hex/decimal
+    let [toggle, setToggle] = useState(["0x", 16]);
+    const updateToggle = useCallback(() => {
+        if (toggle[1] == 10) {
+            setToggle(["0x",16]);
+            // toggle[0] = "0x";
+            // toggle[1] = 16;
+        } else {
+            setToggle(["",10]);
+            // toggle[0] = "";
+            // toggle[1] = 10;
+        }
+        console.log(toggle[0] + " " + toggle[1]);
+    }, [toggle, setToggle]);
+
+    // let [addressInput, setAddressInput] = useState("0x" + currentAddress.toString(16)); //converting currentAddress to a hexadecimal number as a string and appending 0x in front of it
+    let [addressInput, setAddressInput] = useState(toggle[0] + currentAddress.toString(toggle[1]));
     let [selectorOptions, setSelectorOptions] = useState([0, 0, 0]);
     let [selected, setSelected] = useState(0);
 
     const updateSlice = useCallback(async address => {
         if (address >= lowest.current && address <= (stack.current - CELLS * wordSize.current)) { //checking if address is valid?
             setCurrentAddress(address); //update currentAddress to address
-            affected
-            setAddressInput("0x" + address.toString(16)); //update addressInput to hex version of address
+            // setAddressInput("0x" + address.toString(16)); //update addressInput to hex version of address
+            setAddressInput(toggle[0] + address.toString(toggle[1]));
             let array = await rust_get_memory_slice(address, CELLS); //gives an array of addresses from address to address + cells*4
             let numberArray = [];
             for (let i = 0; i < array.length; ++i) { //converting array[i] into numbers
@@ -60,8 +76,8 @@ function MemoryView({loaded, registerCallback}) {
 
     let count = 0;
 
-    affected
-    let headers = Array(WIDTH).fill(0).map(() => `+0x${(count++ * wordSize.current).toString(16)}`); //sets headers of memory viewer to +0x0, +0x4, +0x8, +0xc
+    // let headers = Array(WIDTH).fill(0).map(() => `+0x${(count++ * wordSize.current).toString(16)}`); //sets headers of memory viewer to +0x0, +0x4, +0x8, +0xc
+    let headers = Array(WIDTH).fill(0).map(() => `+${toggle[0]}${(count++ * wordSize.current).toString(toggle[1])}`);
 
     let table = [];
 
@@ -74,7 +90,8 @@ function MemoryView({loaded, registerCallback}) {
     const seek = useCallback(() => { //goes to address that user inputted
         let address = parseInt(addressInput); //address that user inputted
         if (isNaN(address) || address < lowest.current) { //if address isn't valid, then go to currentAddress
-            setAddressInput("0x" + currentAddress.toString(16)); affected
+            // setAddressInput("0x" + currentAddress.toString(16));
+            setAddressInput(toggle[0] + currentAddress.toString(toggle[1]));
         } else {
             updateSlice(address); //updates currentAddress to addressInput
         }
@@ -116,6 +133,7 @@ function MemoryView({loaded, registerCallback}) {
                 <button className="btn-basic" onClick={seek}>Seek</button>
                 <button className="btn-basic" onClick={seekLeft}>&lt;---</button>
                 <button className="btn-basic" onClick={seekRight}>---&gt;</button>
+                <button className="btn-basic" onClick={updateToggle}>Toggle Hex/Decimal</button>
             </div>
             <table className="fill">
                 <thead>
@@ -127,10 +145,12 @@ function MemoryView({loaded, registerCallback}) {
                 <tbody>
                     {table.map(row =>
                         <tr key={count}>
-                            <td>{`0x${(currentAddress + count++ * wordSize.current * WIDTH).toString(16)}`}</td> affected
+                            {/* <td>{`0x${(currentAddress + count++ * wordSize.current * WIDTH).toString(16)}`}</td>  */}
+                            <td>{`${toggle[0]}${(currentAddress + count++ * wordSize.current * WIDTH).toString(toggle[1])}`}</td>
                             {row.map(value =>
                                 <td>
-                                    {`0x${value.toString(16)}`} affected
+                                    {/* {`0x${value.toString(16)}`} */}
+                                    {`${toggle[0]}${value.toString(toggle[1])}`}
                                 </td>
                             )}
                         </tr>
