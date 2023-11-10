@@ -28,14 +28,17 @@ lazy_static! {
     pub static ref IMPORT: Instruction =
         instruction!(import, |simulator: Simulator, input: InputTarget| {
             let address = input.get(&simulator)?.int_value() as usize;
-            let file_path = simulator.get_memory().get_string(address)?;
+            let given_file = simulator.get_memory().get_string(address)?;
+            if simulator.get_program().file_exists(&given_file) {
+                return Ok(());
+            }
             let mut relative_location = simulator.get_program().main_file();
-            let relative_location_split = relative_location =
-                match relative_location.rsplit_once('/') {
+            relative_location = match relative_location.rsplit_once('/') {
                     Some((first, _)) => format!("{}/", first),
                     None => String::new(),
-                };
-            let file = RezasmFileReader::new(&format!("{}{}", relative_location, file_path))?;
+            };
+            let file_name = format!("{}{}", relative_location, given_file);
+            let file = RezasmFileReader::new(&file_name)?;
             let line_results: Vec<Option<Result<Line, ParserError>>> = file
                 .lines()?
                 .iter()
@@ -48,7 +51,7 @@ lazy_static! {
                     None => {}
                 }
             }
-            simulator.add_lines(lines, file_path)
+            simulator.add_lines(lines, given_file)
         });
 
     pub static ref JUMP: Instruction =

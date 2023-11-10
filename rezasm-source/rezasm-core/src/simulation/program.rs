@@ -118,4 +118,8 @@ impl Program {
             None => "".into(),
         }
     }
+
+    pub fn file_exists(&self, file: &String) -> bool {
+        self.file_identifiers.get_by_left(file).is_some()
+    }
 }
