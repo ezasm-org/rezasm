@@ -1,6 +1,10 @@
+#![cfg_attr(rustfmt, rustfmt_skip)] // prevent rustfmt from breaking 0 argument instruction macros
+
 use crate::instructions::argument_type::ArgumentType;
 use crate::instructions::implementation::memory_instructions::POP;
 use crate::instructions::implementation::memory_instructions::PUSH;
+use crate::simulation::registry::FID_NUMBER;
+use crate::simulation::registry::PC_NUMBER;
 use lazy_static::lazy_static;
 
 use crate::instructions::instruction::instruction;
@@ -46,6 +50,7 @@ lazy_static! {
             }
             simulator.add_lines(lines, file_path)
         });
+
     pub static ref JUMP: Instruction =
         instruction!(jump, |simulator: Simulator, input: InputTarget| {
             let word_size = simulator.get_word_size().clone();
@@ -54,6 +59,7 @@ lazy_static! {
             pc.set_data(value.clone());
             Ok(())
         });
+
     pub static ref CALL: Instruction =
         instruction!(call, |simulator: Simulator, input: InputTarget| {
             let word_size = simulator.get_word_size().clone();
@@ -69,12 +75,8 @@ lazy_static! {
                     simulator.get_registers().get_fid().get_data().int_value(),
                 ),
             };
-            let pc_register = ArgumentType::Input(InputTarget::RegisterInput(
-                registry::get_register_number(&registry::PC.into())?,
-            ));
-            let fid_register = ArgumentType::Input(InputTarget::RegisterInput(
-                registry::get_register_number(&registry::FID.into())?,
-            ));
+            let pc_register = ArgumentType::Input(InputTarget::RegisterInput(PC_NUMBER));
+            let fid_register = ArgumentType::Input(InputTarget::RegisterInput(FID_NUMBER));
             PUSH.call_function(simulator, &vec![pc_register])?;
             PUSH.call_function(simulator, &vec![fid_register])?;
             simulator
@@ -87,18 +89,16 @@ lazy_static! {
                 .set_data(RawData::from_int(fid, &word_size));
             Ok(())
         });
-    pub static ref RETURN: Instruction = instruction!(_return, |simulator: Simulator| {
-        let pc_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(
-            registry::get_register_number(&registry::PC.into())?,
-        ));
-        let fid_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(
-            registry::get_register_number(&registry::FID.into())?,
-        ));
+
+    pub static ref RETURN: Instruction = instruction!(_return, |simulator: Simulator,| {
+        let pc_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(PC_NUMBER));
+        let fid_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(FID_NUMBER));
         POP.call_function(simulator, &vec![fid_register])?;
         POP.call_function(simulator, &vec![pc_register])?;
         Ok(())
     });
-    pub static ref EXIT: Instruction = instruction!(exit, |simulator: Simulator| {
+
+    pub static ref EXIT: Instruction = instruction!(exit, |simulator: Simulator,| {
         let word_size = simulator.get_word_size().clone();
         let end = simulator.get_program().end_pc(0) - 1;
         simulator
@@ -111,6 +111,7 @@ lazy_static! {
             .set_data(RawData::from_int(0i64, &word_size));
         Ok(())
     });
+    
     pub static ref EXIT_STATUS: Instruction =
         instruction!(exit, |simulator: Simulator, input: InputTarget| {
             let return_value = input.get(&simulator)?;
