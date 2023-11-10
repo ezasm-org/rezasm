@@ -147,7 +147,7 @@ pub fn test_simulator_instruction() {
     let line = parse_line(&"add $t0 $t0 1".to_string(), simulator.get_word_size())
         .unwrap()
         .unwrap();
-    let _ = simulator.add_line(line);
+    let _ = simulator.add_line(line, "".into());
     let _ = simulator.run_line_from_pc();
 
     assert_eq!(
@@ -188,7 +188,10 @@ pub fn test_simulator_labels() {
         .unwrap()
         .unwrap();
 
-    match simulator.add_lines(vec![line1, line2, line3, line4, line5, line6, line7]) {
+    match simulator.add_lines(
+        vec![line1, line2, line3, line4, line5, line6, line7],
+        "".into(),
+    ) {
         Ok(_) => {}
         Err(e) => println!("{:?}", e),
     }

@@ -54,6 +54,7 @@ impl Instruction {
 macro_rules! instruction {
     ($name:ident, |$simulator_name:ident: Simulator, $($names:ident: $types:ty),*| $func:tt) =>
     ({
+        #[allow(unused_mut)]
         let mut v: Vec<std::any::TypeId> = Vec::new();
         $(v.push(std::any::TypeId::of::<&mut $types>());)*
         fn $name($simulator_name: &mut crate::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<crate::instructions::argument_type::ArgumentType>) -> Result<(), crate::util::error::SimulatorError> {

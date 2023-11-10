@@ -1,0 +1,12 @@
+# REWRITE EXAMPLE ONCE PRINT IS AVAILABLE
+import "import_1.ez"
+
+bar:
+  move $a0 5
+	call foo
+	# Expect 23 in r0
+	bne $r0 23 error
+	exit 0
+
+error:
+  exit 1
