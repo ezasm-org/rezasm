@@ -1,5 +1,4 @@
 use std::fmt::Debug;
-use std::sync::Mutex;
 
 use crate::parser::line::Line;
 use crate::simulation::memory;
@@ -7,7 +6,7 @@ use crate::simulation::memory::Memory;
 use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
-use crate::simulation::writer::{DummyWriter, Writer};
+use crate::simulation::writer::{DummyWriter, Writer, WriterGuard, WriterMutex};
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
@@ -18,7 +17,7 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
-    writer: Mutex<Box<dyn Writer>>,
+    writer: WriterMutex,
 }
 
 impl Simulator {
@@ -26,25 +25,25 @@ impl Simulator {
         Simulator::new_custom(
             &DEFAULT_WORD_SIZE,
             memory::DEFAULT_MEMORY_WORDS,
-            Mutex::new(Box::new(DummyWriter::new())),
+            Box::new(DummyWriter::new()),
         )
     }
 
-    pub fn new_writer(writer: Mutex<Box<dyn Writer>>) -> Simulator {
+    pub fn new_writer(writer: Box<dyn Writer>) -> Simulator {
         Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, writer)
     }
 
     pub fn new_custom(
         word_size: &WordSize,
         memory_size: usize,
-        writer: Mutex<Box<dyn Writer>>,
+        writer: Box<dyn Writer>,
     ) -> Simulator {
         let mut sim = Simulator {
             memory: Memory::new_sized(word_size, memory_size),
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
-            writer,
+            writer: WriterMutex::new(writer),
         };
         sim.initialize();
         sim
@@ -100,6 +99,10 @@ impl Simulator {
         &self.program
     }
 
+    pub fn get_writer(&self) -> WriterGuard {
+        self.writer.get()
+    }
+
     pub fn get_word_size_mut(&mut self) -> &mut WordSize {
         &mut self.word_size
     }
@@ -110,14 +113,6 @@ impl Simulator {
 
     pub fn get_registers_mut(&mut self) -> &mut Registry {
         &mut self.registry
-    }
-
-    pub fn get_writer(&self) -> &Mutex<Box<dyn Writer>> {
-        &self.writer
-    }
-
-    pub fn get_writer_mut(&mut self) -> &Mutex<Box<dyn Writer>> {
-        &self.writer
     }
 
     pub fn get_program_mut(&mut self) -> &mut Program {

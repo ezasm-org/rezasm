@@ -1,5 +1,3 @@
-use std::sync::Mutex;
-
 use lazy_static::lazy_static;
 
 use crate::instructions::instruction::instruction;
@@ -8,7 +6,7 @@ use crate::instructions::instruction_registry::register_instruction;
 
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::simulation::writer::Writer;
+use crate::simulation::writer::WriterGuard;
 use crate::util::error::IoError;
 
 lazy_static! {
@@ -54,17 +52,11 @@ lazy_static! {
         });
 }
 
-pub fn write(writer: &Mutex<Box<dyn Writer>>, data: &String) -> Result<(), IoError> {
+pub fn write(mut writer: WriterGuard, string: &String) -> Result<(), IoError> {
     writer
-        .lock()
-        .unwrap()
-        .write(&data.as_bytes())
+        .write(&string.as_bytes())
         .map_err(|t| IoError::StdIoError(t))?;
-    writer
-        .lock()
-        .unwrap()
-        .flush()
-        .map_err(|t| IoError::StdIoError(t))?;
+    writer.flush().map_err(|t| IoError::StdIoError(t))?;
     Ok(())
 }
 
