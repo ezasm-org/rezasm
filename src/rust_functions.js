@@ -1,6 +1,9 @@
 import {invoke} from "@tauri-apps/api/tauri";
 import {
-    wasm_get_exit_status, wasm_get_register_names, wasm_get_register_value, wasm_get_register_values,
+    wasm_get_exit_status,
+    wasm_get_register_names,
+    wasm_get_register_value,
+    wasm_get_register_values,
     wasm_is_completed,
     wasm_load,
     wasm_reset,

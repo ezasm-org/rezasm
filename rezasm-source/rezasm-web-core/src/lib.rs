@@ -4,12 +4,10 @@ use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 
 use std::string::ToString;
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock, RwLockWriteGuard};
 
 lazy_static! {
     static ref SIMULATOR: Arc<RwLock<Simulator>> = Arc::new(RwLock::new(Simulator::new()));
-    static ref SHOULD_STOP: Arc<AtomicBool> = Arc::new(AtomicBool::new(false));
 }
 
 pub fn get_simulator() -> RwLockWriteGuard<'static, Simulator> {
@@ -21,7 +19,7 @@ pub fn set_simulator(simulator: Simulator) {
 }
 
 pub fn stop() {
-    SHOULD_STOP.store(true, Ordering::SeqCst);
+    // TODO stop
 }
 
 pub fn reset() {

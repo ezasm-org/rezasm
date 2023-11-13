@@ -55,7 +55,6 @@ lazy_static! {
                 match word_size {
                     WordSize::Four => (i128::abs(full) >> 32) as i64,
                     WordSize::Eight => (i128::abs(full) >> 64) as i64,
-                    _ => 0i64,
                 },
                 &word_size,
             ));
@@ -167,7 +166,6 @@ lazy_static! {
                 match word_size {
                     WordSize::Four => (value as u32 >> shift) as i64,
                     WordSize::Eight => (value as u64 >> shift) as i64,
-                    _ => 0i64,
                 }
             };
 
