@@ -1,10 +1,11 @@
+use crate::util::error::SimulatorError;
+
 pub const DEFAULT_WORD_SIZE: WordSize = WordSize::Four;
 
 #[derive(Debug, Copy, Clone)]
 pub enum WordSize {
     Four,
     Eight,
-    Error,
 }
 
 impl WordSize {
@@ -12,15 +13,14 @@ impl WordSize {
         match &self {
             WordSize::Four => 4,
             WordSize::Eight => 8,
-            WordSize::Error => 0,
         }
     }
 
-    pub fn from(size: usize) -> WordSize {
+    pub fn from(size: usize) -> Result<WordSize, SimulatorError> {
         match size {
-            4 => WordSize::Four,
-            8 => WordSize::Eight,
-            _ => WordSize::Error,
+            4 => Ok(WordSize::Four),
+            8 => Ok(WordSize::Eight),
+            _ => Err(SimulatorError::InvalidWordSizeError(size)),
         }
     }
 }
