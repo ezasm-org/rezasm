@@ -1,8 +1,5 @@
-#![allow(unused_imports)]
-
 mod common;
 
-use crate::common::writer;
 use crate::common::writer::TestWriter;
 use rezasm_core::instructions::implementation::arithmetic_instructions::ADD;
 use rezasm_core::instructions::implementation::register_instructions;
@@ -14,7 +11,6 @@ use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::simulator::Simulator;
-use rezasm_core::simulation::writer::AsAny;
 use rezasm_core::util::io::RezasmFileReader;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
@@ -22,7 +18,6 @@ use std::fs;
 use std::io::Write;
 use std::ops::Deref;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

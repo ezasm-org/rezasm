@@ -1,12 +1,8 @@
+use crate::util::as_any::AsAny;
 use std::any::Any;
 use std::fmt::Debug;
 use std::io::Write;
 use std::sync::{Mutex, MutexGuard};
-
-pub trait AsAny {
-    fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
-}
 
 pub trait Writer: Write + AsAny + Send + Debug {}
 

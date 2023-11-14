@@ -1,6 +1,7 @@
-use rezasm_core::simulation::writer::{AsAny, Writer};
+use rezasm_core::simulation::writer::Writer;
+use rezasm_core::util::as_any::AsAny;
 use std::any::Any;
-use std::fmt::{Debug, Formatter};
+use std::fmt::Debug;
 use std::io::Write;
 use std::ops::Deref;
 
