@@ -1,4 +1,5 @@
 import {invoke} from "@tauri-apps/api/tauri";
+import { listen } from "@tauri-apps/api/event";
 import {
     wasm_get_exit_status,
     wasm_get_register_names,
@@ -154,5 +155,5 @@ export {
     rust_get_register_names,
     rust_get_register_value,
     rust_get_register_values,
-    rust_get_word_size
+    rust_get_word_size,
 };

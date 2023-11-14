@@ -4,6 +4,7 @@ use rezasm_core::simulation::simulator::Simulator;
 
 use std::string::ToString;
 use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use rezasm_core::simulation::writer::WriterBox;
 
 fn internal_simulator() -> &'static RwLock<Simulator> {
     static SIMULATOR: OnceLock<RwLock<Simulator>> = OnceLock::new();
@@ -11,13 +12,17 @@ fn internal_simulator() -> &'static RwLock<Simulator> {
 }
 
 type SimulatorRef = RwLockReadGuard<'static, Simulator>;
-fn get_simulator() -> SimulatorRef {
+pub fn get_simulator() -> SimulatorRef {
     internal_simulator().read().unwrap()
 }
 
 type SimulatorMutRef = RwLockWriteGuard<'static, Simulator>;
 pub fn get_simulator_mut() -> SimulatorMutRef {
     internal_simulator().write().unwrap()
+}
+
+pub fn register_writer(writer: WriterBox) {
+    get_simulator_mut().set_writer(writer);
 }
 
 pub fn stop() {

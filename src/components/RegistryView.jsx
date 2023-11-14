@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {rust_get_register_names, rust_get_register_values} from "../rust_functions.js";
-import {CALLBACKS} from "../App.jsx";
+import {STEP_CALLBACKS} from "../App.jsx";
 
 function RegistryView({loaded, registerCallback}) {
     const [registers, setRegisters] = useState([]);
@@ -13,7 +13,7 @@ function RegistryView({loaded, registerCallback}) {
         }
     }, [loaded]);
 
-    registerCallback(CALLBACKS.REGISTRY, () => rust_get_register_values().then(values => setRegisters(values)));
+    registerCallback(STEP_CALLBACKS.REGISTRY, () => rust_get_register_values().then(values => setRegisters(values)));
 
     let tableData = [];
     for (let i = 0; i < registers.length; ++i) {

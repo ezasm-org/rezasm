@@ -15,6 +15,7 @@ import {
 
 import "../dist/output.css";
 import MemoryView from "./components/MemoryView.jsx";
+import Console from "./components/Console.jsx";
 
 const STATE = {
     IDLE: 1,
@@ -25,9 +26,13 @@ const STATE = {
     STOPPED: 1,
 };
 
-const CALLBACKS = {
+const STEP_CALLBACKS = {
     MEMORY: "MEMORY",
     REGISTRY: "REGISTRY",
+};
+
+const RESET_CALLBACKS = {
+    CONSOLE: "CONSOLE"
 };
 
 function App() {
@@ -39,7 +44,8 @@ function App() {
     const [instructionDelay, setInstructionDelay] = useState(5);
     const [wasmLoaded, setWasmLoaded] = useState(false);
 
-    const callbacks = useRef({});
+    const stepCallbacks = useRef({});
+    const resetCallbacks = useRef({});
 
     const disallowExecution = () => {
         if (timerId.current !== null) {
@@ -48,12 +54,20 @@ function App() {
         }
     };
 
-    const callCallbacks = useCallback(() => {
-        Object.values(callbacks.current).map(callback => callback());
+    const callStepCallbacks = useCallback(() => {
+        Object.values(stepCallbacks.current).map(callback => callback());
     }, []);
 
-    const registerCallback = useCallback((name, callback) => {
-        callbacks.current[name] = callback;
+    const callResetCallbacks = useCallback( () => {
+        Object.values(resetCallbacks.current).map(callback => callback());
+    }, []);
+
+    const registerStepCallback = useCallback((name, callback) => {
+        stepCallbacks.current[name] = callback;
+    }, []);
+
+    const registerResetCallback = useCallback((name, callback) => {
+        resetCallbacks.current[name] = callback;
     }, []);
 
     const isErrorState = useCallback(() => {
@@ -96,11 +110,12 @@ function App() {
         disallowExecution();
         await rust_reset();
         setState(STATE.IDLE);
-        callCallbacks();
+        callStepCallbacks();
+        callResetCallbacks();
         setResult("");
         clearErrorState();
         return STATE.IDLE;
-    }, [callCallbacks, clearErrorState]);
+    }, [callResetCallbacks, callStepCallbacks, clearErrorState]);
 
     const load = useCallback(async (currentState) => {
         if (currentState >= STATE.LOADED) {
@@ -127,7 +142,7 @@ function App() {
     }, [load, reset]);
 
     const checkAndHandleProgramCompletion = useCallback(async () => {
-        callCallbacks();
+        callStepCallbacks();
         if (await isCompleted() || isErrorState()) {
             disallowExecution();
             setState(STATE.STOPPED);
@@ -136,7 +151,7 @@ function App() {
         } else {
             return false;
         }
-    }, [callCallbacks, getExitStatus, isCompleted, isErrorState]);
+    }, [callStepCallbacks, getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
         rust_step()
@@ -260,12 +275,13 @@ function App() {
                         onChange={(e) => setLines(e.currentTarget.value)}
                         placeholder="Enter some ezasm code..."
                     />
-                    <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
+                    <RegistryView loaded={wasmLoaded} registerCallback={registerStepCallback} />
                 </div>
             </div>
             <div className="fill">
-                <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
+                <MemoryView loaded={wasmLoaded} registerCallback={registerStepCallback} />
             </div>
+            <Console registerCallback={registerResetCallback} />
             <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
         </div>
     );
@@ -273,4 +289,4 @@ function App() {
 
 export default App;
 
-export {STATE, CALLBACKS};
+export {STATE, STEP_CALLBACKS, RESET_CALLBACKS};

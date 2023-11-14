@@ -1,18 +1,18 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod gui_writer;
+
 extern crate lazy_static;
 extern crate tauri;
 
 use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
-use rezasm_web_core::{
-    get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_word_size, is_completed, load, reset, step, stop,
-};
+use rezasm_web_core::{get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value, get_register_values, get_word_size, is_completed, load, register_writer, reset, step, stop};
 use tauri::{Manager, Window};
 
 use std::sync::{Arc, RwLock};
+use crate::gui_writer::GuiWriter;
 
 lazy_static! {
     static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
@@ -96,6 +96,7 @@ fn tauri_get_word_size() -> usize {
 
 fn main() {
     register_instructions();
+    register_writer(Box::new(GuiWriter::new()));
 
     tauri::Builder::default()
         .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))

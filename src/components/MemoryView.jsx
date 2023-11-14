@@ -1,6 +1,6 @@
 import {rust_get_memory_bounds, rust_get_memory_slice, rust_get_word_size} from "../rust_functions.js";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {CALLBACKS} from "../App.jsx";
+import {STEP_CALLBACKS} from "../App.jsx";
 
 const WIDTH = 4;
 const HEIGHT = 4;
@@ -36,7 +36,7 @@ function MemoryView({loaded, registerCallback}) {
         updateSlice(currentAddress);
     }, [currentAddress, updateSlice]);
 
-    registerCallback(CALLBACKS.MEMORY, updateSliceCurrent);
+    registerCallback(STEP_CALLBACKS.MEMORY, updateSliceCurrent);
 
     useEffect(() => {
         if (loaded) {
