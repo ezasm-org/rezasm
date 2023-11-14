@@ -1,21 +1,23 @@
-use lazy_static::lazy_static;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 
 use std::string::ToString;
-use std::sync::{Arc, RwLock, RwLockWriteGuard};
+use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-lazy_static! {
-    static ref SIMULATOR: Arc<RwLock<Simulator>> = Arc::new(RwLock::new(Simulator::new()));
+fn internal_simulator() -> &'static RwLock<Simulator> {
+    static SIMULATOR: OnceLock<RwLock<Simulator>> = OnceLock::new();
+    SIMULATOR.get_or_init(|| RwLock::new(Simulator::new()))
 }
 
-pub fn get_simulator() -> RwLockWriteGuard<'static, Simulator> {
-    SIMULATOR.write().unwrap()
+type SimulatorRef = RwLockReadGuard<'static, Simulator>;
+fn get_simulator() -> SimulatorRef {
+    internal_simulator().read().unwrap()
 }
 
-pub fn set_simulator(simulator: Simulator) {
-    *SIMULATOR.write().unwrap() = simulator;
+type SimulatorMutRef = RwLockWriteGuard<'static, Simulator>;
+pub fn get_simulator_mut() -> SimulatorMutRef {
+    internal_simulator().write().unwrap()
 }
 
 pub fn stop() {
@@ -24,11 +26,11 @@ pub fn stop() {
 
 pub fn reset() {
     stop();
-    get_simulator().reset();
+    get_simulator_mut().reset();
 }
 
 pub fn load(lines: &str) -> Result<(), String> {
-    let mut simulator = get_simulator();
+    let mut simulator = get_simulator_mut();
 
     for line_string in lines
         .lines()
@@ -52,7 +54,7 @@ pub fn load(lines: &str) -> Result<(), String> {
 }
 
 pub fn step() -> Result<(), String> {
-    match get_simulator().run_line_from_pc() {
+    match get_simulator_mut().run_line_from_pc() {
         Ok(_) => {}
         Err(error) => return Err(format!("Program error: {}", error)),
     };

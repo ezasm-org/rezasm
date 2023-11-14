@@ -6,7 +6,7 @@ use crate::instructions::instruction_registry::register_instruction;
 
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::simulation::writer::WriterGuard;
+use crate::simulation::writer::WriterBox;
 use crate::util::error::IoError;
 
 lazy_static! {
@@ -14,21 +14,21 @@ lazy_static! {
         instruction!(printi, |simulator: Simulator, input: InputTarget| {
             let value = input.get(&simulator)?.int_value();
             let output = format!("{}", value);
-            write(simulator.get_writer(), &output)?;
+            write(simulator.get_writer_mut(), &output)?;
             Ok(())
         });
     pub static ref PRINTF: Instruction =
         instruction!(printf, |simulator: Simulator, input: InputTarget| {
             let value = input.get(&simulator)?.float_value();
             let output = format!("{}", value);
-            write(simulator.get_writer(), &output)?;
+            write(simulator.get_writer_mut(), &output)?;
             Ok(())
         });
     pub static ref PRINTC: Instruction =
         instruction!(printc, |simulator: Simulator, input: InputTarget| {
             let value = input.get(&simulator)?.int_value();
             let output = format!("{}", value as u8 as char);
-            write(simulator.get_writer(), &output)?;
+            write(simulator.get_writer_mut(), &output)?;
             Ok(())
         });
     pub static ref PRINTS_SIZED: Instruction =
@@ -40,19 +40,19 @@ lazy_static! {
             let output = simulator
                 .get_memory()
                 .get_string_sized(address as usize, size as usize)?;
-            write(simulator.get_writer(), &output)?;
+            write(simulator.get_writer_mut(), &output)?;
             Ok(())
         });
     pub static ref PRINTS: Instruction =
         instruction!(prints, |simulator: Simulator, input: InputTarget| {
             let address = input.get(&simulator)?.int_value();
             let output = simulator.get_memory().get_string(address as usize)?;
-            write(simulator.get_writer(), &output)?;
+            write(simulator.get_writer_mut(), &output)?;
             Ok(())
         });
 }
 
-pub fn write(mut writer: WriterGuard, string: &String) -> Result<(), IoError> {
+pub fn write(writer: &mut WriterBox, string: &String) -> Result<(), IoError> {
     writer
         .write(&string.as_bytes())
         .map_err(|t| IoError::StdIoError(t))?;

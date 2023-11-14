@@ -6,7 +6,7 @@ use crate::simulation::memory::Memory;
 use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
-use crate::simulation::writer::{DummyWriter, Writer, WriterGuard, WriterMutex};
+use crate::simulation::writer::{DummyWriter, Writer, WriterBox};
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
@@ -17,7 +17,7 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
-    writer: WriterMutex,
+    writer: WriterBox,
 }
 
 impl Simulator {
@@ -43,7 +43,7 @@ impl Simulator {
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
-            writer: WriterMutex::new(writer),
+            writer,
         };
         sim.initialize();
         sim
@@ -99,8 +99,8 @@ impl Simulator {
         &self.program
     }
 
-    pub fn get_writer(&self) -> WriterGuard {
-        self.writer.get()
+    pub fn get_writer(&self) -> &WriterBox {
+        &self.writer
     }
 
     pub fn get_word_size_mut(&mut self) -> &mut WordSize {
@@ -117,6 +117,10 @@ impl Simulator {
 
     pub fn get_program_mut(&mut self) -> &mut Program {
         &mut self.program
+    }
+
+    pub fn get_writer_mut(&mut self) -> &mut WriterBox {
+        &mut self.writer
     }
 
     pub fn end_pc(&self) -> usize {
