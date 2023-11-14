@@ -1,5 +1,9 @@
 #![allow(unused_imports)]
 
+mod common;
+
+use crate::common::writer;
+use crate::common::writer::TestWriter;
 use rezasm_core::instructions::implementation::arithmetic_instructions::ADD;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_core::parser::lexer::{
@@ -10,12 +14,15 @@ use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::simulator::Simulator;
+use rezasm_core::simulation::writer::AsAny;
 use rezasm_core::util::io::RezasmFileReader;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
 use std::fs;
 use std::io::Write;
+use std::ops::Deref;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -119,7 +126,7 @@ pub fn test_simulator_instruction() {
     let line = parse_line(&"add $t0 $t0 1".to_string(), simulator.get_word_size())
         .unwrap()
         .unwrap();
-    let _ = simulator.add_line(line, "".into());
+    let _ = simulator.add_line(line, "".to_string());
     let _ = simulator.run_line_from_pc();
 
     assert_eq!(
@@ -136,7 +143,8 @@ pub fn test_simulator_instruction() {
 #[test]
 pub fn test_print_instructions() {
     register_instructions();
-    let mut simulator: Simulator = Simulator::new();
+    let writer = Box::new(TestWriter::new());
+    let mut simulator: Simulator = Simulator::new_writer(writer);
     let program = "
         move $s2 \"Print Instructions Work!\\n\"
         add $s1 '\\n' 0
@@ -152,6 +160,14 @@ pub fn test_print_instructions() {
     while !simulator.is_done() {
         simulator.run_line_from_pc().unwrap();
     }
+    let writer = simulator.get_writer();
+    let output = writer
+        .deref()
+        .as_any()
+        .downcast_ref::<TestWriter>()
+        .unwrap()
+        .get_data();
+    assert_eq!(output.as_str(), "3\n1.5\nPrint Instructions Work!\n");
 }
 
 #[test]
@@ -167,7 +183,7 @@ pub fn test_simulator_labels() {
         add $t1 0 $t2
         add $pc 0 fib";
     let lines = parse_lines(&program.to_string(), simulator.get_word_size()).unwrap();
-    match simulator.add_lines(lines, "".into()) {
+    match simulator.add_lines(lines, "".to_string()) {
         Ok(_) => {}
         Err(_) => assert!(false),
     }
@@ -195,7 +211,7 @@ pub fn test_io() {
     register_instructions();
 
     // Read into rezasm file
-    let file_path = workspace_root().join("example").join("arithmatic_fib.ez");
+    let file_path = workspace_root().join("example").join("arithmetic_fib.ez");
     let mut rezasmfile = RezasmFileReader::new(file_path.clone()).expect("failed to read file");
 
     // Reads with fs

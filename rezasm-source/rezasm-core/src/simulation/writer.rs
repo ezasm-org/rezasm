@@ -1,8 +1,14 @@
+use std::any::Any;
 use std::fmt::Debug;
 use std::io::Write;
 use std::sync::{Mutex, MutexGuard};
 
-pub trait Writer: Write + Send + Debug {}
+pub trait AsAny {
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+}
+
+pub trait Writer: Write + AsAny + Send + Debug {}
 
 #[derive(Debug)]
 pub struct WriterMutex(Mutex<Box<dyn Writer>>);
@@ -29,6 +35,16 @@ impl DummyWriter {
 }
 
 impl Writer for DummyWriter {}
+
+impl AsAny for DummyWriter {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
 
 impl Write for DummyWriter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {

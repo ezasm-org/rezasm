@@ -1,9 +1,10 @@
 use crate::util::cli_io::InputSource::{ConsoleInput, FileInput};
 use crate::util::cli_io::OutputSink::{ConsoleOutput, FileOutput};
-use rezasm_core::simulation::writer::Writer;
+use rezasm_core::simulation::writer::{AsAny, Writer};
 use rezasm_core::util::error::IoError;
 use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use scanner_rust::Scanner;
+use std::any::Any;
 use std::io::{stdin, stdout, Stdin, Write};
 
 pub enum InputSource {
@@ -89,5 +90,15 @@ impl Write for OutputSink {
             ConsoleOutput => stdout().flush(),
             FileOutput(file) => file.flush(),
         }
+    }
+}
+
+impl AsAny for OutputSink {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
     }
 }
