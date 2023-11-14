@@ -127,6 +127,9 @@ pub enum SimulatorError {
 
     #[error("attempted to divide by zero")]
     DivideByZeroError,
+
+    #[error("attempted to convert NaN value to an integer")]
+    NaNConversionError,
 }
 
 #[derive(Error, Debug)]
@@ -151,6 +154,9 @@ pub enum IoError {
 
     #[error("some bytes are not UTF-8 in the input file")]
     UnsupportedEncodingError,
+
+    #[error("read operation failed")]
+    ReadError,
 
     #[error("write operation failed")]
     WriteError,

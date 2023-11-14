@@ -36,8 +36,7 @@ lazy_static! {
                 .get_registers_mut()
                 .get_register_mut(&registry::SP.into())?
                 .get_data()
-                .int_value()
-                - wsv;
+                .int_value();
             output.set(simulator, simulator.get_memory().read(sp as usize)?)?;
             simulator
                 .get_registers_mut()
@@ -67,7 +66,7 @@ lazy_static! {
                              output: InputOutputTarget,
                              input: InputTarget| {
             let offset = input.get(simulator)?.int_value() as usize;
-            let mut memory = simulator.get_memory_mut();
+            let memory = simulator.get_memory_mut();
             let heap_pointer = memory.current_heap_pointer();
             memory.set_heap_pointer(heap_pointer + offset)?;
             let bytes = RawData::from_int(heap_pointer as i64, simulator.get_word_size());

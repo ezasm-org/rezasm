@@ -5,6 +5,7 @@ edition = "2021"
 
 [lib]
 path = "src/lib.rs"
+name = "rezasm_core"
 
 [dependencies]
 bimap = "0.6.3"

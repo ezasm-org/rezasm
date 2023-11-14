@@ -1,0 +1,13 @@
+import "import_1.ez"
+
+bar:
+    move $a0 5
+    call foo
+    bne $r0 23 error
+    prints "Output was 23\n" 32
+    exit 0
+
+error:
+    prints "Error: output was not 23\n" 32
+    exit 1
+

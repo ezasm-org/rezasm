@@ -1,7 +1,4 @@
 use std::fmt::Debug;
-use std::io::{self, Stdin};
-
-use scanner_rust::Scanner;
 
 use crate::parser::line::Line;
 use crate::simulation::memory;
@@ -9,10 +6,11 @@ use crate::simulation::memory::Memory;
 use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
+use crate::simulation::writer::{DummyWriter, Writer, WriterBox};
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
-use super::stream::StreamManager;
+use super::reader::{ReaderBox, Reader, DummyReader};
 
 #[derive(Debug)]
 pub struct Simulator {
@@ -20,21 +18,41 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
-    stream_manager: StreamManager,
+    reader: ReaderBox,
+    writer: WriterBox,
 }
 
 impl Simulator {
     pub fn new() -> Simulator {
-        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS)
+        Simulator::new_custom(
+            &DEFAULT_WORD_SIZE,
+            memory::DEFAULT_MEMORY_WORDS,
+            Box::new(DummyReader::new()),
+            Box::new(DummyWriter::new()),
+        )
     }
 
-    pub fn new_custom(word_size: &WordSize, memory_size: usize) -> Simulator {
+    pub fn new_writer(writer: Box<dyn Writer>) -> Simulator {
+        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, Box::new(DummyReader::new()), writer)
+    }
+
+    pub fn new_reader(reader: Box<dyn Reader>) -> Simulator {
+        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, reader, Box::new(DummyWriter::new()))
+    }
+
+    pub fn new_custom(
+        word_size: &WordSize,
+        memory_size: usize,
+        reader: Box<dyn Reader>,
+        writer: Box<dyn Writer>,
+    ) -> Simulator {
         let mut sim = Simulator {
             memory: Memory::new_sized(word_size, memory_size),
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
-            stream_manager: StreamManager::Terminal(Scanner::new(io::stdin())),
+            reader,
+            writer,
         };
         sim.initialize();
         sim
@@ -61,23 +79,15 @@ impl Simulator {
         self.initialize();
     }
 
-    pub fn add_line(&mut self, line: Line) -> Result<(), SimulatorError> {
-        match self
-            .memory
-            .add_string_immediates(line.get_string_immediates())
-        {
-            Ok(_) => {}
-            Err(error) => return Err(error),
-        };
-        self.program.add_line(line, "".to_string())
+    pub fn add_line(&mut self, line: Line, file: String) -> Result<(), SimulatorError> {
+        self.memory
+            .add_string_immediates(line.get_string_immediates())?;
+        self.program.add_line(line, file)
     }
 
-    pub fn add_lines(&mut self, lines: Vec<Line>) -> Result<(), SimulatorError> {
+    pub fn add_lines(&mut self, lines: Vec<Line>, file: String) -> Result<(), SimulatorError> {
         for line in lines {
-            match self.add_line(line) {
-                Ok(_) => {}
-                Err(error) => return Err(error),
-            };
+            self.add_line(line, file.clone())?;
         }
         Ok(())
     }
@@ -94,6 +104,18 @@ impl Simulator {
         &self.registry
     }
 
+    pub fn get_program(&self) -> &Program {
+        &self.program
+    }
+
+    pub fn get_reader(&self) -> &ReaderBox {
+        &self.reader
+    }
+
+    pub fn get_writer(&self) -> &WriterBox {
+        &self.writer
+    }
+
     pub fn get_word_size_mut(&mut self) -> &mut WordSize {
         &mut self.word_size
     }
@@ -104,6 +126,18 @@ impl Simulator {
 
     pub fn get_registers_mut(&mut self) -> &mut Registry {
         &mut self.registry
+    }
+
+    pub fn get_program_mut(&mut self) -> &mut Program {
+        &mut self.program
+    }
+
+    pub fn get_reader_mut(&mut self) -> &mut ReaderBox {
+        &mut self.reader
+    }
+
+    pub fn get_writer_mut(&mut self) -> &mut WriterBox {
+        &mut self.writer
     }
 
     pub fn end_pc(&self) -> usize {
@@ -148,7 +182,7 @@ impl Simulator {
         }
     }
 
-    pub fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
+    fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
         let result = match line {
             Line::Instruction(instruction, args) => {
                 instruction.get_function()(self, instruction.get_types(), &args)
@@ -188,14 +222,6 @@ impl Simulator {
         match self.program.resolve_label(label) {
             None => Err(SimulatorError::NonExistentLabelError(label.clone())),
             Some((_, line_number)) => Ok(line_number.clone()),
-        }
-    }
-
-    pub fn terminal_stream(&mut self) -> Option<&mut Scanner<io::Stdin>> {
-        if let StreamManager::Terminal(scanner) = &mut self.stream_manager {
-            Some(scanner)
-        } else {
-            None
         }
     }
 }

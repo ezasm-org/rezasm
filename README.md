@@ -8,34 +8,15 @@ We will ship an IDE-like GUI interface for programming, running code, and inspec
 This simple interpreted language would be able to demonstrate the concepts of a lower level assembly language while still being simple to write. 
 The instructions would be intuitive and simple compared to MIPS (e.g., no system calls or immediate limits) and act upon registers akin to other assembly languages.
 
-## Getting Started (Windows)
+## Getting Started
 1. Ensure you have installed [Rust](https://www.rust-lang.org/learn/get-started) and [Node.js](https://nodejs.org/en/download)
-2. Download the [Visual Studio Installer](https://visualstudio.microsoft.com/downloads/) and install the Desktop Development with C++ Workload
-3. Install cargo-tauri using `cargo install tauri-cli wasm-pack` in a terminal emulator
+2. Complete the [Tauri Prerequisites Installation](https://tauri.app/v1/guides/getting-started/prerequisites/#installing) process
+3. Install tauri using `cargo install tauri-cli wasm-pack` in a terminal emulator
 4. Clone this repository to your system
-5. Open this repository in your terminal emulator
+5. Open this repository in your terminal
 6. Update npm using `npm install -g npm@latest`
-7. Run `npm install` in a terminal emulator to install the node dependencies
-8. Run the tauri application in development mode using `cargo tauri dev`
-9. Test the WebAssembly code by going to http://localhost:1420 while the tauri application is open
-
-## Getting Started (Linux)
-1. Ensure you have installed [Rust](https://www.rust-lang.org/learn/get-started) and [Node.js](https://nodejs.org/en/download)
-2. Install cargo-tauri using `cargo install tauri-cli wasm-pack`
-3. Clone this repository to your system
-4. Open this repository in your terminal
-5. Update npm using `npm install -g npm@latest`
-6. Run `npm install` in your terminal to install the node dependencies
-7. Run the tauri application in development mode using `cargo tauri dev`
-8. Test the WebAssembly code by going to http://localhost:1420 while the tauri application is open
-
-## Getting Started (MacOS)
-**Under Construction / May not work yet**
-1. Ensure you have installed [Rust](https://www.rust-lang.org/learn/get-started) and [Node.js](https://nodejs.org/en/download)
-2. Install cargo-tauri using `cargo install tauri-cli wasm-pack`
-3. Clone this repository to your system
-4. Open this repository in your terminal
-5. Update npm using `npm install -g npm@latest`
-6. Run `npm install` in your terminal to install the node dependencies
-7. Run the tauri application in development mode using `cargo tauri dev`
-8. Test the WebAssembly code by going to http://localhost:1420 while the tauri application is open
+7. Run `npm install` to install the node dependencies
+8. Run the test suite to ensure everything works using `cargo test`
+9. Run the CLI application by using `cargo run`
+10. Run the tauri application in development mode using `cargo tauri dev`
+11. Test the WebAssembly code by going to http://localhost:1420 while the tauri application is open

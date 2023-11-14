@@ -10,6 +10,10 @@ use crate::util::word_size::WordSize;
 
 const REGISTERS_COUNT: usize = 54;
 
+pub const PC_NUMBER: usize = 3;
+pub const SP_NUMBER: usize = 4;
+pub const FID_NUMBER: usize = 2;
+
 lazy_static! {
     pub static ref REGISTERS_MAP: BiMap<String, usize> = {
         let mut temp_map: BiMap<String, usize> = BiMap::new();
@@ -202,10 +206,26 @@ impl Registry {
     }
 
     pub fn get_pc(&self) -> &Register {
-        self.get_register_by_number(3).unwrap()
+        self.get_register_by_number(PC_NUMBER).unwrap()
     }
 
     pub fn get_pc_mut(&mut self) -> &mut Register {
-        self.get_register_by_number_mut(3).unwrap()
+        self.get_register_by_number_mut(PC_NUMBER).unwrap()
+    }
+
+    pub fn get_sp(&self) -> &Register {
+        self.get_register_by_number(SP_NUMBER).unwrap()
+    }
+
+    pub fn get_sp_mut(&mut self) -> &mut Register {
+        self.get_register_by_number_mut(SP_NUMBER).unwrap()
+    }
+
+    pub fn get_fid(&self) -> &Register {
+        self.get_register_by_number(FID_NUMBER).unwrap()
+    }
+
+    pub fn get_fid_mut(&mut self) -> &mut Register {
+        self.get_register_by_number_mut(FID_NUMBER).unwrap()
     }
 }

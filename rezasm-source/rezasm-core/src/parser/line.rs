@@ -10,6 +10,8 @@ use crate::util::word_size::WordSize;
 use std::any::TypeId;
 use std::fmt::{Display, Formatter};
 
+use super::lexer;
+
 #[derive(Debug, Clone)]
 pub enum Line {
     Instruction(&'static Instruction, Vec<ArgumentType>),
@@ -39,7 +41,9 @@ impl Line {
         let mut args_out: Vec<Token> = Vec::new();
         for arg in &args {
             if looks_like_string_immediate(arg) {
-                args_out.push(Token::StringImmediate(arg.to_string()));
+                args_out.push(Token::StringImmediate(lexer::get_string_immediate(
+                    &arg.trim_matches('"').to_string(),
+                )?));
             } else if looks_like_dereference(arg) {
                 args_out.push(get_dereference(arg)?);
             } else if looks_like_character_immediate(arg) {
@@ -84,14 +88,16 @@ impl Line {
         Ok(Line::Instruction(instruction_retrieved, arguments))
     }
 
-    pub fn get_string_immediates(&self) -> Vec<&String> {
+    pub fn get_string_immediates(&self) -> Vec<String> {
         match self {
             Line::Instruction(_, args) => {
                 let mut string_immediates = Vec::new();
                 for arg in args {
                     match arg {
                         ArgumentType::Input(input) => match input {
-                            InputTarget::StringInput(string) => string_immediates.push(string),
+                            InputTarget::StringInput(string) => {
+                                string_immediates.push(string.clone())
+                            }
                             _ => {}
                         },
                         _ => {}

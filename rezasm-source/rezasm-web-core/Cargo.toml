@@ -18,4 +18,3 @@ rezasm-core = { path = "../rezasm-core" }
 lazy_static = "1.4.0"
 serde = { version = "1.0.188", features = ["derive"] }
 serde_json = "1.0.105"
-tokio = { version = "1.32.0", features = ["sync", "rt"] }

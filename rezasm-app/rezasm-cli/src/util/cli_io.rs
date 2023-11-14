@@ -1,10 +1,16 @@
 use crate::util::cli_io::InputSource::{ConsoleInput, FileInput};
 use crate::util::cli_io::OutputSink::{ConsoleOutput, FileOutput};
+use rezasm_core::instructions::targets::input_target::Input;
+use rezasm_core::simulation::reader::Reader;
+use rezasm_core::simulation::writer::Writer;
+use rezasm_core::util::as_any::AsAny;
 use rezasm_core::util::error::IoError;
 use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use scanner_rust::Scanner;
-use std::io::{stdin, stdout, Stdin, Write};
+use std::any::Any;
+use std::io::{stdin, stdout, Stdin, Write, self};
 
+#[derive(Debug)]
 pub enum InputSource {
     FileInput(Scanner<RezasmFileReader>),
     ConsoleInput(Scanner<Stdin>),
@@ -57,6 +63,29 @@ impl InputSource {
     }
 }
 
+impl Reader for InputSource {}
+
+impl io::Read for InputSource {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        match self {
+            ConsoleInput(scanner) => scanner.next_raw().unwrap().unwrap().write(buf),
+            FileInput(file) => file.next_raw().unwrap().unwrap().write(buf),
+        }
+    }
+}
+
+impl AsAny for InputSource {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+
+
+#[derive(Debug)]
 pub enum OutputSink {
     FileOutput(RezasmFileWriter),
     ConsoleOutput,
@@ -70,19 +99,32 @@ impl OutputSink {
     pub fn new_file(file: RezasmFileWriter) -> OutputSink {
         FileOutput(file)
     }
+}
 
-    pub fn write_string(&mut self, string: &String) -> Result<(), std::io::Error> {
-        let data = string.as_bytes();
-        let _ = match self {
-            FileOutput(file) => {
-                file.write(data)?;
-                file.flush()?;
-            }
-            ConsoleOutput => {
-                stdout().write(data)?;
-                stdout().flush()?;
-            }
-        };
-        Ok(())
+impl Writer for OutputSink {}
+
+impl Write for OutputSink {
+    fn write(&mut self, buf: &[u8]) -> Result<usize, std::io::Error> {
+        match self {
+            ConsoleOutput => stdout().write(buf),
+            FileOutput(file) => file.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> Result<(), std::io::Error> {
+        match self {
+            ConsoleOutput => stdout().flush(),
+            FileOutput(file) => file.flush(),
+        }
+    }
+}
+
+impl AsAny for OutputSink {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
     }
 }
