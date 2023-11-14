@@ -13,7 +13,7 @@ categories = ["development-tools", "parser-implementations", "parsing", "simulat
 
 [[bin]]
 path = "rezasm-app/rezasm-cli/src/main.rs"
-name = "rezasm-cli-app"
+name = "rezasm-cli"
 test = false
 
 
