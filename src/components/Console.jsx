@@ -21,8 +21,7 @@ function Console({registerCallback, exitCode}) {
     const appendHistory = useCallback((lines) => {
         if (history.current.length === 0) {
             history.current = lines;
-        }
-        else {
+        } else {
             const first = lines.shift();
             history.current[history.current.length-1] += first;
             history.current = [...history.current, ...lines];
@@ -33,7 +32,7 @@ function Console({registerCallback, exitCode}) {
     const reset = useCallback(() => {
         setHistory([]);
         setInputText("");
-    }, []);
+    }, [setHistory]);
 
     registerCallback(CALLBACKS_TRIGGERS.RESET, CALLBACK_TYPES.CONSOLE, reset);
 
@@ -49,32 +48,40 @@ function Console({registerCallback, exitCode}) {
             forceUpdate();
             // TODO send the input to the rust
         }
-    }, [history, inputText]);
+    }, [inputText, setHistory]);
 
     useEffect(() => {
         const unlisten = listen("tauri_print", (event) => {
             const lines = event.payload.split("\n");
             appendHistory(lines);
-            forceUpdate();
         });
         return () => unlisten.then(f => f());
-    }, [history]);
+    }, [appendHistory, history]);
 
     useEffect(() => {
         if (exitCode !== "") {
-            appendHistory(
-                (((history.current.length > 0) ? "\n" : "") + `Program exited with exit code ${exitCode}\n`).split("\n")
-            );
+            const toHistory = [`Program exited with exit code ${exitCode}`, "\n"];
+            if (history.current.length > 0) {
+                toHistory.unshift("\n");
+            }
+            appendHistory(toHistory);
 
         }
-    }, [exitCode]);
+    }, [appendHistory, exitCode]);
+
+    let consoleHistoryHtml;
+    if (history.current.length < 2) {
+        consoleHistoryHtml = history.current;
+    } else {
+        consoleHistoryHtml = history.current.reduce((left, right) => <> {left} <br/> {right} </>);
+    }
 
     return (
         <div className="terminal"
             ref={terminal}>
             <div className="terminal-history">
                 <code>
-                    {history.current.reduce((left, right) => <> {left} <br/> {right} </>, <></>)}
+                    {consoleHistoryHtml}
                 </code>
             </div>
             <div>
