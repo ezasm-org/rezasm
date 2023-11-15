@@ -49,7 +49,10 @@ function Console({registerCallback, exitCode}) {
 
     useEffect(() => {
         if (exitCode !== "") {
-            setHistory([...history.current, `\nProgram exited with exit code ${exitCode}\n`]);
+            setHistory([
+                ...history.current,
+                ((history.current.length > 0) ? "\n" : "") + `Program exited with exit code ${exitCode}\n`
+            ]);
 
         }
     }, [exitCode]);
