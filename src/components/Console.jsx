@@ -18,6 +18,18 @@ function Console({registerCallback, exitCode}) {
         forceUpdate();
     }, []);
 
+    const appendHistory = useCallback((lines) => {
+        if (history.current.length === 0) {
+            history.current = lines;
+        }
+        else {
+            const first = lines.shift();
+            history.current[history.current.length-1] += first;
+            history.current = [...history.current, ...lines];
+        }
+        forceUpdate();
+    }, []);
+
     const reset = useCallback(() => {
         setHistory([]);
         setInputText("");
@@ -41,7 +53,8 @@ function Console({registerCallback, exitCode}) {
 
     useEffect(() => {
         const unlisten = listen("tauri_print", (event) => {
-            setHistory([...history.current, event.payload]);
+            const lines = event.payload.split("\n");
+            appendHistory(lines);
             forceUpdate();
         });
         return () => unlisten.then(f => f());
@@ -49,10 +62,9 @@ function Console({registerCallback, exitCode}) {
 
     useEffect(() => {
         if (exitCode !== "") {
-            setHistory([
-                ...history.current,
-                ((history.current.length > 0) ? "\n" : "") + `Program exited with exit code ${exitCode}\n`
-            ]);
+            appendHistory(
+                (((history.current.length > 0) ? "\n" : "") + `Program exited with exit code ${exitCode}\n`).split("\n")
+            );
 
         }
     }, [exitCode]);
@@ -62,12 +74,7 @@ function Console({registerCallback, exitCode}) {
             ref={terminal}>
             <div className="terminal-history">
                 <code>
-                    {
-                        history.current
-                            .reduce((left, right) => left + right, "")
-                            .split("\n")
-                            .reduceRight((left, right) => <>{right}<br/>{left}</>)
-                    }
+                    {history.current.reduce((left, right) => <> {left} <br/> {right} </>, <></>)}
                 </code>
             </div>
             <div>
