@@ -26,14 +26,19 @@ const STATE = {
     STOPPED: 1,
 };
 
-const STEP_CALLBACKS = {
+const CALLBACKS_TRIGGERS = {
+    RESET: "RESET",
+    STEP: "STEP"
+};
+
+const CALLBACK_TYPES = {
+    CONSOLE: "CONSOLE",
     MEMORY: "MEMORY",
     REGISTRY: "REGISTRY",
 };
 
-const RESET_CALLBACKS = {
-    CONSOLE: "CONSOLE"
-};
+let initialCallbacks = {};
+Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
 
 function App() {
     const [lines, setLines] = useState("");
@@ -44,8 +49,7 @@ function App() {
     const [instructionDelay, setInstructionDelay] = useState(5);
     const [wasmLoaded, setWasmLoaded] = useState(false);
 
-    const stepCallbacks = useRef({});
-    const resetCallbacks = useRef({});
+    const callbacks = useRef(initialCallbacks);
 
     const disallowExecution = () => {
         if (timerId.current !== null) {
@@ -55,20 +59,16 @@ function App() {
     };
 
     const callStepCallbacks = useCallback(() => {
-        Object.values(stepCallbacks.current).map(callback => callback());
+        Object.values(callbacks.current[CALLBACKS_TRIGGERS.STEP]).map(callback => callback());
     }, []);
 
     const callResetCallbacks = useCallback( () => {
-        Object.values(resetCallbacks.current).map(callback => callback());
+        Object.values(callbacks.current[CALLBACKS_TRIGGERS.RESET]).map(callback => callback());
     }, []);
 
-    const registerStepCallback = useCallback((name, callback) => {
-        stepCallbacks.current[name] = callback;
-    }, []);
-
-    const registerResetCallback = useCallback((name, callback) => {
-        resetCallbacks.current[name] = callback;
-    }, []);
+    const registerCallback = useCallback((trigger, type, callback) => {
+        callbacks.current[trigger][type] = callback;
+    });
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -146,7 +146,7 @@ function App() {
         if (await isCompleted() || isErrorState()) {
             disallowExecution();
             setState(STATE.STOPPED);
-            setResult("Program exited with exit code " +  await getExitStatus());
+            setResult("" + await getExitStatus());
             return true;
         } else {
             return false;
@@ -275,18 +275,17 @@ function App() {
                         onChange={(e) => setLines(e.currentTarget.value)}
                         placeholder="Enter some ezasm code..."
                     />
-                    <RegistryView loaded={wasmLoaded} registerCallback={registerStepCallback} />
+                    <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
                 </div>
             </div>
             <div className="fill">
-                <MemoryView loaded={wasmLoaded} registerCallback={registerStepCallback} />
+                <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
-            <Console registerCallback={registerResetCallback} />
-            <p className="mt-2 mb-2">{isErrorState() ? getErrorState() : result}</p>
+            <Console registerCallback={registerCallback} exitCode={result} />
         </div>
     );
 }
 
 export default App;
 
-export {STATE, STEP_CALLBACKS, RESET_CALLBACKS};
+export {STATE, CALLBACKS_TRIGGERS, CALLBACK_TYPES};
