@@ -130,6 +130,7 @@ td {
   padding: 1vh;
   height: 20vh;
   width: 100%;
+  font-size: calc(0.6vh + 6px);
 }
 
 .console-history-scrollbox {
@@ -155,6 +156,7 @@ td {
   color: inherit;
   font: inherit;
   width: 100%;
+  height: auto;
 }
 
 .console-prefix {
@@ -179,6 +181,10 @@ td {
   outline: none;
   margin: 0;
   padding: 0;
+}
+
+.console-error-text {
+  color: orangered;
 }
 
 /*@media (prefers-color-scheme: dark) {*/

@@ -43,7 +43,7 @@ Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
 function App() {
     const [lines, setLines] = useState("");
     const [error, setError] = useState("");
-    const [result, setResult] = useState("");
+    const [exitCode, setExitCode] = useState("");
     const [state, setState] = useState(STATE.IDLE);
     const timerId = useRef(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
@@ -112,7 +112,7 @@ function App() {
         setState(STATE.IDLE);
         callStepCallbacks();
         callResetCallbacks();
-        setResult("");
+        setExitCode("");
         clearErrorState();
         return STATE.IDLE;
     }, [callResetCallbacks, callStepCallbacks, clearErrorState]);
@@ -146,7 +146,7 @@ function App() {
         if (await isCompleted() || isErrorState()) {
             disallowExecution();
             setState(STATE.STOPPED);
-            setResult("" + await getExitStatus());
+            setExitCode("" + await getExitStatus());
             return true;
         } else {
             return false;
@@ -282,7 +282,7 @@ function App() {
                 <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
             <div className="fill">
-                <Console registerCallback={registerCallback} exitCode={result} />
+                <Console registerCallback={registerCallback} exitCode={exitCode} error={error} />
             </div>
         </div>
     );

@@ -5,7 +5,7 @@ import {rust_receive_input} from "../rust_functions.js";
 
 const ENTER = 13;
 
-function Console({registerCallback, exitCode}) {
+function Console({registerCallback, exitCode, error}) {
     const terminal = useRef(null);
     const input = useRef(null);
 
@@ -64,13 +64,12 @@ function Console({registerCallback, exitCode}) {
                 toHistory.unshift("");
             }
             appendHistory(toHistory);
-
         }
     }, [appendHistory, exitCode]);
 
     let consoleHistoryHtml;
     if (history.current.length === 0) {
-        consoleHistoryHtml = <br/>;
+        consoleHistoryHtml = <></>;
     } else if (history.current.length === 1) {
         consoleHistoryHtml = <>{history.current[0]}</>
     } else {
@@ -82,7 +81,10 @@ function Console({registerCallback, exitCode}) {
             ref={terminal}
             onClick={() => input.current?.focus()}>
             <div className="console-history-scrollbox">
-                <code className="console-history-text">{consoleHistoryHtml}</code>
+                <code className="console-history-text">
+                    {consoleHistoryHtml}
+                    {error ? <p className="console-error-text">{error}</p> : <></>}
+                </code>
             </div>
             <hr/>
             <code className="console-input-box row">
@@ -91,6 +93,7 @@ function Console({registerCallback, exitCode}) {
                     className="console-input-text"
                     ref={input}
                     value={inputText}
+                    disabled={error !== ""}
                     onChange={onInputChange}
                     onKeyDown={onKeyPress}
                 />
