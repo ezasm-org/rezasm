@@ -1,6 +1,6 @@
 import {rust_get_memory_bounds, rust_get_memory_slice, rust_get_word_size} from "../rust_functions.js";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {CALLBACKS} from "../App.jsx";
+import {CALLBACK_TYPES, CALLBACKS_TRIGGERS} from "../App.jsx";
 
 const WIDTH = 4;
 const HEIGHT = 4;
@@ -36,7 +36,7 @@ function MemoryView({loaded, registerCallback}) {
         updateSlice(currentAddress);
     }, [currentAddress, updateSlice]);
 
-    registerCallback(CALLBACKS.MEMORY, updateSliceCurrent);
+    registerCallback(CALLBACKS_TRIGGERS.STEP, CALLBACK_TYPES.MEMORY, updateSliceCurrent);
 
     useEffect(() => {
         if (loaded) {
@@ -111,8 +111,8 @@ function MemoryView({loaded, registerCallback}) {
                     }}
                 />
                 <button className="btn-basic" onClick={seek}>Seek</button>
-                <button className="btn-basic" onClick={seekLeft}>&lt;---</button>
-                <button className="btn-basic" onClick={seekRight}>---&gt;</button>
+                <button className="btn-basic" onClick={seekLeft}>&lt;--</button>
+                <button className="btn-basic" onClick={seekRight}>--&gt;</button>
             </div>
             <table className="fill">
                 <thead>

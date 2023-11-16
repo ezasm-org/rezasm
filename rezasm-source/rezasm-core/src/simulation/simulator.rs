@@ -123,6 +123,10 @@ impl Simulator {
         &mut self.writer
     }
 
+    pub fn set_writer(&mut self, writer: WriterBox) {
+        self.writer = writer;
+    }
+
     pub fn end_pc(&self) -> usize {
         let fid = self
             .registry

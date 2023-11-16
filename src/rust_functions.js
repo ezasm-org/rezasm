@@ -1,4 +1,5 @@
 import {invoke} from "@tauri-apps/api/tauri";
+import { listen } from "@tauri-apps/api/event";
 import {
     wasm_get_exit_status,
     wasm_get_register_names,
@@ -142,6 +143,16 @@ const rust_get_word_size = async () => {
     }
 };
 
+const rust_receive_input = async data => {
+    if (window.__TAURI_IPC__) {
+        return invoke("tauri_receive_input", {data});
+    } else if (wasm_load) {
+        return callWorkerFunction({command: "receive_input", argument: data});
+    } else {
+        throw new Error("Function receive_input does not exist");
+    }
+};
+
 export {
     rust_reset,
     rust_load,
@@ -154,5 +165,6 @@ export {
     rust_get_register_names,
     rust_get_register_value,
     rust_get_register_values,
-    rust_get_word_size
+    rust_get_word_size,
+    rust_receive_input,
 };

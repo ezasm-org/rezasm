@@ -11,7 +11,9 @@ import {
     wasm_get_memory_slice,
     wasm_get_register_value,
     wasm_get_register_names,
-    wasm_get_register_values, wasm_get_word_size,
+    wasm_get_register_values,
+    wasm_get_word_size,
+    wasm_receive_input
 } from "../dist/wasm";
 
 registerWebworker(async (message, emit) => {
@@ -56,6 +58,11 @@ registerWebworker(async (message, emit) => {
             return wasm_get_memory_slice(data.address, data.length);
         } else if (command === "get_word_size") {
             return wasm_get_word_size();
+        } else if (command === "receive_input") {
+            if (data === undefined || data.data === undefined) {
+                throw "Call to 'receive_input' without providing string to send";
+            }
+            return wasm_receive_input(data.data);
         } else {
             throw `Invalid command: '${command}'`;
         }
