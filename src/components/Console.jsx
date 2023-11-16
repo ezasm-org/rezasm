@@ -28,8 +28,8 @@ function Console({registerCallback, exitCode, error}) {
             const first = lines.shift();
             history.current[history.current.length - 1] += first;
             history.current = [...history.current, ...lines];
-            historyScrollbox.current.scrollTop = historyScrollbox.current.scrollHeight + 1;
         }
+        historyScrollbox.current.scrollTop = historyScrollbox.current.scrollHeight;
         forceUpdate();
     }, []);
 
