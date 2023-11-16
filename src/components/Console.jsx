@@ -1,6 +1,7 @@
 import {listen} from "@tauri-apps/api/event";
 import {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import {CALLBACKS_TRIGGERS, CALLBACK_TYPES} from "../App.jsx";
+import {rust_receive_input} from "../rust_functions.js";
 
 const ENTER = 13;
 
@@ -23,7 +24,7 @@ function Console({registerCallback, exitCode}) {
             history.current = lines;
         } else {
             const first = lines.shift();
-            history.current[history.current.length-1] += first;
+            history.current[history.current.length - 1] += first;
             history.current = [...history.current, ...lines];
         }
         forceUpdate();
@@ -42,27 +43,25 @@ function Console({registerCallback, exitCode}) {
 
     const onKeyPress = useCallback((event) => {
         if (event.keyCode === ENTER) {
-            const inputString = inputText + "\n";
-            setHistory([...history.current, inputString]);
+            appendHistory([inputText, ""]);
             setInputText("");
-            forceUpdate();
-            // TODO send the input to the rust
+            rust_receive_input(inputText); // send the input to rust
         }
-    }, [inputText, setHistory]);
+    }, [appendHistory, inputText]);
 
     useEffect(() => {
         const unlisten = listen("tauri_print", (event) => {
             const lines = event.payload.split("\n");
-            appendHistory(lines);
+            appendHistory([...lines]);
         });
         return () => unlisten.then(f => f());
     }, [appendHistory, history]);
 
     useEffect(() => {
         if (exitCode !== "") {
-            const toHistory = [`Program exited with exit code ${exitCode}`, "\n"];
-            if (history.current.length > 0) {
-                toHistory.unshift("\n");
+            const toHistory = [`Program exited with exit code ${exitCode}`, ""];
+            if (history.current.length > 0 && history.current[history.current.length - 1] !== "") {
+                toHistory.unshift("");
             }
             appendHistory(toHistory);
 
@@ -70,30 +69,32 @@ function Console({registerCallback, exitCode}) {
     }, [appendHistory, exitCode]);
 
     let consoleHistoryHtml;
-    if (history.current.length < 2) {
-        consoleHistoryHtml = history.current;
+    if (history.current.length === 0) {
+        consoleHistoryHtml = <br/>;
+    } else if (history.current.length === 1) {
+        consoleHistoryHtml = <>{history.current[0]}</>
     } else {
-        consoleHistoryHtml = history.current.reduce((left, right) => <> {left} <br/> {right} </>);
+        consoleHistoryHtml = <>{history.current.reduce((left, right) => <> {left} <br/> {right} </>)}</>;
     }
 
     return (
-        <div className="terminal"
-            ref={terminal}>
-            <div className="terminal-history">
-                <code>
-                    {consoleHistoryHtml}
-                </code>
+        <div className="console "
+            ref={terminal}
+            onClick={() => input.current?.focus()}>
+            <div className="console-history-scrollbox">
+                <code className="console-history-text">{consoleHistoryHtml}</code>
             </div>
-            <div>
+            <hr/>
+            <code className="console-input-box row">
+                <span className="console-prefix">&gt;&nbsp;</span>
                 <input
-                    className="terminal-input-line"
-                    type="text"
+                    className="console-input-text"
                     ref={input}
                     value={inputText}
                     onChange={onInputChange}
                     onKeyDown={onKeyPress}
                 />
-            </div>
+            </code>
         </div>
     );
 }

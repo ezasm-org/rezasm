@@ -10,8 +10,8 @@
     "format": "eslint --fix",
     "tailwind-dev": "tailwindcss -i ./src/styles.css -o ./dist/output.css --watch",
     "tailwind-build": "tailwindcss -i ./src/styles.css -o ./dist/output.css",
-    "vite-dev": "npm run wasm-dev && vite dev",
-    "vite-build": "npm run wasm-build && vite build",
+    "vite-dev": "vite dev",
+    "vite-build": "vite build",
     "wasm-dev": "wasm-pack build -d ../../dist/wasm --target web --dev rezasm-app/rezasm-wasm/",
     "wasm-build": "wasm-pack build -d ../../dist/wasm --target web --dev rezasm-app/rezasm-wasm/"
   },

@@ -1,8 +1,8 @@
-use std::any::Any;
-use std::io::{ErrorKind, Write};
+use crate::get_window;
 use rezasm_core::simulation::writer::Writer;
 use rezasm_core::util::as_any::AsAny;
-use crate::get_window;
+use std::any::Any;
+use std::io::{ErrorKind, Write};
 
 #[derive(Debug)]
 pub struct GuiWriter {}
@@ -15,7 +15,7 @@ impl GuiWriter {
 
 impl Writer for GuiWriter {}
 
-impl Write for GuiWriter{
+impl Write for GuiWriter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let function = "tauri_print";
         match get_window().emit(function, String::from_utf8_lossy(buf)) {

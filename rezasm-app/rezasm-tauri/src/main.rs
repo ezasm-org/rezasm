@@ -8,11 +8,15 @@ extern crate tauri;
 
 use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
-use rezasm_web_core::{get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value, get_register_values, get_word_size, is_completed, load, register_writer, reset, step, stop};
+use rezasm_web_core::{
+    get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
+    get_register_values, get_word_size, is_completed, load, receive_input, register_writer, reset,
+    step, stop,
+};
 use tauri::{Manager, Window};
 
-use std::sync::{Arc, RwLock};
 use crate::gui_writer::GuiWriter;
+use std::sync::{Arc, RwLock};
 
 lazy_static! {
     static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
@@ -94,6 +98,11 @@ fn tauri_get_word_size() -> usize {
     get_word_size()
 }
 
+#[tauri::command]
+fn tauri_receive_input(data: &str) {
+    receive_input(data);
+}
+
 fn main() {
     register_instructions();
     register_writer(Box::new(GuiWriter::new()));
@@ -113,6 +122,7 @@ fn main() {
             tauri_get_memory_bounds,
             tauri_get_memory_slice,
             tauri_get_word_size,
+            tauri_receive_input,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

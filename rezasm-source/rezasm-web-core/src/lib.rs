@@ -2,9 +2,9 @@ use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 
+use rezasm_core::simulation::writer::WriterBox;
 use std::string::ToString;
 use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
-use rezasm_core::simulation::writer::WriterBox;
 
 fn internal_simulator() -> &'static RwLock<Simulator> {
     static SIMULATOR: OnceLock<RwLock<Simulator>> = OnceLock::new();
@@ -144,4 +144,8 @@ pub fn get_memory_slice(address: usize, length: usize) -> Result<Vec<i64>, Strin
 
 pub fn get_word_size() -> usize {
     get_simulator().get_word_size().value()
+}
+
+pub fn receive_input(data: &str) {
+    println!("{}", data);
 }

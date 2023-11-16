@@ -68,7 +68,7 @@ function App() {
 
     const registerCallback = useCallback((trigger, type, callback) => {
         callbacks.current[trigger][type] = callback;
-    });
+    }, []);
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -281,7 +281,9 @@ function App() {
             <div className="fill">
                 <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
-            <Console registerCallback={registerCallback} exitCode={result} />
+            <div className="fill">
+                <Console registerCallback={registerCallback} exitCode={result} />
+            </div>
         </div>
     );
 }

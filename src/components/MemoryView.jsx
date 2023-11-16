@@ -111,8 +111,8 @@ function MemoryView({loaded, registerCallback}) {
                     }}
                 />
                 <button className="btn-basic" onClick={seek}>Seek</button>
-                <button className="btn-basic" onClick={seekLeft}>&lt;---</button>
-                <button className="btn-basic" onClick={seekRight}>---&gt;</button>
+                <button className="btn-basic" onClick={seekLeft}>&lt;--</button>
+                <button className="btn-basic" onClick={seekRight}>--&gt;</button>
             </div>
             <table className="fill">
                 <thead>
