@@ -6,9 +6,8 @@ import {rust_receive_input} from "../rust_functions.js";
 const ENTER = 13;
 
 function Console({registerCallback, exitCode, error}) {
-    const terminal = useRef(null);
     const input = useRef(null);
-    const history_scrollbox = useRef(null);
+    const historyScrollbox = useRef(null);
 
     const history = useRef([]);
     const [inputText, setInputText] = useState("");
@@ -27,7 +26,7 @@ function Console({registerCallback, exitCode, error}) {
             const first = lines.shift();
             history.current[history.current.length - 1] += first;
             history.current = [...history.current, ...lines];
-            history_scrollbox.current.scrollTop = history_scrollbox.current.scrollHeight;
+            historyScrollbox.current.scrollTop = historyScrollbox.current.scrollHeight + 1;
         }
         forceUpdate();
     }, []);
@@ -80,14 +79,13 @@ function Console({registerCallback, exitCode, error}) {
 
     return (
         <div className="console "
-            ref={terminal}
             onClick={() => input.current?.focus()}>
-            <div className="console-history-scrollbox" ref={history_scrollbox}>
+            <div className="console-history-scrollbox" ref={historyScrollbox}>
                 <code className="console-history-text">
                     {consoleHistoryHtml}
                     {error ? <p className="console-error-text">{error}</p> : <></>}
                 </code>
-                <div className="anchor"/>
+                <br/> {/* This is a temporary workaround to an issue where scrolling goes to the second to last element */}
             </div>
             <hr/>
             <code className="console-input-box row">
