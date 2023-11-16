@@ -8,6 +8,7 @@ const ENTER = 13;
 function Console({registerCallback, exitCode, error}) {
     const terminal = useRef(null);
     const input = useRef(null);
+    const history_scrollbox = useRef(null);
 
     const history = useRef([]);
     const [inputText, setInputText] = useState("");
@@ -26,6 +27,7 @@ function Console({registerCallback, exitCode, error}) {
             const first = lines.shift();
             history.current[history.current.length - 1] += first;
             history.current = [...history.current, ...lines];
+            history_scrollbox.current.scrollTop = history_scrollbox.current.scrollHeight;
         }
         forceUpdate();
     }, []);
@@ -80,11 +82,12 @@ function Console({registerCallback, exitCode, error}) {
         <div className="console "
             ref={terminal}
             onClick={() => input.current?.focus()}>
-            <div className="console-history-scrollbox">
+            <div className="console-history-scrollbox" ref={history_scrollbox}>
                 <code className="console-history-text">
                     {consoleHistoryHtml}
                     {error ? <p className="console-error-text">{error}</p> : <></>}
                 </code>
+                <div className="anchor"/>
             </div>
             <hr/>
             <code className="console-input-box row">
