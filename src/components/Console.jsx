@@ -12,6 +12,8 @@ function Console({registerCallback, exitCode, error}) {
     const history = useRef([]);
     const [inputText, setInputText] = useState("");
 
+    // forceUpdate is a hack to allow history to be modified as a ref instantly but still
+    // be able to rerender after the change is made
     const [, forceUpdate] = useReducer(() => Date.now());
 
     const setHistory = useCallback((newHistory) => {
