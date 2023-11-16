@@ -80,7 +80,7 @@ function Console({registerCallback, exitCode, error}) {
     }
 
     return (
-        <div className="console "
+        <div className="console"
             onClick={() => input.current?.focus()}>
             <div className="console-history-scrollbox" ref={historyScrollbox}>
                 <code className="console-history-text">
