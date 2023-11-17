@@ -4,14 +4,7 @@ import _ from "lodash";
 import RegistryView from "./components/RegistryView.jsx";
 import WorkerPromise from "webworker-promise";
 import init from "../dist/wasm/rezasm_wasm.js";
-import {
-    rust_get_exit_status,
-    rust_is_completed,
-    rust_load,
-    rust_reset,
-    rust_step,
-    rust_stop
-} from "./rust_functions.js";
+import {RUST} from "./rust_functions.js";
 
 import "../dist/output.css";
 import MemoryView from "./components/MemoryView.jsx";
@@ -91,16 +84,16 @@ function App() {
         {leading: true, trailing: false, maxWait: 250}), []);
 
     const isCompleted = useCallback(async () => {
-        return await rust_is_completed();
+        return await RUST.IS_COMPLETED({});
     }, []);
 
     const getExitStatus = useCallback(async () => {
-        return await rust_get_exit_status();
+        return await RUST.GET_EXIT_STATUS({});
     }, []);
 
     const stop = useCallback(async currentState => {
         disallowExecution();
-        await rust_stop();
+        await RUST.STOP({});
         currentState = STATE.STOPPED;
         setState(currentState);
         return currentState;
@@ -108,7 +101,7 @@ function App() {
 
     const reset = useCallback(async () => {
         disallowExecution();
-        await rust_reset();
+        await RUST.RESET({});
         setState(STATE.IDLE);
         callStepCallbacks();
         callResetCallbacks();
@@ -121,7 +114,7 @@ function App() {
         if (currentState >= STATE.LOADED) {
             return currentState;
         }
-        await rust_load(lines)
+        await RUST.LOAD({lines: lines})
             .then(() => {
                 currentState = STATE.LOADED;
             })
@@ -154,7 +147,7 @@ function App() {
     }, [callStepCallbacks, getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
-        rust_step()
+        RUST.STEP({})
             .then(async () => await checkAndHandleProgramCompletion())
             .catch(error => {
                 setErrorState(error);

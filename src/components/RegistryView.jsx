@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {rust_get_register_names, rust_get_register_values} from "../rust_functions.js";
+import {RUST} from "../rust_functions.js";
 import {CALLBACK_TYPES, CALLBACKS_TRIGGERS} from "../App.jsx";
 
 function RegistryView({loaded, registerCallback}) {
@@ -8,13 +8,13 @@ function RegistryView({loaded, registerCallback}) {
 
     useEffect(() => {
         if (loaded) {
-            rust_get_register_names().then(result => setRegisterNames(result));
-            rust_get_register_values().then(result => setRegisters(result));
+            RUST.GET_REGISTER_NAMES({}).then(result => setRegisterNames(result));
+            RUST.GET_REGISTER_VALUES({}).then(result => setRegisters(result));
         }
     }, [loaded]);
 
     registerCallback(CALLBACKS_TRIGGERS.STEP, CALLBACK_TYPES.REGISTRY,
-        () => rust_get_register_values().then(values => setRegisters(values))
+        () => RUST.GET_REGISTER_VALUES({}).then(values => setRegisters(values))
     );
 
     let tableData = [];

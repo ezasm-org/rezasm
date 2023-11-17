@@ -1,7 +1,7 @@
 import {listen} from "@tauri-apps/api/event";
 import {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import {CALLBACKS_TRIGGERS, CALLBACK_TYPES} from "../App.jsx";
-import {rust_receive_input} from "../rust_functions.js";
+import {RUST} from "../rust_functions.js";
 
 const ENTER = 13;
 
@@ -48,16 +48,18 @@ function Console({registerCallback, exitCode, error}) {
         if (event.keyCode === ENTER) {
             appendHistory([inputText, ""]);
             setInputText("");
-            rust_receive_input(inputText); // send the input to rust
+            RUST.RECEIVE_INPUT({inputText}); // send the input to rust
         }
     }, [appendHistory, inputText]);
 
     useEffect(() => {
-        const unlisten = listen("tauri_print", (event) => {
-            const lines = event.payload.split("\n");
-            appendHistory([...lines]);
-        });
-        return () => unlisten.then(f => f());
+        if (window.__TAURI_IPC__) {
+            const unlisten = listen("tauri_print", (event) => {
+                const lines = event.payload.split("\n");
+                appendHistory([...lines]);
+            });
+            return () => unlisten.then(f => f());
+        }
     }, [appendHistory, history]);
 
     useEffect(() => {
