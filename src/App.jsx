@@ -1,9 +1,8 @@
-import React, {useRef} from "react";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import _ from "lodash";
 import RegistryView from "./components/RegistryView.jsx";
 import WorkerPromise from "webworker-promise";
-import init from "../dist/wasm/rezasm_wasm.js";
+import init from "../wasm/rezasm_wasm.js";
 import {RUST} from "./rust_functions.js";
 
 import "../dist/output.css";
@@ -29,6 +28,7 @@ const CALLBACK_TYPES = {
     MEMORY: "MEMORY",
     REGISTRY: "REGISTRY",
 };
+
 
 let initialCallbacks = {};
 Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
@@ -195,17 +195,15 @@ function App() {
 
     useEffect(() => {
         if (init) {
+            window.__WASM_DEFINED__ = true;
             window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
-            init().then(() => {
-                window.worker.postMessage({command: "ping"}).then(e => {
-                    if (e !== "pong") {
-                        throw Error("Could not communicate with the web-worker");
-                    }
-                    setWasmLoaded(true);
-                });
+            window.worker.postMessage({command: "ping"}).then(e => {
+                if (e !== "pong") {
+                    throw Error("Could not communicate with the web-worker");
+                }
+                setWasmLoaded(true);
             });
         }
-
     }, []);
 
     return (
@@ -275,7 +273,7 @@ function App() {
                 <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
             <div className="fill">
-                <Console registerCallback={registerCallback} exitCode={exitCode} error={error} />
+                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} />
             </div>
         </div>
     );

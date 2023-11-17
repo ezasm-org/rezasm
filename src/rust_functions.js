@@ -1,5 +1,4 @@
 import {invoke} from "@tauri-apps/api/tauri";
-import {waitForWasmLoad} from "./worker.js";
 
 const setsEqual = (xs, ys) => xs.size === ys.size && [...xs].every((x) => ys.has(x));
 
@@ -14,12 +13,16 @@ const callWorkerFunction = message => {
     });
 };
 
+const isWasmLoaded = () => {
+    return callWorkerFunction({command: "status"});
+};
+
 // name is the name of the function in rust (without "tauri_" or "wasm_")
 // shape is an array describing the keys that are expected to be defined in props
 const get_rust_function = (name, shape) => {
     shape = shape ?? [];
     const shapeSet = new Set(shape);
-    return (props) => {
+    return async (props) => {
         props = props ?? {};
         if (!setsEqual(shapeSet, new Set(Object.keys(props)))) {
             throw new Error(`Function '${name} passed with unexpected shape'`);
@@ -27,7 +30,9 @@ const get_rust_function = (name, shape) => {
         if (window.__TAURI_IPC__) {
             return invoke(`tauri_${name}`, props);
         } else {
-            waitForWasmLoad();
+            while (! await isWasmLoaded()) {
+                // wait
+            }
             return callWorkerFunction({command: name, argument: props, shape: shape});
         }
     };
