@@ -19,4 +19,3 @@ rezasm-web-core = { path = "../../rezasm-source/rezasm-web-core" }
 lazy_static = "1.4.0"
 serde-wasm-bindgen = "0.6.0"
 wasm-bindgen = "0.2.87"
-web-sys = "0.3.65"

@@ -11,11 +11,6 @@ use wasm_bindgen::prelude::*;
 use crate::wasm_writer::WasmWriter;
 
 #[wasm_bindgen]
-extern "C" {
-    fn eval(command: &str);
-}
-
-#[wasm_bindgen]
 pub fn wasm_stop() {
     stop();
 }

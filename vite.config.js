@@ -8,6 +8,17 @@ export default defineConfig({
     plugins: [react(), wasm(), topLevelAwait()],
 
     build: {
+        rollupOptions: {
+            input: {
+                app: "./index.html",
+                worker: "./src/worker.js"
+            },
+            output: {
+                entryFileNames: assetInfo => {
+                    return assetInfo.name === "worker" ? "src/[name].js" : "assets/js/[name]-[hash].js";
+                }
+            },
+        },
         root: "src",
         outDir: "dist",
         emptyOutDir: true,

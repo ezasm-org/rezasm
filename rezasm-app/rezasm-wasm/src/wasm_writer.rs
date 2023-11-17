@@ -8,13 +8,6 @@ use wasm_bindgen::prelude::wasm_bindgen;
 extern "C" {
     #[wasm_bindgen(js_namespace = self, js_name = emitPrintString)]
     fn print_string(s: &str);
-
-    #[wasm_bindgen(js_name = eval)]
-    fn eval(s: &str);
-}
-
-fn eval_print_string(string: &str) {
-    eval(format!("self.emitPrintString(\"{}\")", string).as_str());
 }
 
 #[derive(Debug)]
