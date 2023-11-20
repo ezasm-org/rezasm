@@ -1,17 +1,9 @@
-import React, {useRef} from "react";
-import {useCallback, useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState} from "react";
 import _ from "lodash";
 import RegistryView from "./components/RegistryView.jsx";
 import WorkerPromise from "webworker-promise";
-import init from "../dist/wasm/rezasm_wasm.js";
-import {
-    rust_get_exit_status,
-    rust_is_completed,
-    rust_load,
-    rust_reset,
-    rust_step,
-    rust_stop
-} from "./rust_functions.js";
+import init from "../wasm/rezasm_wasm.js";
+import {RUST} from "./rust_functions.js";
 
 import "../dist/output.css";
 import MemoryView from "./components/MemoryView.jsx";
@@ -36,6 +28,7 @@ const CALLBACK_TYPES = {
     MEMORY: "MEMORY",
     REGISTRY: "REGISTRY",
 };
+
 
 let initialCallbacks = {};
 Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
@@ -91,16 +84,16 @@ function App() {
         {leading: true, trailing: false, maxWait: 250}), []);
 
     const isCompleted = useCallback(async () => {
-        return await rust_is_completed();
+        return await RUST.IS_COMPLETED({});
     }, []);
 
     const getExitStatus = useCallback(async () => {
-        return await rust_get_exit_status();
+        return await RUST.GET_EXIT_STATUS({});
     }, []);
 
     const stop = useCallback(async currentState => {
         disallowExecution();
-        await rust_stop();
+        await RUST.STOP({});
         currentState = STATE.STOPPED;
         setState(currentState);
         return currentState;
@@ -108,7 +101,7 @@ function App() {
 
     const reset = useCallback(async () => {
         disallowExecution();
-        await rust_reset();
+        await RUST.RESET({});
         setState(STATE.IDLE);
         callStepCallbacks();
         callResetCallbacks();
@@ -121,7 +114,7 @@ function App() {
         if (currentState >= STATE.LOADED) {
             return currentState;
         }
-        await rust_load(lines)
+        await RUST.LOAD({lines: lines})
             .then(() => {
                 currentState = STATE.LOADED;
             })
@@ -154,7 +147,7 @@ function App() {
     }, [callStepCallbacks, getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
-        rust_step()
+        RUST.STEP({})
             .then(async () => await checkAndHandleProgramCompletion())
             .catch(error => {
                 setErrorState(error);
@@ -202,17 +195,15 @@ function App() {
 
     useEffect(() => {
         if (init) {
+            window.__WASM_DEFINED__ = true;
             window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
-            init().then(() => {
-                window.worker.postMessage({command: "ping"}).then(e => {
-                    if (e !== "pong") {
-                        throw Error("Could not communicate with the web-worker");
-                    }
-                    setWasmLoaded(true);
-                });
+            window.worker.postMessage({command: "ping"}).then(e => {
+                if (e !== "pong") {
+                    throw Error("Could not communicate with the web-worker");
+                }
+                setWasmLoaded(true);
             });
         }
-
     }, []);
 
     return (
@@ -282,7 +273,7 @@ function App() {
                 <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
             <div className="fill">
-                <Console registerCallback={registerCallback} exitCode={exitCode} error={error} />
+                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} />
             </div>
         </div>
     );

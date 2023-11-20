@@ -1,11 +1,11 @@
 import {listen} from "@tauri-apps/api/event";
 import {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import {CALLBACKS_TRIGGERS, CALLBACK_TYPES} from "../App.jsx";
-import {rust_receive_input} from "../rust_functions.js";
+import {RUST} from "../rust_functions.js";
 
 const ENTER = 13;
 
-function Console({registerCallback, exitCode, error}) {
+function Console({loaded, registerCallback, exitCode, error}) {
     const input = useRef(null);
     const historyScrollbox = useRef(null);
 
@@ -48,17 +48,30 @@ function Console({registerCallback, exitCode, error}) {
         if (event.keyCode === ENTER) {
             appendHistory([inputText, ""]);
             setInputText("");
-            rust_receive_input(inputText); // send the input to rust
+            RUST.RECEIVE_INPUT({data: inputText}); // send the input to rust
         }
     }, [appendHistory, inputText]);
 
+    // assumed appendHistory never remounts.
+    // new logic will be needed if this effect ever is called more than once to prevent multiple
+    // listeners from being made.
     useEffect(() => {
-        const unlisten = listen("tauri_print", (event) => {
-            const lines = event.payload.split("\n");
-            appendHistory([...lines]);
-        });
-        return () => unlisten.then(f => f());
-    }, [appendHistory, history]);
+        if (loaded) {
+            console.log("worker registered");
+            window.worker.on("wasm_print", (data) => {
+                appendHistory(data.split("\n"));
+            });
+        }
+    }, [appendHistory, loaded]);
+
+    useEffect(() => {
+        if (window.__TAURI_IPC__) {
+            const unlisten = listen("tauri_print", (event) => {
+                appendHistory(event.payload.split("\n"));
+            });
+            return () => unlisten.then(f => f());
+        }
+    }, [appendHistory]);
 
     useEffect(() => {
         if (exitCode !== "") {

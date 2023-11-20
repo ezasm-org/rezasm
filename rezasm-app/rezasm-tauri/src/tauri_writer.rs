@@ -5,17 +5,17 @@ use std::any::Any;
 use std::io::{ErrorKind, Write};
 
 #[derive(Debug)]
-pub struct GuiWriter {}
+pub struct TauriWriter {}
 
-impl GuiWriter {
-    pub fn new() -> GuiWriter {
-        GuiWriter {}
+impl TauriWriter {
+    pub fn new() -> TauriWriter {
+        TauriWriter {}
     }
 }
 
-impl Writer for GuiWriter {}
+impl Writer for TauriWriter {}
 
-impl Write for GuiWriter {
+impl Write for TauriWriter {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         let function = "tauri_print";
         match get_window().emit(function, String::from_utf8_lossy(buf)) {
@@ -29,7 +29,7 @@ impl Write for GuiWriter {
     }
 }
 
-impl AsAny for GuiWriter {
+impl AsAny for TauriWriter {
     fn as_any(&self) -> &dyn Any {
         self
     }

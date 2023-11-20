@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod gui_writer;
+mod tauri_writer;
 
 extern crate lazy_static;
 extern crate tauri;
@@ -15,7 +15,7 @@ use rezasm_web_core::{
 };
 use tauri::{Manager, Window};
 
-use crate::gui_writer::GuiWriter;
+use crate::tauri_writer::TauriWriter;
 use std::sync::{Arc, RwLock};
 
 lazy_static! {
@@ -105,7 +105,7 @@ fn tauri_receive_input(data: &str) {
 
 fn main() {
     register_instructions();
-    register_writer(Box::new(GuiWriter::new()));
+    register_writer(Box::new(TauriWriter::new()));
 
     tauri::Builder::default()
         .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))
