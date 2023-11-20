@@ -342,9 +342,12 @@ pub fn is_numeric(token: &String) -> bool {
     static BINARY_PATTERN_CELL: OnceLock<Regex> = OnceLock::new();
     static HEX_PATTERN_CELL: OnceLock<Regex> = OnceLock::new();
     static DECIMAL_PATTERN_CELL: OnceLock<Regex> = OnceLock::new();
-    let binary_pattern = BINARY_PATTERN_CELL.get_or_init(|| Regex::new("^-?0b[10]+\\.?[01]*$").unwrap());
-    let hex_pattern = HEX_PATTERN_CELL.get_or_init(|| Regex::new("^-?0x[\\d|a-f]+\\.?[\\d|a-f]*$").unwrap());
-    let decimal_pattern = DECIMAL_PATTERN_CELL.get_or_init(|| Regex::new("^-?[\\d]+\\.?[\\d]*$").unwrap());
+    let binary_pattern =
+        BINARY_PATTERN_CELL.get_or_init(|| Regex::new("^-?0b[10]+\\.?[01]*$").unwrap());
+    let hex_pattern =
+        HEX_PATTERN_CELL.get_or_init(|| Regex::new("^-?0x[\\d|a-f]+\\.?[\\d|a-f]*$").unwrap());
+    let decimal_pattern =
+        DECIMAL_PATTERN_CELL.get_or_init(|| Regex::new("^-?[\\d]+\\.?[\\d]*$").unwrap());
     let lower = token.to_lowercase();
     binary_pattern.is_match(lower.as_str())
         || hex_pattern.is_match(lower.as_str())
@@ -357,7 +360,7 @@ pub fn tokenize_line(text: &String) -> Vec<String> {
         None => text,
         Some(first) => first,
     }
-        .trim();
+    .trim();
 
     let mut in_single_quotes = false;
     let mut in_double_quotes = false;

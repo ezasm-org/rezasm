@@ -5,10 +5,14 @@ extern crate rezasm_web_core;
 extern crate serde_wasm_bindgen;
 extern crate wasm_bindgen;
 
-use rezasm_core::instructions::implementation::register_instructions;
-use rezasm_web_core::{get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value, get_register_values, get_word_size, is_completed, load, receive_input, register_writer, reset, step, stop};
-use wasm_bindgen::prelude::*;
 use crate::wasm_writer::WasmWriter;
+use rezasm_core::instructions::implementation::register_instructions;
+use rezasm_web_core::{
+    get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
+    get_register_values, get_word_size, is_completed, load, receive_input, register_writer, reset,
+    step, stop,
+};
+use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 pub fn wasm_stop() {
