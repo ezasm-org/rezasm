@@ -1,8 +1,6 @@
 import {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import RegistryView from "./components/RegistryView.jsx";
-import WorkerPromise from "webworker-promise";
-import init from "../wasm/rezasm_wasm.js";
-import {RUST} from "./rust_functions.js";
+import {loadWasm, RUST} from "./rust_functions.js";
 
 import "../dist/output.css";
 import MemoryView from "./components/MemoryView.jsx";
@@ -89,26 +87,27 @@ function App() {
 
     const stop = useCallback(async currentState => {
         disallowExecution();
-        await RUST.STOP({});
         currentState = STATE.STOPPED;
+        await RUST.STOP({});
         setState(currentState);
         return currentState;
-    }, []);
+    }, [disallowExecution]);
 
     const reset = useCallback(async () => {
         disallowExecution();
-        await RUST.RESET({});
         setState(STATE.IDLE);
+        await RUST.RESET({});
         callStepCallbacks();
         callResetCallbacks();
         setExitCode("");
         setError("");
         return STATE.IDLE;
-    }, [callResetCallbacks, callStepCallbacks]);
+    }, [callResetCallbacks, callStepCallbacks, disallowExecution]);
 
     const load = useCallback(async () => {
         if (state.current < STATE.LOADED) {
-            await RUST.LOAD({lines: code})
+            setState(STATE.LOADING);
+            return RUST.LOAD({lines: code})
                 .then(() => {
                     setState(STATE.LOADED);
                 })
@@ -129,7 +128,7 @@ function App() {
         } else {
             return false;
         }
-    }, [callStepCallbacks, getExitStatus, isCompleted, isErrorState]);
+    }, [callStepCallbacks, disallowExecution, getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
         RUST.STEP({})
@@ -177,16 +176,9 @@ function App() {
     }, [recursivelyCallStep, state]);
 
     useEffect(() => {
-        if (init) {
-            window.__WASM_DEFINED__ = true;
-            window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
-            window.worker.postMessage({command: "ping"}).then((e) => {
-                if (e !== "pong") {
-                    throw Error("Could not communicate with the web-worker");
-                }
-                setWasmLoaded(true);
-            });
-        }
+        loadWasm()
+            .then((loaded) => setWasmLoaded(loaded))
+            .catch(() => setWasmLoaded(false));
     }, []);
 
     return (

@@ -50,7 +50,6 @@ if (self.__WASM_LOADED__ === undefined && self.document === undefined) {
     });
 
     self.emitPrintString = (string) => {
-        console.log("Called from WASM");
         worker.emit("wasm_print", string);
     };
 }

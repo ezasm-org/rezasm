@@ -20,9 +20,9 @@ function Controls({state, setState, run, stop, step, reset, load, isErrorState})
                     disabled={(state.current !== STATE.IDLE && state.current !== STATE.STOPPED) || isErrorState()}
                     onClick={() => {
                         debounce(async () => {
-                            await reset();
-                            await load();
-                            run();
+                            reset()
+                                .then(() => load()
+                                    .then(() => run()));
                         });
                     }}>
                     Start
