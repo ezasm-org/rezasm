@@ -1,6 +1,6 @@
-import {RUST} from "../rust_functions.js";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {CALLBACK_TYPES, CALLBACKS_TRIGGERS} from "../App.jsx";
+import {RUST} from "../rust_functions.js";
+import {CALLBACK_TYPES, CALLBACKS_TRIGGERS} from "./simulator.js";
 
 const WIDTH = 4;
 const HEIGHT = 4;

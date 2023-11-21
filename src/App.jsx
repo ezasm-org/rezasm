@@ -1,271 +1,44 @@
-import {useCallback, useEffect, useRef, useState} from "react";
-import _ from "lodash";
+import React, {useEffect, useRef, useState} from "react";
 import RegistryView from "./components/RegistryView.jsx";
-import WorkerPromise from "webworker-promise";
-import init from "../wasm/rezasm_wasm.js";
-import {RUST} from "./rust_functions.js";
+import {loadWasm} from "./rust_functions.js";
 
 import "../dist/output.css";
 import MemoryView from "./components/MemoryView.jsx";
 import Console from "./components/Console.jsx";
-
-const STATE = {
-    IDLE: 1,
-    LOADING: 2,
-    LOADED: 3,
-    RUNNING: 4,
-    PAUSED: 5,
-    STOPPED: 1,
-};
-
-const CALLBACKS_TRIGGERS = {
-    RESET: "RESET",
-    STEP: "STEP"
-};
-
-const CALLBACK_TYPES = {
-    CONSOLE: "CONSOLE",
-    MEMORY: "MEMORY",
-    REGISTRY: "REGISTRY",
-};
-
-
-let initialCallbacks = {};
-Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
+import Controls from "./components/Controls.jsx";
+import Editor from "./components/Editor.jsx";
+import {useSimulator} from "./components/simulator.js";
 
 function App() {
-    const [lines, setLines] = useState("");
-    const [error, setError] = useState("");
-    const [exitCode, setExitCode] = useState("");
-    const [state, setState] = useState(STATE.IDLE);
-    const timerId = useRef(null);
-    const [instructionDelay, setInstructionDelay] = useState(5);
+
+    const {
+        state,
+        error,
+        exitCode,
+        setState,
+        setCode,
+        setInstructionDelay,
+        registerCallback,
+        start,
+        stop,
+        step,
+        load,
+        reset
+    } = useSimulator();
     const [wasmLoaded, setWasmLoaded] = useState(false);
 
-    const callbacks = useRef(initialCallbacks);
-
-    const disallowExecution = () => {
-        if (timerId.current !== null) {
-            clearTimeout(timerId.current);
-            timerId.current = null;
-        }
-    };
-
-    const callStepCallbacks = useCallback(() => {
-        Object.values(callbacks.current[CALLBACKS_TRIGGERS.STEP]).map(callback => callback());
-    }, []);
-
-    const callResetCallbacks = useCallback( () => {
-        Object.values(callbacks.current[CALLBACKS_TRIGGERS.RESET]).map(callback => callback());
-    }, []);
-
-    const registerCallback = useCallback((trigger, type, callback) => {
-        callbacks.current[trigger][type] = callback;
-    }, []);
-
-    const isErrorState = useCallback(() => {
-        return error !== "";
-    }, [error]);
-
-    const clearErrorState = useCallback(() => {
-        setError("");
-    }, []);
-
-    const setErrorState = useCallback(newState => {
-        setError(newState);
-        setState(STATE.STOPPED);
-    }, []);
-
-    const getErrorState = useCallback(() => {
-        return error;
-    }, [error]);
-
-    const debounce = useCallback(_.debounce((func, arg) => func(arg), 250,
-        {leading: true, trailing: false, maxWait: 250}), []);
-
-    const isCompleted = useCallback(async () => {
-        return await RUST.IS_COMPLETED({});
-    }, []);
-
-    const getExitStatus = useCallback(async () => {
-        return await RUST.GET_EXIT_STATUS({});
-    }, []);
-
-    const stop = useCallback(async currentState => {
-        disallowExecution();
-        await RUST.STOP({});
-        currentState = STATE.STOPPED;
-        setState(currentState);
-        return currentState;
-    }, []);
-
-    const reset = useCallback(async () => {
-        disallowExecution();
-        await RUST.RESET({});
-        setState(STATE.IDLE);
-        callStepCallbacks();
-        callResetCallbacks();
-        setExitCode("");
-        clearErrorState();
-        return STATE.IDLE;
-    }, [callResetCallbacks, callStepCallbacks, clearErrorState]);
-
-    const load = useCallback(async (currentState) => {
-        if (currentState >= STATE.LOADED) {
-            return currentState;
-        }
-        await RUST.LOAD({lines: lines})
-            .then(() => {
-                currentState = STATE.LOADED;
-            })
-            .catch(error => {
-                setErrorState(error);
-                setState(STATE.STOPPED);
-            });
-
-        setState(currentState);
-        return currentState;
-    }, [lines, setErrorState]);
-
-    const reset_load = useCallback(async () => {
-        return reset().then(newState => {
-            setState(STATE.LOADING);
-            return load(newState);
-        });
-    }, [load, reset]);
-
-    const checkAndHandleProgramCompletion = useCallback(async () => {
-        callStepCallbacks();
-        if (await isCompleted() || isErrorState()) {
-            disallowExecution();
-            setState(STATE.STOPPED);
-            setExitCode("" + await getExitStatus());
-            return true;
-        } else {
-            return false;
-        }
-    }, [callStepCallbacks, getExitStatus, isCompleted, isErrorState]);
-
-    const handleStepCall = useCallback(async () => {
-        RUST.STEP({})
-            .then(async () => await checkAndHandleProgramCompletion())
-            .catch(error => {
-                setErrorState(error);
-                setState(STATE.STOPPED);
-            });
-    }, [checkAndHandleProgramCompletion, setErrorState]);
-
-    const step = useCallback(async currentState => {
-        if (currentState < STATE.LOADED) {
-            reset_load().then(async newState => {
-                if (newState !== STATE.STOPPED && ! await checkAndHandleProgramCompletion()) {
-                    return handleStepCall().then(() => setState(STATE.PAUSED));
-                }
-            });
-        } else if (currentState === STATE.PAUSED || currentState === STATE.RUNNING) {
-            return handleStepCall();
-        }
-    }, [reset_load, checkAndHandleProgramCompletion, handleStepCall]);
-
-    const recursivelyCallStep = useCallback(async () => {
-        if (state > STATE.RUNNING) {
-            return;
-        }
-        checkAndHandleProgramCompletion().then(async completed => {
-            if (!completed) {
-                handleStepCall().then(() => {
-                    timerId.current = setTimeout(recursivelyCallStep, instructionDelay);
-                }).catch((e) => {
-                    timerId.current = null;
-                    setErrorState(e);
-                    setState(STATE.STOPPED);
-                });
-            }
-        });
-    }, [state, checkAndHandleProgramCompletion, handleStepCall, instructionDelay, setErrorState]);
-
-    const run = useCallback(async () => {
-        reset_load().then(async newState => {
-            if (newState !== STATE.STOPPED) {
-                setState(STATE.RUNNING);
-                recursivelyCallStep();
-            }
-        });
-    }, [reset_load, recursivelyCallStep]);
-
     useEffect(() => {
-        if (init) {
-            window.__WASM_DEFINED__ = true;
-            window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
-            window.worker.postMessage({command: "ping"}).then(e => {
-                if (e !== "pong") {
-                    throw Error("Could not communicate with the web-worker");
-                }
-                setWasmLoaded(true);
-            });
-        }
+        loadWasm()
+            .then((loaded) => setWasmLoaded(loaded))
+            .catch(() => setWasmLoaded(false));
     }, []);
 
     return (
         <div className="container">
             <div className="fill">
-                <div className="mt-2 mb-2 row">
-                    { state === STATE.RUNNING ?
-                        <button className="btn-operation bg-red-500 hover:bg-red-700" disabled={state !== STATE.RUNNING || isErrorState()} onClick={(e) => {
-                            debounce(stop, state);
-                        }}>
-                            Stop
-                        </button>
-                        :
-                        <button className="btn-operation bg-green-500 hover:bg-green-700" disabled={state !== STATE.IDLE || isErrorState()} onClick={(e) => {
-                            debounce(run, state);
-                        }}>
-                            Start
-                        </button>
-                    }
-
-                    { state === STATE.PAUSED ?
-                        <button className="btn-operation bg-emerald-600 hover:bg-emerald-700" onClick={(e) => {
-                            // TODO resume
-                        }}>
-                            Resume
-                        </button>
-                        :
-                        <button className="btn-operation bg-cyan-600 hover:bg-cyan-700"
-                            disabled={state !== STATE.RUNNING}
-                            onClick={(e) => {
-                                // TODO pause
-                            }}>
-                            Pause
-                        </button>
-                    }
-
-                    <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                        disabled={(state !== STATE.PAUSED && state !== STATE.IDLE) || isErrorState()}
-                        onClick={(e) => {
-                            debounce(step, state);
-                        }}>
-                        Step
-                    </button>
-                    <button className="btn-operation bg-teal-600 hover:bg-teal-700"
-                        disabled={state !== STATE.PAUSED}
-                        onClick={(e) => {
-                            // TODO step back
-                        }}>
-                        Step Back
-                    </button>
-                    <button className="btn-operation bg-orange-500 hover:bg-orange-700" onClick={(e) => {
-                        debounce(reset, state);
-                    }}>
-                        Reset
-                    </button>
-                </div>
+                <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error}/>
                 <div className="mt-2 mb-2 row codearea">
-                    <textarea
-                        disabled={state !== STATE.IDLE && state !== STATE.STOPPED}
-                        onChange={(e) => setLines(e.currentTarget.value)}
-                        placeholder="Enter some ezasm code..."
-                    />
+                    <Editor state={state} setCode={setCode} />
                     <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
                 </div>
             </div>
@@ -280,5 +53,3 @@ function App() {
 }
 
 export default App;
-
-export {STATE, CALLBACKS_TRIGGERS, CALLBACK_TYPES};

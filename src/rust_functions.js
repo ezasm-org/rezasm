@@ -1,8 +1,27 @@
 import {invoke} from "@tauri-apps/api/tauri";
+import WorkerPromise from "webworker-promise";
 
 const setsEqual = (xs, ys) => xs.size === ys.size && [...xs].every((x) => ys.has(x));
 
-const callWorkerFunction = message => {
+const isWasmLoaded = () => {
+    return callWorkerFunction({command: "status"});
+};
+
+const loadWasm = async () => {
+    return import("../wasm/rezasm_wasm.js").then(() => {
+        if (!window.__WASM_DEFINED__) {
+            window.__WASM_DEFINED__ = true;
+            window.worker = new WorkerPromise(new Worker("/src/worker.js", { type: "module" }));
+            window.worker.postMessage({command: "ping"}).then((e) => {
+                return e === "pong";
+            });
+        } else {
+            return true;
+        }
+    });
+};
+
+const callWorkerFunction = (message) => {
     return new Promise((resolve, reject) => {
         window.worker.postMessage(message)
             .then(result => resolve(result))
@@ -11,10 +30,6 @@ const callWorkerFunction = message => {
                 reject(e.message);
             });
     });
-};
-
-const isWasmLoaded = () => {
-    return callWorkerFunction({command: "status"});
 };
 
 // name is the name of the function in rust (without "tauri_" or "wasm_")
@@ -55,5 +70,6 @@ const RUST = {
 };
 
 export {
-    RUST
+    RUST,
+    loadWasm
 };

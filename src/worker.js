@@ -18,7 +18,7 @@ if (self.__WASM_LOADED__ === undefined && self.document === undefined) {
         console.log("WebAssembly could not load", error);
     });
 
-    const worker = registerWebworker(async (message, emit) => {
+    const worker = registerWebworker(async (message) => {
         const command = message.command;
         if (command === "status") {
             return self.__WASM_LOADED__;
@@ -50,7 +50,6 @@ if (self.__WASM_LOADED__ === undefined && self.document === undefined) {
     });
 
     self.emitPrintString = (string) => {
-        console.log("Called from WASM");
         worker.emit("wasm_print", string);
     };
 }

@@ -1,6 +1,6 @@
+import React, {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
-import {useCallback, useEffect, useReducer, useRef, useState} from "react";
-import {CALLBACKS_TRIGGERS, CALLBACK_TYPES} from "../App.jsx";
+import {CALLBACKS_TRIGGERS, CALLBACK_TYPES} from "./simulator.js";
 import {RUST} from "../rust_functions.js";
 
 const ENTER = 13;
@@ -16,12 +16,12 @@ function Console({loaded, registerCallback, exitCode, error}) {
     // be able to rerender after the change is made
     const [, forceUpdate] = useReducer(() => Date.now());
 
-    const setHistory = useCallback((newHistory) => {
+    const setHistory = (newHistory) => {
         history.current = newHistory;
         forceUpdate();
-    }, []);
+    };
 
-    const appendHistory = useCallback((lines) => {
+    const appendHistory = (lines) => {
         if (history.current.length === 0) {
             history.current = lines;
         } else {
@@ -31,38 +31,35 @@ function Console({loaded, registerCallback, exitCode, error}) {
         }
         historyScrollbox.current.scrollTop = historyScrollbox.current.scrollHeight;
         forceUpdate();
-    }, []);
+    };
 
-    const reset = useCallback(() => {
+    const reset = () => {
         setHistory([]);
         setInputText("");
-    }, [setHistory]);
+    };
 
-    registerCallback(CALLBACKS_TRIGGERS.RESET, CALLBACK_TYPES.CONSOLE, reset);
-
-    const onInputChange = useCallback((event) => {
+    const onInputChange = (event) => {
         setInputText(event.target.value);
-    }, []);
+    };
 
     const onKeyPress = useCallback((event) => {
         if (event.keyCode === ENTER) {
             appendHistory([inputText, ""]);
             setInputText("");
-            RUST.RECEIVE_INPUT({data: inputText}); // send the input to rust
+            RUST.RECEIVE_INPUT({data: inputText});
         }
-    }, [appendHistory, inputText]);
+    }, [inputText]);
 
-    // assumed appendHistory never remounts.
     // new logic will be needed if this effect ever is called more than once to prevent multiple
-    // listeners from being made.
+    // listeners from being made. hopefully loaded never remounts.
     useEffect(() => {
-        if (loaded) {
+        if (loaded && !window.__TAURI_IPC__) {
             console.log("worker registered");
             window.worker.on("wasm_print", (data) => {
                 appendHistory(data.split("\n"));
             });
         }
-    }, [appendHistory, loaded]);
+    }, [loaded]);
 
     useEffect(() => {
         if (window.__TAURI_IPC__) {
@@ -71,7 +68,7 @@ function Console({loaded, registerCallback, exitCode, error}) {
             });
             return () => unlisten.then(f => f());
         }
-    }, [appendHistory]);
+    }, []);
 
     useEffect(() => {
         if (exitCode !== "") {
@@ -81,13 +78,15 @@ function Console({loaded, registerCallback, exitCode, error}) {
             }
             appendHistory(toHistory);
         }
-    }, [appendHistory, exitCode]);
+    }, [exitCode]);
+
+    registerCallback(CALLBACKS_TRIGGERS.RESET, CALLBACK_TYPES.CONSOLE, reset);
 
     let consoleHistoryHtml;
     if (history.current.length === 0) {
         consoleHistoryHtml = <></>;
     } else if (history.current.length === 1) {
-        consoleHistoryHtml = <>{history.current[0]}</>
+        consoleHistoryHtml = <>{history.current[0]}</>;
     } else {
         consoleHistoryHtml = <>{history.current.reduce((left, right) => <> {left} <br/> {right} </>)}</>;
     }
