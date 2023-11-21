@@ -1,5 +1,5 @@
 import React from "react";
-import {STATE} from "../App.jsx";
+import {STATE} from "./simulator.js";
 
 function Editor({state, setCode}) {
     return (

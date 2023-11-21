@@ -1,16 +1,18 @@
 import React from "react";
-import {STATE} from "../App.jsx";
+import {STATE} from "./simulator.js";
 import _ from "lodash";
 
 const debounce =
     _.debounce((func) => func(), 250, {leading: true, trailing: false, maxWait: 250});
 
-function Controls({state, setState, run, stop, step, reset, load, isErrorState}) {
+function Controls({state, setState, start, stop, step, reset, load, error}) {
+    const isErrorState = error !== "";
+
     return (
         <div className="mt-2 mb-2 row">
             {state.current === STATE.RUNNING ?
                 <button className="btn-operation bg-red-500 hover:bg-red-700"
-                    disabled={state.current !== STATE.RUNNING || isErrorState()}
+                    disabled={state.current !== STATE.RUNNING || isErrorState}
                     onClick={() => {
                         debounce(stop);
                     }}>
@@ -18,12 +20,12 @@ function Controls({state, setState, run, stop, step, reset, load, isErrorState})
                 </button>
                 :
                 <button className="btn-operation bg-green-500 hover:bg-green-700"
-                    disabled={(state.current !== STATE.IDLE && state.current !== STATE.STOPPED) || isErrorState()}
+                    disabled={(state.current !== STATE.IDLE && state.current !== STATE.STOPPED) || isErrorState}
                     onClick={() => {
-                        debounce(async () => {
+                        debounce(() => {
                             reset()
                                 .then(() => load()
-                                    .then(() => run()));
+                                    .then(() => start()));
                         });
                     }}>
                     Start
@@ -33,7 +35,8 @@ function Controls({state, setState, run, stop, step, reset, load, isErrorState})
             {state.current === STATE.PAUSED ?
                 <button className="btn-operation bg-emerald-600 hover:bg-emerald-700"
                     onClick={() => {
-                        debounce(run);
+                        setState(STATE.RUNNING);
+                        debounce(start);
                     }}>
                     Resume
                 </button>
@@ -48,7 +51,7 @@ function Controls({state, setState, run, stop, step, reset, load, isErrorState})
             }
 
             <button className="btn-operation bg-blue-500 hover:bg-blue-700"
-                disabled={(state.current !== STATE.PAUSED && state.current !== STATE.IDLE) || isErrorState()}
+                disabled={(state.current !== STATE.PAUSED && state.current !== STATE.IDLE) || isErrorState}
                 onClick={() => {
                     debounce(step);
                 }}>
