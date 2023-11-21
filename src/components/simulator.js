@@ -34,6 +34,7 @@ export const useSimulator = () => {
     const [instructionDelay, setInstructionDelay] = useState(5);
     const callbacks = useRef(initialCallbacks);
 
+    //Still kind of a hack
     const [, forceUpdate] = useReducer(() => Date.now());
 
     const setState = (newState) => {
@@ -65,12 +66,10 @@ export const useSimulator = () => {
         }
     }, []);
 
-    const stop = useCallback(async currentState => {
+    const stop = useCallback(async () => {
         haltExecution(STATE.STOPPED);
         await RUST.STOP({});
-        setState(currentState);
-        return currentState;
-    }, [haltExecution]);
+    }, []);
 
     const reset = useCallback(async () => {
         haltExecution(STATE.IDLE);
@@ -79,8 +78,7 @@ export const useSimulator = () => {
         callResetCallbacks();
         setExitCode("");
         setError("");
-        return STATE.IDLE;
-    }, [haltExecution]);
+    }, []);
 
     const load = useCallback(async () => {
         if (state.current < STATE.LOADED) {
@@ -114,8 +112,7 @@ export const useSimulator = () => {
             })
             .catch(error => {
                 setError(error);
-                setState(STATE.STOPPED);
-            }).finally(() => {
+                setState(STATE.STOPPED); // maybe add STATE.ERROR?
             });
     }, [checkProgramCompletion]);
 
