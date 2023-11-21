@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useReducer, useRef, useState} from "react";
+import React, {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import RegistryView from "./components/RegistryView.jsx";
 import {loadWasm, RUST} from "./rust_functions.js";
 
@@ -49,24 +49,24 @@ function App() {
         forceUpdate();
     };
 
-    const disallowExecution = useCallback(() => {
+    const disallowExecution = () => {
         if (timerId.current !== null) {
             clearTimeout(timerId.current);
             timerId.current = null;
         }
-    }, []);
+    };
 
-    const callStepCallbacks = useCallback(() => {
+    const callStepCallbacks = () => {
         Object.values(callbacks.current[CALLBACKS_TRIGGERS.STEP]).map(callback => callback());
-    }, []);
+    };
 
-    const callResetCallbacks = useCallback( () => {
+    const callResetCallbacks = () => {
         Object.values(callbacks.current[CALLBACKS_TRIGGERS.RESET]).map(callback => callback());
-    }, []);
+    };
 
-    const registerCallback = useCallback((trigger, type, callback) => {
+    const registerCallback = (trigger, type, callback) => {
         callbacks.current[trigger][type] = callback;
-    }, []);
+    };
 
     const isErrorState = useCallback(() => {
         return error !== "";
@@ -91,7 +91,7 @@ function App() {
         await RUST.STOP({});
         setState(currentState);
         return currentState;
-    }, [disallowExecution]);
+    }, []);
 
     const reset = useCallback(async () => {
         disallowExecution();
@@ -102,7 +102,7 @@ function App() {
         setExitCode("");
         setError("");
         return STATE.IDLE;
-    }, [callResetCallbacks, callStepCallbacks, disallowExecution]);
+    }, []);
 
     const load = useCallback(async () => {
         if (state.current < STATE.LOADED) {
@@ -128,7 +128,7 @@ function App() {
         } else {
             return false;
         }
-    }, [callStepCallbacks, disallowExecution, getExitStatus, isCompleted, isErrorState]);
+    }, [getExitStatus, isCompleted, isErrorState]);
 
     const handleStepCall = useCallback(async () => {
         RUST.STEP({})

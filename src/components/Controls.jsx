@@ -1,3 +1,4 @@
+import React from "react";
 import {STATE} from "../App.jsx";
 import _ from "lodash";
 

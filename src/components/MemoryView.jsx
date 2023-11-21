@@ -1,5 +1,5 @@
-import {RUST} from "../rust_functions.js";
 import React, {useCallback, useEffect, useRef, useState} from "react";
+import {RUST} from "../rust_functions.js";
 import {CALLBACK_TYPES, CALLBACKS_TRIGGERS} from "../App.jsx";
 
 const WIDTH = 4;

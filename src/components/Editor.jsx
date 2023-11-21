@@ -1,3 +1,4 @@
+import React from "react";
 import {STATE} from "../App.jsx";
 
 function Editor({state, setCode}) {
