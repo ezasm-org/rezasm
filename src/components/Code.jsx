@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import RegistryView from "./RegistryView.jsx";
 import {loadWasm} from "../rust_functions.js";
 
-import "../../dist/output.css";
 import MemoryView from "./MemoryView.jsx";
 import Console from "./Console.jsx";
 import Controls from "./Controls.jsx";
