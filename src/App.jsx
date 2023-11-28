@@ -1,8 +1,8 @@
 import React from "react";
 import {HashRouter, Route, Routes} from "react-router-dom";
-import Code from "./components/Code.jsx";
-import Home from "./components/Home.jsx";
-import Downloads from "./components/Downloads.jsx";
+import Code from "./components/code/Code.jsx";
+import Home from "./components/home/Home.jsx";
+import Downloads from "./components/downloads/Downloads.jsx";
 import "../dist/output.css";
 
 const HOME_PATH = "/";

@@ -1,5 +1,5 @@
 import {useCallback, useReducer, useRef, useState} from "react";
-import {RUST} from "../rust_functions.js";
+import {RUST} from "../../rust_functions.js";
 
 const STATE = {
     IDLE: 1,
