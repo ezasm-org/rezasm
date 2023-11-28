@@ -8,9 +8,11 @@ use rezasm_core::parser::lexer::{
 };
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
-use rezasm_core::simulation::registry;
+use rezasm_core::simulation::register::Register;
 use rezasm_core::simulation::registry::Registry;
+use rezasm_core::simulation::registry::{self, get_register_number};
 use rezasm_core::simulation::simulator::Simulator;
+use rezasm_core::util::error::ParserError;
 use rezasm_core::util::io::RezasmFileReader;
 use rezasm_core::util::raw_data::RawData;
 use rezasm_core::util::word_size::DEFAULT_WORD_SIZE;
@@ -74,6 +76,10 @@ fn test_registry() {
             .int_value(),
         255
     );
+
+    let k = registry.get_register_by_number_mut(get_register_number(&"$0".to_string()).unwrap());
+
+    assert!(k.is_err_and(|e| e.to_string() == ParserError::ImmutableZeroRegisterError.to_string()));
 }
 
 #[test]

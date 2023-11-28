@@ -172,7 +172,9 @@ pub fn looks_like_label_reference(token: &String) -> bool {
 }
 
 pub fn is_register(token: &String) -> bool {
-    token.starts_with("$") && token.len() > 1 && registry::is_valid_register(token)
+    token.starts_with("$")
+        && token.len() > 1
+        && (registry::is_valid_register(token) || registry::is_valid_register_by_number(token))
 }
 
 pub fn get_register(token: &String) -> Result<Token, ParserError> {
