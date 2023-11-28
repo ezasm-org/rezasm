@@ -1,25 +1,28 @@
-@top Program { expression* }
+@top Program { Line* }
 
-expression { LabelDefinition | Instruction }
+Line { Content (NewLine | EOF) }
 
-Instruction { InstructionName Terminal* }
+Content { (LabelDefinition | Instruction | Comment) Comment? }
 
-Terminal { Character | StringLiteral | NumberLiteral | Dereference | Register | Label }
+LabelDefinition { Label ~statement ":" }
 
-LabelDefinition { Label ":" }
+Instruction { InstructionName ~statement (Number | Register | Dereference | Label)* }
 
-@skip { Space | Comment }
+Number { Binary | Decimal | Hexadecimal }
+
+@skip { Space }
 
 @tokens {
+    EOF { @eof }
+    NewLine { $[\n] }
     Space { @whitespace+ }
     Comment { "#" ![\n]* }
-    Register { "$" ![$]+ }
-    Dereference { "-"? @digit* "(" "$" ![$]+ ")" }
-    Label { (@asciiLetter | @digit)+ }
+    Binary { ("0B" | "0b") ("0" | "1")+ "."? ("0" | "1")* }
+    Hexadecimal { ("0X" | "0x") (@digit | $[a-fA-F])+ "."? (@digit | $[a-fA-F])* }
+    Decimal { @digit+ "."? @digit* }
+    Dereference { @digit* "(" Register ")" }
+    Register {"$" (@asciiLetter | @digit)+ }
     InstructionName { @asciiLowercase+ }
-    StringLiteral { "\"" ![\n]* "\"" }
-    NumberLiteral { "-"? ((("0B" | "0b") ("0" | "1")+ "."? ("0" | "1")*)
-                 |((("0X" | "0x")) (@digit | ($[a-f] | $[A-F]))+ "."? (@digit | ($[a-f] | $[A-F]))*)
-                 |(@digit+ "."? @digit* @eof))}
-    Character { "'" ![\n] "'"}
+    Label { (@asciiLetter | @digit)+ }
+    @precedence { NewLine, Space, Binary, Hexadecimal, Decimal, Dereference, Register, InstructionName, Label}
 }
