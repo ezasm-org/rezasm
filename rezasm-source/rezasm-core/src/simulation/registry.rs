@@ -151,7 +151,7 @@ pub fn is_valid_register_by_number(register: &String) -> bool {
     let index = temp.parse::<usize>();
 
     match index {
-        Ok(_) => true,
+        Ok(s) => s < REGISTERS_COUNT,
         Err(_) => false,
     }
 }
