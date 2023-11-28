@@ -1,4 +1,9 @@
 readi $t0
 printi $t0
+prints "\n"
 alloc $s0 $t0
+
+# Can only read $t0 - 1 because null term needed.
+sub $t0 $t0 1
 reads $s0 $t0
+prints $s0

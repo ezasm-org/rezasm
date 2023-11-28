@@ -37,10 +37,16 @@ impl InputSource {
 impl Reader for InputSource {}
 
 impl io::Read for InputSource {
-    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+    fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
         match self {
-            ConsoleInput(scanner) => scanner.next_raw().unwrap().unwrap().write(buf),
-            FileInput(file) => file.next_raw().unwrap().unwrap().write(buf),
+            ConsoleInput(scanner) => {
+                let next = scanner.next().unwrap().unwrap();
+                buf.write(next.as_bytes())
+            },
+            FileInput(file) => {
+                let next = file.next().unwrap().unwrap();
+                buf.write(next.as_bytes())
+            },
         }
     }
 }

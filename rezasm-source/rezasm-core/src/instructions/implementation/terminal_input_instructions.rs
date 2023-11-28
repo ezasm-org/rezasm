@@ -1,7 +1,4 @@
-use std::io;
-
 use lazy_static::lazy_static;
-
 use crate::{instructions::{instruction::Instruction, targets::{input_output_target::InputOutputTarget, input_target::Input}, instruction_registry::register_instruction}, instruction, util::{raw_data::RawData, error::{IoError, ParserError}}};
 use crate::instructions::targets::output_target::Output;
 
@@ -12,26 +9,26 @@ lazy_static! {
                             output: InputOutputTarget| {
             let mut buf = [0u8; 8];
             simulator.get_reader_mut().read(&mut buf).unwrap();
-            println!("{:?}", buf);
-            let k = i64::from_le_bytes(buf);
-            return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
+            let integer_string = String::from_utf8_lossy(&buf).chars().filter(|c| c.is_numeric()).collect::<String>();
+            let integer = integer_string.parse::<i64>().unwrap();
+            return output.set(simulator, RawData::from_int(integer, simulator.get_word_size()));
         });
     pub static ref READF: Instruction =
         instruction!(readf, |simulator: Simulator, 
                             output: InputOutputTarget| {
             let mut buf = [0u8; 8];
             simulator.get_reader_mut().read(&mut buf).unwrap();
-            let k = f64::from_be_bytes(buf);
-            return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+            let float_string = String::from_utf8_lossy(&buf).chars().filter(|c| c.is_numeric() || *c == '.').collect::<String>();
+            let float = float_string.parse::<f64>().unwrap();
+            return output.set(simulator, RawData::from_float(float, simulator.get_word_size()));
         });
     pub static ref READC: Instruction =
         instruction!(readc, |simulator: Simulator, 
                             output: InputOutputTarget| {
             let mut buf = [0u8; 4];
             simulator.get_reader_mut().read(&mut buf).unwrap();
-            let u = u32::from_be_bytes(buf);
-            let k = char::from_u32(u).ok_or(IoError::ReadError)?;
-            return output.set(simulator, RawData::from_char(k));
+            let char = String::from_utf8_lossy(&buf).chars().next().unwrap();
+            return output.set(simulator, RawData::from_int(char as i64, simulator.get_word_size()));
         });
     pub static ref READS: Instruction =
         instruction!(reads, |simulator: Simulator,
@@ -40,13 +37,14 @@ lazy_static! {
             let mut address = input1.get(simulator)?.int_value();
             let max_size = input2.get(simulator)?.int_value();
             let mut s =  vec![0; max_size as usize];
+            let word_size = simulator.get_word_size().clone();
             simulator.get_reader_mut().read_exact(&mut s).unwrap();
             let s = String::from_utf8(s).unwrap();
-            for c in s.chars() {
-                simulator.get_memory_mut().write(address as usize, &RawData::from_char(c))?;
+            for b in s.bytes() {
+                simulator.get_memory_mut().write(address as usize, &RawData::from_int(b as i64, &word_size))?;
                 address += simulator.get_memory().word_size().value() as i64;
             }
-            simulator.get_memory_mut().write(address as usize, &RawData::from_char('\0'))?;
+            simulator.get_memory_mut().write(address as usize, &RawData::from_int('\0' as i64, &word_size))?;
             Ok(())
         });
     pub static ref READS_SIZED: Instruction =
@@ -54,12 +52,13 @@ lazy_static! {
                             input1: InputOutputTarget| {
             let mut address = input1.get(simulator)?.int_value();
             let mut s = String::new();
+            let word_size = simulator.get_word_size().clone();
             simulator.get_reader_mut().read_to_string(&mut s).unwrap();
-            for c in s.chars() {
-                simulator.get_memory_mut().write(address as usize, &RawData::from_char(c))?;
+            for b in s.bytes() {
+                simulator.get_memory_mut().write(address as usize, &RawData::from_int(b as i64, &word_size))?;
                 address += simulator.get_memory().word_size().value() as i64;
             }
-            simulator.get_memory_mut().write(address as usize, &RawData::from_char('\0'))?;
+            simulator.get_memory_mut().write(address as usize, &RawData::from_int('\0' as i64, &word_size))?;
             Ok(())
         });
     pub static ref READLN: Instruction =
