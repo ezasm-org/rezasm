@@ -57,6 +57,9 @@ pub enum ParserError {
 
     #[error("unrecognized token `{0}`")]
     UnknownTokenError(String),
+
+    #[error("the zero register is not mutable")]
+    ImmutableZeroRegisterError,
 }
 
 #[derive(Error, Debug)]
