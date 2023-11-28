@@ -25,35 +25,6 @@ impl InputSource {
         FileInput(Scanner::new(file))
     }
 
-    pub fn read_line(&mut self) -> Result<String, IoError> {
-        let s = match self {
-            FileInput(s) => s.next_line()?,
-            ConsoleInput(s) => s.next_line()?,
-        };
-        Ok(s.ok_or(IoError::OutOfBoundsError)?.trim().to_string())
-    }
-
-    pub fn read_word(&mut self) -> Result<String, IoError> {
-        let s = match self {
-            FileInput(s) => s.next()?,
-            ConsoleInput(s) => s.next()?,
-        };
-        s.ok_or(IoError::OutOfBoundsError)
-    }
-
-    pub fn read_char(&mut self) -> Result<char, IoError> {
-        let c = match self {
-            FileInput(s) => s.next_char()?,
-            ConsoleInput(s) => s.next_char()?,
-        }
-        .ok_or(IoError::OutOfBoundsError)?;
-        if char::is_whitespace(c) {
-            self.read_char()
-        } else {
-            Ok(c)
-        }
-    }
-
     pub fn read_raw(&mut self) -> Result<u8, IoError> {
         let b = match self {
             FileInput(s) => s.next_bytes(1)?,

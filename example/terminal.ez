@@ -1,3 +1,4 @@
 readi $t0
+printi $t0
 alloc $s0 $t0
 reads $s0 $t0

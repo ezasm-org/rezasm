@@ -12,7 +12,8 @@ lazy_static! {
                             output: InputOutputTarget| {
             let mut buf = [0u8; 8];
             simulator.get_reader_mut().read(&mut buf).unwrap();
-            let k = i64::from_be_bytes(buf);
+            println!("{:?}", buf);
+            let k = i64::from_le_bytes(buf);
             return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
         });
     pub static ref READF: Instruction =

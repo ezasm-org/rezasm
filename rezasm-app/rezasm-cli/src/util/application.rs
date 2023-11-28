@@ -8,19 +8,16 @@ use rezasm_core::util::io::RezasmFileReader;
 pub struct Application {
     simulator: Simulator,
     code_file: RezasmFileReader,
-    input_file: InputSource,
 }
 
 impl Application {
     pub fn new(
         simulator: Simulator,
         code_file: RezasmFileReader,
-        input_file: InputSource,
     ) -> Application {
         Application {
             simulator,
             code_file,
-            input_file,
         }
     }
 

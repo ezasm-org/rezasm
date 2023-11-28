@@ -63,5 +63,5 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
     let simulator: Simulator =
         Simulator::new_custom(&word_size, memory_size, Box::new(input_file), Box::new(output_file));
 
-    Ok(Application::new(simulator, code_file, input_file))
+    Ok(Application::new(simulator, code_file))
 }
