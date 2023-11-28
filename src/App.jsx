@@ -3,7 +3,7 @@ import {HashRouter, Route, Routes} from "react-router-dom";
 import Code from "./components/Code.jsx";
 import Home from "./components/Home.jsx";
 import Downloads from "./components/Downloads.jsx";
-import "../../dist/output.css";
+import "../dist/output.css";
 
 const HOME_PATH = "/";
 const CODE_PATH = "/code/";
