@@ -36,6 +36,7 @@
     "windows": [
       {
         "label": "main",
+        "url": "#/code/",
         "fullscreen": false,
         "resizable": true,
         "title": "REzASM",
