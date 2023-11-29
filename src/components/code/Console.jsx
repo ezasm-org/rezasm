@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
 import {CALLBACKS_TRIGGERS, CALLBACK_TYPES} from "./simulator.js";
-import {RUST} from "../rust_functions.js";
+import {RUST} from "../../rust_functions.js";
 
 const ENTER = 13;
 
