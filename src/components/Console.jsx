@@ -97,7 +97,7 @@ function Console({loaded, registerCallback, exitCode, error}) {
             <div className="console-history-scrollbox" ref={historyScrollbox}>
                 <code className="console-history-text">
                     {consoleHistoryHtml}
-                    {error ? <p className="console-error-text">{error}</p> : <></>}
+                    {error.current ? <p className="console-error-text">{error.current}</p> : <></>}
                 </code>
                 <br/> {/* This is a temporary workaround to an issue where scrolling goes to the second to last element */}
             </div>
@@ -108,7 +108,7 @@ function Console({loaded, registerCallback, exitCode, error}) {
                     className="console-input-text"
                     ref={input}
                     value={inputText}
-                    disabled={error !== ""}
+                    disabled={error.current !== ""}
                     onChange={onInputChange}
                     onKeyDown={onKeyPress}
                 />
