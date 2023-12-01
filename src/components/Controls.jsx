@@ -6,7 +6,7 @@ const debounce =
     _.debounce((func) => func(), 250, {leading: true, trailing: false, maxWait: 250});
 
 function Controls({state, setState, start, stop, step, reset, load, error}) {
-    const isErrorState = error !== "";
+    const isErrorState = error.current !== "";
 
     return (
         <div className="mt-2 mb-2 row">
@@ -24,8 +24,8 @@ function Controls({state, setState, start, stop, step, reset, load, error}) {
                     onClick={() => {
                         debounce(() => {
                             reset()
-                                .then(() => load()
-                                    .then(() => start()));
+                                .then(() => load())
+                                .then(() => start());
                         });
                     }}>
                     Start

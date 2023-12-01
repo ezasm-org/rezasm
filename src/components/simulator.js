@@ -26,9 +26,9 @@ Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
 
 export const useSimulator = () => {
     const state = useRef(STATE.IDLE);
-    const [code, setCode] = useState("");
-    const [error, setError] = useState("");
+    const error = useRef("");
     const [exitCode, setExitCode] = useState("");
+    const [code, setCode] = useState("");
 
     const timerId = useRef(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
@@ -39,6 +39,11 @@ export const useSimulator = () => {
 
     const setState = (newState) => {
         state.current = newState;
+        forceUpdate();
+    };
+
+    const setError = (newError) => {
+        error.current = newError;
         forceUpdate();
     };
 
@@ -54,17 +59,17 @@ export const useSimulator = () => {
         Object.values(callbacks.current[CALLBACKS_TRIGGERS.RESET]).map(callback => callback());
     };
 
-    const isError = useCallback(() => {
-        return error !== "";
-    }, [error]);
-
-    const haltExecution = useCallback((newState) => {
+    const haltExecution = (newState) => {
         setState(newState ?? STATE.STOPPED);
         if (timerId.current !== null) {
             clearTimeout(timerId.current);
             timerId.current = null;
         }
-    }, []);
+    };
+
+    const isError = () => {
+        return error.current !== "";
+    };
 
     const stop = useCallback(async () => {
         haltExecution(STATE.STOPPED);
@@ -88,21 +93,25 @@ export const useSimulator = () => {
                     setState(STATE.LOADED);
                 })
                 .catch(error => {
-                    setError(error);
                     setState(STATE.STOPPED);
+                    setError(error);
                 });
         }
     }, [code]);
 
     const checkProgramCompletion = useCallback(async () => {
-        if (await RUST.IS_COMPLETED({}) || isError()) {
+        if (isError()) {
+            haltExecution(STATE.STOPPED);
+            setExitCode("");
+            return true;
+        } else if (await RUST.IS_COMPLETED({})) {
             haltExecution(STATE.STOPPED);
             setExitCode("" + await RUST.GET_EXIT_STATUS({}));
             return true;
         } else {
             return false;
         }
-    }, [haltExecution, isError]);
+    }, []);
 
     const handleStepCall = useCallback(async () => {
         RUST.STEP({})
@@ -110,7 +119,7 @@ export const useSimulator = () => {
                 await checkProgramCompletion();
                 callStepCallbacks();
             })
-            .catch(error => {
+            .catch((error) => {
                 setError(error);
                 setState(STATE.STOPPED); // maybe add STATE.ERROR?
             });
@@ -148,7 +157,7 @@ export const useSimulator = () => {
     const start = useCallback(() => {
         setState(STATE.RUNNING);
         recursiveStep();
-    });
+    }, [recursiveStep]);
 
     return {
         state,
