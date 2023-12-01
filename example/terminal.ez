@@ -17,5 +17,9 @@ prints "\n"
 # Read a float.
 prints "Input a float: "
 readf $fs0
-prints $fs0
+printf $fs0
+prints "\n"
+prints "Input a char: "
+readc $t1
+printc $t1
 prints "\n"
