@@ -1,9 +1,21 @@
+# Read an integer.
+prints "Input an integer: "
 readi $t0
+# Print the read integer.
 printi $t0
 prints "\n"
+# Allocate memory according to what was inputted.
 alloc $s0 $t0
-
-# Can only read $t0 - 1 because null term needed.
+# Subtract 1 from the allocation size. This is because room is needed for the null terminator.
 sub $t0 $t0 1
+# Read string (sized).
+prints "Input a string: "
 reads $s0 $t0
+# Print the read string. 
 prints $s0
+prints "\n"
+# Read a float.
+prints "Input a float: "
+readf $fs0
+prints $fs0
+prints "\n"

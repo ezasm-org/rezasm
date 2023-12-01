@@ -1,7 +1,6 @@
 use lazy_static::lazy_static;
-use crate::{instructions::{instruction::Instruction, targets::{input_output_target::InputOutputTarget, input_target::Input}, instruction_registry::register_instruction}, instruction, util::{raw_data::RawData, error::{IoError, ParserError}}};
+use crate::{instructions::{instruction::Instruction, targets::{input_output_target::InputOutputTarget, input_target::Input}, instruction_registry::register_instruction}, instruction, util::raw_data::RawData};
 use crate::instructions::targets::output_target::Output;
-
 
 lazy_static! {
     pub static ref READI: Instruction =
@@ -47,19 +46,10 @@ lazy_static! {
             simulator.get_memory_mut().write(address as usize, &RawData::from_int('\0' as i64, &word_size))?;
             Ok(())
         });
-    pub static ref READS_SIZED: Instruction =
+    pub static ref READS_UNSIZED: Instruction =
         instruction!(reads, |simulator: Simulator,
                             input1: InputOutputTarget| {
-            let mut address = input1.get(simulator)?.int_value();
-            let mut s = String::new();
-            let word_size = simulator.get_word_size().clone();
-            simulator.get_reader_mut().read_to_string(&mut s).unwrap();
-            for b in s.bytes() {
-                simulator.get_memory_mut().write(address as usize, &RawData::from_int(b as i64, &word_size))?;
-                address += simulator.get_memory().word_size().value() as i64;
-            }
-            simulator.get_memory_mut().write(address as usize, &RawData::from_int('\0' as i64, &word_size))?;
-            Ok(())
+            todo!();
         });
     pub static ref READLN: Instruction =
         instruction!(readln, |simulator: Simulator,
@@ -67,7 +57,7 @@ lazy_static! {
                             input2: InputOutputTarget| {
             todo!();
         });
-    pub static ref READLN_SIZED: Instruction =
+    pub static ref READLN_UNSIZED: Instruction =
         instruction!(readln, |simulator: Simulator,
                             input1: InputOutputTarget| {
             todo!();
@@ -80,7 +70,7 @@ pub fn register_instructions() {
     register_instruction(&READF);
     register_instruction(&READC);
     register_instruction(&READS);
-    register_instruction(&READS_SIZED);
+    register_instruction(&READS_UNSIZED);
     register_instruction(&READLN);
-    register_instruction(&READLN_SIZED);
+    register_instruction(&READLN_UNSIZED);
 }
