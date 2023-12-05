@@ -10,6 +10,7 @@ use crate::util::word_size::WordSize;
 
 const REGISTERS_COUNT: usize = 54;
 
+pub const ZERO_NUMBER: usize = 0;
 pub const PC_NUMBER: usize = 3;
 pub const SP_NUMBER: usize = 4;
 pub const FID_NUMBER: usize = 2;
@@ -111,6 +112,10 @@ fn remove_dollar(string: &String) -> String {
 }
 
 pub fn get_register_number(register: &String) -> Result<usize, ParserError> {
+    match remove_dollar(register).parse::<usize>() {
+        Ok(s) => return Ok(s),
+        _ => (),
+    }
     REGISTERS_MAP
         .get_by_left(remove_dollar(register).to_uppercase().as_str())
         .map(|r| r.clone())
@@ -125,6 +130,7 @@ pub fn is_valid_register(register: &String) -> bool {
     if register.starts_with("$") {
         temp.remove(0);
     }
+
     temp = temp.to_uppercase();
 
     let number: usize = match usize::from_str(temp.as_str()) {
@@ -132,6 +138,22 @@ pub fn is_valid_register(register: &String) -> bool {
         Err(_) => REGISTERS_COUNT + 1,
     };
     REGISTERS_MAP.contains_left(&temp) || REGISTERS_MAP.contains_right(&number)
+}
+
+pub fn is_valid_register_by_number(register: &String) -> bool {
+    if register.len() < 1 {
+        return false;
+    }
+    let mut temp = register.clone();
+    if register.starts_with("$") {
+        temp.remove(0);
+    }
+    let index = temp.parse::<usize>();
+
+    match index {
+        Ok(s) => s < REGISTERS_COUNT,
+        Err(_) => false,
+    }
 }
 
 pub fn is_valid_register_number(register: usize) -> bool {
@@ -176,6 +198,8 @@ impl Registry {
     ) -> Result<&mut Register, ParserError> {
         if register >= REGISTERS_COUNT {
             Err(ParserError::InvalidRegisterNumberError(register))
+        } else if register == ZERO_NUMBER {
+            Err(ParserError::ImmutableZeroRegisterError)
         } else {
             Ok(&mut self.registers[register])
         }

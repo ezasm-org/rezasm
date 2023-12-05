@@ -1,5 +1,6 @@
 use regex::Regex;
 use std::str::FromStr;
+use std::sync::OnceLock;
 
 use crate::parser::line::*;
 use crate::simulation::registry;
@@ -171,7 +172,9 @@ pub fn looks_like_label_reference(token: &String) -> bool {
 }
 
 pub fn is_register(token: &String) -> bool {
-    token.starts_with("$") && token.len() > 1 && registry::is_valid_register(token)
+    token.starts_with("$")
+        && token.len() > 1
+        && (registry::is_valid_register(token) || registry::is_valid_register_by_number(token))
 }
 
 pub fn get_register(token: &String) -> Result<Token, ParserError> {
@@ -182,8 +185,10 @@ pub fn get_register(token: &String) -> Result<Token, ParserError> {
 }
 
 pub fn looks_like_dereference(token: &String) -> bool {
-    //unwrap below should never panic because the pattern is hardcoded
-    let pattern = Regex::new("^(-?\\d+)?\\(\\$.+\\)$").unwrap();
+    // OnceLock is used to only parse regex pattern once
+    // performance can still be gained by using something other than regex
+    static PATTERN_CELL: OnceLock<Regex> = OnceLock::new();
+    let pattern = PATTERN_CELL.get_or_init(|| Regex::new("^(-?\\d+)?\\(\\$.+\\)$").unwrap());
     pattern.is_match(token)
 }
 
@@ -333,11 +338,18 @@ pub fn get_string_immediate(token: &String) -> Result<String, ParserError> {
     Ok(result.to_string())
 }
 
-// Regex matching sucks, the way it was done in the original sucks way more though
 pub fn is_numeric(token: &String) -> bool {
-    let binary_pattern = Regex::new("^-?0b[10]+\\.?[01]*$").unwrap();
-    let hex_pattern = Regex::new("^-?0x[\\d|a-f]+\\.?[\\d|a-f]*$").unwrap();
-    let decimal_pattern = Regex::new("^-?[\\d]+\\.?[\\d]*$").unwrap();
+    // OnceLock is used to only parse regex pattern once
+    // performance can still be gained by using something other than regex
+    static BINARY_PATTERN_CELL: OnceLock<Regex> = OnceLock::new();
+    static HEX_PATTERN_CELL: OnceLock<Regex> = OnceLock::new();
+    static DECIMAL_PATTERN_CELL: OnceLock<Regex> = OnceLock::new();
+    let binary_pattern =
+        BINARY_PATTERN_CELL.get_or_init(|| Regex::new("^-?0b[10]+\\.?[01]*$").unwrap());
+    let hex_pattern =
+        HEX_PATTERN_CELL.get_or_init(|| Regex::new("^-?0x[\\d|a-f]+\\.?[\\d|a-f]*$").unwrap());
+    let decimal_pattern =
+        DECIMAL_PATTERN_CELL.get_or_init(|| Regex::new("^-?[\\d]+\\.?[\\d]*$").unwrap());
     let lower = token.to_lowercase();
     binary_pattern.is_match(lower.as_str())
         || hex_pattern.is_match(lower.as_str())

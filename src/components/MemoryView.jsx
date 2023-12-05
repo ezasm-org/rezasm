@@ -1,6 +1,6 @@
-import {rust_get_memory_bounds, rust_get_memory_slice, rust_get_word_size} from "../rust_functions.js";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {CALLBACKS} from "../App.jsx";
+import {RUST} from "../rust_functions.js";
+import {CALLBACK_TYPES, CALLBACKS_TRIGGERS} from "./simulator.js";
 
 const WIDTH = 4;
 const HEIGHT = 4;
@@ -23,7 +23,7 @@ function MemoryView({loaded, registerCallback}) {
         if (address >= lowest.current && address <= (stack.current - CELLS * wordSize.current)) {
             setCurrentAddress(address);
             setAddressInput("0x" + address.toString(16));
-            let array = await rust_get_memory_slice(address, CELLS);
+            let array = await RUST.GET_MEMORY_SLICE({address: address, length: CELLS});
             let numberArray = [];
             for (let i = 0; i < array.length; ++i) {
                 numberArray.push(Number(array[i]));
@@ -36,13 +36,13 @@ function MemoryView({loaded, registerCallback}) {
         updateSlice(currentAddress);
     }, [currentAddress, updateSlice]);
 
-    registerCallback(CALLBACKS.MEMORY, updateSliceCurrent);
+    registerCallback(CALLBACKS_TRIGGERS.STEP, CALLBACK_TYPES.MEMORY, updateSliceCurrent);
 
     useEffect(() => {
         if (loaded) {
-            rust_get_word_size().then(rustWordSize => {
+            RUST.GET_WORD_SIZE({}).then(rustWordSize => {
                 wordSize.current = rustWordSize;
-                rust_get_memory_bounds().then(bounds => {
+                RUST.GET_MEMORY_BOUNDS({}).then(bounds => {
                     lowest.current = Number(bounds[0]);
                     text.current = Number(bounds[0]);
                     heap.current = Number(bounds[1]);
@@ -111,8 +111,8 @@ function MemoryView({loaded, registerCallback}) {
                     }}
                 />
                 <button className="btn-basic" onClick={seek}>Seek</button>
-                <button className="btn-basic" onClick={seekLeft}>&lt;---</button>
-                <button className="btn-basic" onClick={seekRight}>---&gt;</button>
+                <button className="btn-basic" onClick={seekLeft}>&lt;--</button>
+                <button className="btn-basic" onClick={seekRight}>--&gt;</button>
             </div>
             <table className="fill">
                 <thead>
