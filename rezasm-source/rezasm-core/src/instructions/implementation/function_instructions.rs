@@ -80,7 +80,7 @@ lazy_static! {
             let pc_register = ArgumentType::Input(InputTarget::RegisterInput(PC_NUMBER));
             let fid_register = ArgumentType::Input(InputTarget::RegisterInput(FID_NUMBER));
             let word_size = simulator.get_word_size().clone();
-            let final_sequence = TransformationSequence::new_empty();
+            let mut final_sequence = TransformationSequence::new_empty();
 
             final_sequence.concatenate(PUSH.call_function(simulator, &vec![pc_register])?);
             final_sequence.concatenate(PUSH.call_function(simulator, &vec![fid_register])?);
@@ -97,15 +97,13 @@ lazy_static! {
                     simulator.get_registers().get_fid().get_data().int_value(),
                 ),
             };
-            PUSH.call_function(simulator, &vec![pc_register])?;
-            PUSH.call_function(simulator, &vec![fid_register])?;
             final_sequence.concatenate(TransformationSequence::new_single(pc_transformable.create_transformation(simulator, RawData::from_int(pc, &word_size))?));
             final_sequence.concatenate(TransformationSequence::new_single(fid_transformable.create_transformation(simulator, RawData::from_int(fid, &word_size))?));
             Ok(final_sequence)
         });
 
     pub static ref RETURN: Instruction = instruction!(_return, |simulator: Simulator,| {
-        let final_sequence = TransformationSequence::new_empty();
+        let mut final_sequence = TransformationSequence::new_empty();
         let ra_register = ArgumentType::Input(InputTarget::RegisterInput(RA_NUMBER));
         let pc_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(PC_NUMBER));
         let fid_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(FID_NUMBER));
@@ -120,7 +118,7 @@ lazy_static! {
         let fid_transformable = Transformable::InputOutputTransformable(InputOutputTarget::RegisterInputOutput(FID_NUMBER));
         let word_size = simulator.get_word_size().clone();
         let end = simulator.get_program().end_pc(0) - 1;
-        let final_sequence = TransformationSequence::new_empty();
+        let mut final_sequence = TransformationSequence::new_empty();
         final_sequence.concatenate(TransformationSequence::new_single(pc_transformable.create_transformation(simulator, RawData::from_int(end as i64, &word_size))?));
         final_sequence.concatenate(TransformationSequence::new_single(fid_transformable.create_transformation(simulator, RawData::from_int(0i64, &word_size))?));
         Ok(final_sequence)
@@ -138,7 +136,7 @@ lazy_static! {
             let fid_transformable = Transformable::InputOutputTransformable(InputOutputTarget::RegisterInputOutput(FID_NUMBER));
             let word_size = simulator.get_word_size().clone();
             let end = simulator.get_program().end_pc(0) - 1;
-            let final_sequence = TransformationSequence::new_empty();
+            let mut final_sequence = TransformationSequence::new_empty();
             final_sequence.concatenate(TransformationSequence::new_single(pc_transformable.create_transformation(simulator, RawData::from_int(end as i64, &word_size))?));
             final_sequence.concatenate(TransformationSequence::new_single(fid_transformable.create_transformation(simulator, RawData::from_int(0i64, &word_size))?));
             final_sequence.concatenate(TransformationSequence::new_single(r0_transformable.create_transformation(simulator, input.get(simulator)?)?));

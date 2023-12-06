@@ -14,12 +14,12 @@ pub struct Transformation {
 
 impl Transformation {
 
-    pub fn get_to(&self) -> RawData {
-        self.to
+    pub fn get_to(&self) -> &RawData {
+        &self.to
     }
 
-    pub fn get_from(&self) -> RawData {
-        self.from
+    pub fn get_from(&self) -> &RawData {
+        &self.from
     }
 
     pub fn new(output: Transformable, from: RawData, to: RawData) -> Transformation {

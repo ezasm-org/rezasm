@@ -39,7 +39,7 @@ impl TransformationSequence {
     }
 
     pub fn apply(&self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
-        for transformation in &mut self.transformations {
+        for transformation in &self.transformations {
             transformation.apply(simulator)?
         }
         Ok(())

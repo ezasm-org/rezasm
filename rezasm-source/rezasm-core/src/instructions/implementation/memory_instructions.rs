@@ -7,7 +7,6 @@ use crate::instructions::instruction_registry::register_instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::targets::output_target::Output;
 use crate::simulation::registry;
 use crate::simulation::simulator::Simulator;
 use crate::simulation::transform::transformable::Transformable;
@@ -78,7 +77,7 @@ lazy_static! {
             let heap_pointer_transformable = Transformable::HeapPointerTransformable;
             let output_transformable = Transformable::InputOutputTransformable(output);
             let t1 = Transformation::new(heap_pointer_transformable, heap_pointer_transformable.get(simulator)?, RawData::from_int(heap_pointer_transformable.get(simulator)?.int_value() + input.get(simulator)?.int_value(), simulator.get_word_size()));
-            let t2 = output_transformable.create_transformation(simulator, t1.get_from())?;
+            let t2 = output_transformable.create_transformation(simulator, t1.get_from().clone())?;
             Ok(TransformationSequence::new(vec![t1, t2]))
 
         });

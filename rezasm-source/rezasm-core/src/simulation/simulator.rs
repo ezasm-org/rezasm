@@ -199,11 +199,7 @@ impl Simulator {
                 TransformationSequence::new_empty()
             }
         };
-        let new_pc = self.registry.get_pc().get_data().int_value() + 1;
-        self.registry
-            .get_pc_mut()
-            .set_data(RawData::from_int(new_pc, &self.word_size));
-        Ok(())
+        self.apply_transformation(result)
     }
 
     pub fn run_line_from_pc(&mut self) -> Result<(), SimulatorError> {
@@ -222,10 +218,10 @@ impl Simulator {
     }
 
     pub fn apply_transformation(&mut self, mut transform: TransformationSequence) -> Result<(), SimulatorError> {
-        transform.apply(self);
+        transform.apply(self)?;
         let pc_transformable = Transformable::InputOutputTransformable(InputOutputTarget::RegisterInputOutput(registry::PC_NUMBER));
         let pc_transformation = pc_transformable.create_transformation(self, RawData::from_int(pc_transformable.get(self)?.int_value()+1, &self.word_size))?;
-        pc_transformation.apply(self);
+        pc_transformation.apply(self)?;
 
         if self.can_undo {
             transform.concatenate(TransformationSequence::new_single(pc_transformation));
@@ -240,7 +236,7 @@ impl Simulator {
         }
         else {
             // unwrap is safe because emptiness is checked
-            self.sequence.pop().unwrap().invert().apply(self);
+            self.sequence.pop().unwrap().invert().apply(self)?;
             Ok(true)
         }
     }

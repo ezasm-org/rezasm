@@ -32,7 +32,7 @@ impl Transformable {
         }
     }
 
-    pub fn set(&mut self, data: RawData, simulator: &mut Simulator) -> Result<(), SimulatorError> {
+    pub fn set(&self, data: RawData, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         match self {
             Transformable::InputOutputTransformable(input_output) => {
                 input_output.set(simulator, data)
