@@ -17,6 +17,10 @@ impl Transformation {
         self.to
     }
 
+    pub fn get_from(&self) -> RawData {
+        self.from
+    }
+
     pub fn new(output: Transformable, from: RawData, to: RawData) -> Transformation {
         Transformation {
             output,

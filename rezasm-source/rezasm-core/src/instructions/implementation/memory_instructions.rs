@@ -67,25 +67,27 @@ lazy_static! {
                              input2: InputTarget| {
             let address = input2.get(simulator)?.int_value() as usize;
             let data = input1.get(simulator)?;
-            let memory = simulator.get_memory_mut();
-            memory.write(address, &data)
+            let transformation = Transformable::MemoryTransformable(address).create_transformation(simulator, data)?;
+            Ok(TransformationSequence::new_single(transformation))
         });
     pub static ref ALLOC: Instruction =
         instruction!(alloc, |simulator: Simulator,
                              output: InputOutputTarget,
                              input: InputTarget| {
-            let offset = input.get(simulator)?.int_value() as usize;
-            let memory = simulator.get_memory_mut();
-            let heap_pointer = memory.current_heap_pointer();
-            memory.set_heap_pointer(heap_pointer + offset)?;
-            let bytes = RawData::from_int(heap_pointer as i64, simulator.get_word_size());
-            output.set(simulator, bytes)
+
+            let heap_pointer_transformable = Transformable::HeapPointerTransformable;
+            let output_transformable = Transformable::InputOutputTransformable(output);
+            let t1 = Transformation::new(heap_pointer_transformable, heap_pointer_transformable.get(simulator)?, RawData::from_int(heap_pointer_transformable.get(simulator)?.int_value() + input.get(simulator)?.int_value(), simulator.get_word_size()));
+            let t2 = output_transformable.create_transformation(simulator, t1.get_from())?;
+            Ok(TransformationSequence::new(vec![t1, t2]))
+
         });
     pub static ref MOVE: Instruction =
         instruction!(_move, |simulator: Simulator,
                              output: InputOutputTarget,
                              input: InputTarget| {
-            output.set(simulator, input.get(simulator)?)
+            let output_transformable = Transformable::InputOutputTransformable(output).create_transformation(simulator, input.get(simulator)?)?;
+            Ok(TransformationSequence::new_single(output_transformable))
         });
 }
 
