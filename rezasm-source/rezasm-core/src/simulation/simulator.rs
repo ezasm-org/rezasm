@@ -11,6 +11,7 @@ use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
 use super::reader::{ReaderBox, Reader, DummyReader};
+use super::transform::transformation_sequence::TransformationSequence;
 
 #[derive(Debug)]
 pub struct Simulator {
@@ -20,6 +21,7 @@ pub struct Simulator {
     word_size: WordSize,
     reader: ReaderBox,
     writer: WriterBox,
+    sequence: TransformationSequence,
 }
 
 impl Simulator {
@@ -53,6 +55,7 @@ impl Simulator {
             word_size: word_size.clone(),
             reader,
             writer,
+            sequence: TransformationSequence::new_empty()
         };
         sim.initialize();
         sim
@@ -140,10 +143,6 @@ impl Simulator {
         &mut self.writer
     }
 
-    pub fn set_writer(&mut self, writer: WriterBox) {
-        self.writer = writer;
-    }
-
     pub fn end_pc(&self) -> usize {
         let fid = self
             .registry
@@ -227,5 +226,9 @@ impl Simulator {
             None => Err(SimulatorError::NonExistentLabelError(label.clone())),
             Some((_, line_number)) => Ok(line_number.clone()),
         }
+    }
+
+    pub fn set_writer(&mut self, writer: WriterBox) {
+        self.writer = writer;
     }
 }

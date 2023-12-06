@@ -7,7 +7,7 @@ use crate::util::raw_data::RawData;
 
 use super::transformation::Transformation;
 
-#[derive(Copy)]
+#[derive(Copy, Debug)]
 pub enum Transformable {
     FileReadTransformable(i64),
     HeapPointerTransformable,

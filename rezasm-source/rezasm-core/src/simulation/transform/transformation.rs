@@ -5,6 +5,7 @@ use crate::{
 
 use super::transformable::Transformable;
 
+#[derive(Debug)]
 pub struct Transformation {
     output: Transformable,
     from: RawData,

@@ -2,6 +2,7 @@ use crate::{simulation::simulator::Simulator, util::error::SimulatorError};
 
 use super::transformation::Transformation;
 
+#[derive(Debug)]
 pub struct TransformationSequence {
     transformations: Vec<Transformation>,
 }
