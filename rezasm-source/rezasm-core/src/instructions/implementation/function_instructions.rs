@@ -6,6 +6,9 @@ use crate::instructions::implementation::memory_instructions::PUSH;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::simulation::registry::FID_NUMBER;
 use crate::simulation::registry::PC_NUMBER;
+use crate::simulation::transform::transformable::Transformable;
+use crate::simulation::transform::transformation::Transformation;
+use crate::simulation::transform::transformation_sequence::TransformationSequence;
 use lazy_static::lazy_static;
 
 use crate::instructions::instruction::instruction;
@@ -27,7 +30,7 @@ lazy_static! {
             let address = input.get(&simulator)?.int_value() as usize;
             let given_file = simulator.get_memory().get_string(address)?;
             if simulator.get_program().file_exists(&given_file) {
-                return Ok(());
+                return Ok(TransformationSequence::new_empty());
             }
             let mut relative_location = simulator.get_program().main_file();
             relative_location = match relative_location.rsplit_once('/') {
@@ -48,16 +51,21 @@ lazy_static! {
                     None => {}
                 }
             }
-            simulator.add_lines(lines, given_file)
+            simulator.add_lines(lines, given_file)?;
+            Ok(TransformationSequence::new_empty())
         });
 
     pub static ref JUMP: Instruction =
         instruction!(jump, |simulator: Simulator, input: InputTarget| {
             let word_size = simulator.get_word_size().clone();
             let value = input.get(&simulator)?;
-            let pc = simulator.get_registers_mut().get_pc_mut();
-            pc.set_data(value.clone());
-            Ok(())
+            let output = InputOutputTarget::new_register(&PC_NUMBER)?;
+            let transformation = Transformation::new(
+                Transformable::InputOutputTransformable(output),
+                output.get(simulator)?,
+                value.clone()
+                );
+            return Ok(TransformationSequence::new_single(transformation));
         });
 
     pub static ref CALL: Instruction =
@@ -75,6 +83,8 @@ lazy_static! {
                     simulator.get_registers().get_fid().get_data().int_value(),
                 ),
             };
+            let pc_output = InputOutputTarget::new_register(&PC_NUMBER);
+            let fid_output = InputOutputTarget::new_register(&FID_NUMBER);
             let pc_register = ArgumentType::Input(InputTarget::RegisterInput(PC_NUMBER));
             let fid_register = ArgumentType::Input(InputTarget::RegisterInput(FID_NUMBER));
             PUSH.call_function(simulator, &vec![pc_register])?;

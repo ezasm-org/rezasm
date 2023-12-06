@@ -5,6 +5,8 @@ use crate::simulation::simulator::Simulator;
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
+use super::transformation::Transformation;
+
 #[derive(Copy)]
 pub enum Transformable {
     FileReadTransformable(i64),
@@ -29,6 +31,7 @@ impl Transformable {
             }
         }
     }
+
     pub fn set(&mut self, data: RawData, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         match self {
             Transformable::InputOutputTransformable(input_output) => {
@@ -42,6 +45,14 @@ impl Transformable {
             }
             Transformable::FileReadTransformable(cursor) => todo!(), //must be todo until read instructions are done
         }
+    }
+
+    pub fn create_transformation(&self, simulator: &Simulator, output: RawData) -> Result<Transformation, SimulatorError> {
+        Ok(Transformation::new(
+            self.clone(),
+            self.get(simulator)?,
+            output
+            ))
     }
 }
 

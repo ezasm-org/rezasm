@@ -7,6 +7,10 @@ pub struct TransformationSequence {
 }
 
 impl TransformationSequence {
+    pub fn new_single(transformation: Transformation) -> TransformationSequence {
+        TransformationSequence { transformations: vec![transformation] }
+    }
+
     pub fn new(transformations: Vec<Transformation>) -> TransformationSequence {
         TransformationSequence { transformations }
     }

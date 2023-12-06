@@ -9,7 +9,9 @@ use crate::instructions::instruction_registry::register_instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::targets::output_target::Output;
+use crate::simulation::transform::transformable::Transformable;
+use crate::simulation::transform::transformation::Transformation;
+use crate::simulation::transform::transformation_sequence::TransformationSequence;
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
@@ -19,14 +21,22 @@ pub static ref DECF: Instruction =
                        output: InputOutputTarget| {
         let value1 = output.get(&simulator)?.float_value();
         let k = value1 - 1.0;
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref INCF: Instruction =
     instruction!(incf, |simulator: Simulator,
                        output: InputOutputTarget| {
         let value1 = output.get(&simulator)?.float_value();
         let k = value1 + 1.0;
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref ADDF: Instruction =
     instruction!(addf, |simulator: Simulator,
@@ -36,7 +46,11 @@ pub static ref ADDF: Instruction =
         let value1 = input1.get(&simulator)?.float_value();
         let value2 = input2.get(&simulator)?.float_value();
         let k = value1 + value2 ;
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref SUBF: Instruction =
     instruction!(subf, |simulator: Simulator,
@@ -46,7 +60,11 @@ pub static ref SUBF: Instruction =
         let value1 = input1.get(&simulator)?.float_value();
         let value2 = input2.get(&simulator)?.float_value();
         let k = value1 - value2 ;
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref MULF: Instruction =
     instruction!(mulf, |simulator: Simulator,
@@ -56,7 +74,11 @@ pub static ref MULF: Instruction =
         let value1 = input1.get(&simulator)?.float_value();
         let value2 = input2.get(&simulator)?.float_value();
         let k = value1 * value2 ;
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref DIVF: Instruction =
     instruction!(divf, |simulator: Simulator,
@@ -68,12 +90,20 @@ pub static ref DIVF: Instruction =
 
         if value2 == 0f64 {
             if value1 == 0f64 {
-                return output.set(simulator, RawData::from_float(NAN, simulator.get_word_size()));
+                let transformation = Transformation::new(
+                    Transformable::InputOutputTransformable(output),
+                    output.get(simulator)?,
+                    RawData::from_float(NAN, simulator.get_word_size()));
+                return Ok(TransformationSequence::new_single(transformation));
             }
             return Err(SimulatorError::DivideByZeroError);
         }
         let k = value1 / value2 ;
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref MODF: Instruction =
     instruction!(modf, |simulator: Simulator,
@@ -85,7 +115,11 @@ pub static ref MODF: Instruction =
 
         if value2 == 0f64 {
             if value1 == 0f64 {
-                return output.set(simulator, RawData::from_float(NAN, simulator.get_word_size()));
+                let transformation = Transformation::new(
+                    Transformable::InputOutputTransformable(output),
+                    output.get(simulator)?,
+                    RawData::from_float(NAN, simulator.get_word_size()));
+                return Ok(TransformationSequence::new_single(transformation));
             }
             return Err(SimulatorError::DivideByZeroError);
         }
@@ -95,7 +129,11 @@ pub static ref MODF: Instruction =
 
         let k = divvalue1 - f64::floor(divvalue1/divvalue2) * divvalue2;
 
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref ITOF: Instruction =
     instruction!(itof, |simulator: Simulator,
@@ -105,7 +143,11 @@ pub static ref ITOF: Instruction =
 
         let k = value1 as f64;
 
-        return output.set(simulator, RawData::from_float(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_float(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 pub static ref FTOI: Instruction =
     instruction!(ftoi, |simulator: Simulator,
@@ -121,7 +163,11 @@ pub static ref FTOI: Instruction =
         }
         let k = value1 as i64;
 
-        return output.set(simulator, RawData::from_int(k, simulator.get_word_size()));
+        let transformation = Transformation::new(
+            Transformable::InputOutputTransformable(output),
+            output.get(simulator)?,
+            RawData::from_int(k, simulator.get_word_size()));
+        return Ok(TransformationSequence::new_single(transformation));
     });
 }
 

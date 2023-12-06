@@ -3,10 +3,11 @@ use std::fmt::{Debug, Formatter};
 
 use crate::instructions::argument_type::ArgumentType;
 use crate::simulation::simulator::Simulator;
+use crate::simulation::transform::transformation_sequence::TransformationSequence;
 use crate::util::error::SimulatorError;
 
 pub type TInstructionFunction =
-    fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), SimulatorError>;
+    fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<TransformationSequence, SimulatorError>;
 
 #[derive(Clone)]
 pub struct Instruction {
@@ -45,7 +46,7 @@ impl Instruction {
         &self,
         simulator: &mut Simulator,
         arguments: &Vec<ArgumentType>,
-    ) -> Result<(), SimulatorError> {
+    ) -> Result<TransformationSequence, SimulatorError> {
         (self.function)(simulator, &self.types, arguments)
     }
 }
@@ -57,7 +58,7 @@ macro_rules! instruction {
         #[allow(unused_mut)]
         let mut v: Vec<std::any::TypeId> = Vec::new();
         $(v.push(std::any::TypeId::of::<&mut $types>());)*
-        fn $name($simulator_name: &mut crate::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<crate::instructions::argument_type::ArgumentType>) -> Result<(), crate::util::error::SimulatorError> {
+        fn $name($simulator_name: &mut crate::simulation::simulator::Simulator, types: &Vec<std::any::TypeId>, arguments: &Vec<crate::instructions::argument_type::ArgumentType>) -> Result<crate::simulation::transform::transformation_sequence::TransformationSequence, crate::util::error::SimulatorError> {
             let mut _counter: usize = 0;
             $(
                 #[allow(unused_mut)]
