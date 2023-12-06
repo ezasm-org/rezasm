@@ -21,6 +21,7 @@ function Code() {
         start,
         stop,
         step,
+        step_back,
         load,
         reset
     } = useSimulator();
@@ -35,7 +36,7 @@ function Code() {
     return (
         <div className="container">
             <div className="fill">
-                <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error}/>
+                <Controls state={state} setState={setState} start={start} stop={stop} step={step} step_back={step_back} reset={reset} load={load} error={error}/>
                 <div className="mt-2 mb-2 row codearea">
                     <Editor state={state} setCode={setCode} />
                     <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />

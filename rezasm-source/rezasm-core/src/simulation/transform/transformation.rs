@@ -37,7 +37,7 @@ impl Transformation {
         }
     }
 
-    pub fn apply(&mut self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
+    pub fn apply(&self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         self.output.set(self.to.clone(), simulator)
     }
 }

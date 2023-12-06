@@ -56,6 +56,7 @@ const get_rust_function = (name, shape) => {
 const RUST = {
     LOAD: get_rust_function("load", ["lines"]),
     STEP: get_rust_function("step"),
+    STEP_BACK: get_rust_function("step_back"),
     RESET: get_rust_function("reset"),
     STOP: get_rust_function("stop"),
     IS_COMPLETED: get_rust_function("is_completed"),

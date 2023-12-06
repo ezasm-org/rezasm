@@ -137,6 +137,18 @@ export const useSimulator = () => {
         }
     }, [checkProgramCompletion, handleStepCall, load, reset, state]);
 
+    const stepBack = useCallback(async () => {
+        if (state.current > STATE.RUNNING) {
+            RUST.STEP_BACK({})
+            .catch((error) => {
+                setError(error);
+                setState(STATE.STOPPED)
+            })
+
+        }
+    }
+    , [setError, setState])
+
     const recursiveStep = useCallback(async () => {
         if (state.current === STATE.STOPPED) {
             return;
@@ -170,6 +182,7 @@ export const useSimulator = () => {
         start,
         stop,
         step,
+        stepBack,
         load,
         reset,
     };

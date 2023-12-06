@@ -5,7 +5,7 @@ import _ from "lodash";
 const debounce =
     _.debounce((func) => func(), 250, {leading: true, trailing: false, maxWait: 250});
 
-function Controls({state, setState, start, stop, step, reset, load, error}) {
+function Controls({state, setState, start, stop, step, step_back, reset, load, error}) {
     const isErrorState = error.current !== "";
 
     return (
@@ -60,7 +60,7 @@ function Controls({state, setState, start, stop, step, reset, load, error}) {
             <button className="btn-operation bg-teal-600 hover:bg-teal-700"
                 disabled={state.current !== STATE.PAUSED}
                 onClick={() => {
-                    // TODO step back
+                    debounce(step_back)
                 }}>
                 Step Back
             </button>

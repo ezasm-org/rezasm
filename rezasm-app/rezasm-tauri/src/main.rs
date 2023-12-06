@@ -11,7 +11,7 @@ use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
     get_register_values, get_word_size, is_completed, load, receive_input, register_writer, reset,
-    step, stop,
+    step, stop, step_back,
 };
 use tauri::{Manager, Window};
 
@@ -56,6 +56,11 @@ fn tauri_load(lines: &str) -> Result<(), String> {
 #[tauri::command()]
 fn tauri_step() -> Result<(), String> {
     step()
+}
+
+#[tauri::command()]
+fn tauri_step_back() -> Result<(),  String> {
+    step_back()
 }
 
 #[tauri::command]

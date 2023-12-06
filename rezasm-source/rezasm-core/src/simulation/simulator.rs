@@ -1,5 +1,6 @@
 use std::fmt::Debug;
 
+use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::parser::line::Line;
 use crate::simulation::memory;
 use crate::simulation::memory::Memory;
@@ -11,6 +12,7 @@ use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
 use super::reader::{ReaderBox, Reader, DummyReader};
+use super::transform::transformable::Transformable;
 use super::transform::transformation_sequence::TransformationSequence;
 
 #[derive(Debug)]
@@ -21,7 +23,8 @@ pub struct Simulator {
     word_size: WordSize,
     reader: ReaderBox,
     writer: WriterBox,
-    sequence: TransformationSequence,
+    sequence: Vec<TransformationSequence>,
+    can_undo: bool,
 }
 
 impl Simulator {
@@ -55,7 +58,8 @@ impl Simulator {
             word_size: word_size.clone(),
             reader,
             writer,
-            sequence: TransformationSequence::new_empty()
+            sequence: Vec::new(),
+            can_undo: true,
         };
         sim.initialize();
         sim
@@ -188,18 +192,18 @@ impl Simulator {
     fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
         let result = match line {
             Line::Instruction(instruction, args) => {
-                instruction.get_function()(self, instruction.get_types(), &args)
+                instruction.get_function()(self, instruction.get_types(), &args)?
             }
             Line::Label(label) => {
                 // no-op
-                Ok(())
+                TransformationSequence::new_empty()
             }
         };
         let new_pc = self.registry.get_pc().get_data().int_value() + 1;
         self.registry
             .get_pc_mut()
             .set_data(RawData::from_int(new_pc, &self.word_size));
-        result
+        Ok(())
     }
 
     pub fn run_line_from_pc(&mut self) -> Result<(), SimulatorError> {
@@ -217,8 +221,28 @@ impl Simulator {
         self.run_line(&line.clone())
     }
 
-    pub fn apply_transformation(&self) -> Result<(), SimulatorError> {
-        todo!()
+    pub fn apply_transformation(&mut self, mut transform: TransformationSequence) -> Result<(), SimulatorError> {
+        transform.apply(self);
+        let pc_transformable = Transformable::InputOutputTransformable(InputOutputTarget::RegisterInputOutput(registry::PC_NUMBER));
+        let pc_transformation = pc_transformable.create_transformation(self, RawData::from_int(pc_transformable.get(self)?.int_value()+1, &self.word_size))?;
+        pc_transformation.apply(self);
+
+        if self.can_undo {
+            transform.concatenate(TransformationSequence::new_single(pc_transformation));
+            self.sequence.push(transform);
+        }
+        Ok(())
+    }
+
+    pub fn undo_last_transformation(&mut self) -> Result<bool, SimulatorError> {
+        if !self.can_undo || self.sequence.is_empty() {
+            Ok(false)
+        }
+        else {
+            // unwrap is safe because emptiness is checked
+            self.sequence.pop().unwrap().invert().apply(self);
+            Ok(true)
+        }
     }
 
     pub fn get_label_line_number(&self, label: &String) -> Result<i64, SimulatorError> {
