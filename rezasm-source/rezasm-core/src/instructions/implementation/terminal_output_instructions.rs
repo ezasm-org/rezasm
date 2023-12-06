@@ -6,6 +6,7 @@ use crate::instructions::instruction_registry::register_instruction;
 
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
+use crate::simulation::transform::transformation_sequence::TransformationSequence;
 use crate::simulation::writer::WriterBox;
 use crate::util::error::IoError;
 
@@ -15,21 +16,21 @@ lazy_static! {
             let value = input.get(&simulator)?.int_value();
             let output = format!("{}", value);
             write(simulator.get_writer_mut(), &output)?;
-            Ok(())
+            Ok(TransformationSequence::new_empty())
         });
     pub static ref PRINTF: Instruction =
         instruction!(printf, |simulator: Simulator, input: InputTarget| {
             let value = input.get(&simulator)?.float_value();
             let output = format!("{}", value);
             write(simulator.get_writer_mut(), &output)?;
-            Ok(())
+            Ok(TransformationSequence::new_empty())
         });
     pub static ref PRINTC: Instruction =
         instruction!(printc, |simulator: Simulator, input: InputTarget| {
             let value = input.get(&simulator)?.int_value();
             let output = format!("{}", value as u8 as char);
             write(simulator.get_writer_mut(), &output)?;
-            Ok(())
+            Ok(TransformationSequence::new_empty())
         });
     pub static ref PRINTS_SIZED: Instruction =
         instruction!(prints, |simulator: Simulator,
@@ -41,14 +42,14 @@ lazy_static! {
                 .get_memory()
                 .get_string_sized(address as usize, size as usize)?;
             write(simulator.get_writer_mut(), &output)?;
-            Ok(())
+            Ok(TransformationSequence::new_empty())
         });
     pub static ref PRINTS: Instruction =
         instruction!(prints, |simulator: Simulator, input: InputTarget| {
             let address = input.get(&simulator)?.int_value();
             let output = simulator.get_memory().get_string(address as usize)?;
             write(simulator.get_writer_mut(), &output)?;
-            Ok(())
+            Ok(TransformationSequence::new_empty())
         });
 }
 
