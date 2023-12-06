@@ -102,7 +102,8 @@ pub fn test_macro() {
     let foo = &ADD;
 
     match foo.call_function(&mut simulator, &args) {
-        Ok(_) => {
+        Ok(seq) => {
+            seq.apply(&mut simulator).unwrap();
             assert_eq!(
                 simulator
                     .get_registers()
