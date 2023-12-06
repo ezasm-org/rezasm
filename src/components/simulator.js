@@ -144,10 +144,13 @@ export const useSimulator = () => {
                 setError(error);
                 setState(STATE.STOPPED)
             })
+            .finally(() => {
+                callStepCallbacks();
+            })
 
         }
     }
-    , [setError, setState])
+    , [setError, setState, callStepCallbacks])
 
     const recursiveStep = useCallback(async () => {
         if (state.current === STATE.STOPPED) {

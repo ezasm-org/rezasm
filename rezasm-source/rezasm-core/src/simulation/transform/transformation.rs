@@ -13,7 +13,6 @@ pub struct Transformation {
 }
 
 impl Transformation {
-
     pub fn get_to(&self) -> &RawData {
         &self.to
     }
@@ -23,11 +22,7 @@ impl Transformation {
     }
 
     pub fn new(output: Transformable, from: RawData, to: RawData) -> Transformation {
-        Transformation {
-            output,
-            from,
-            to,
-        }
+        Transformation { output, from, to }
     }
     pub fn invert(&mut self) -> Transformation {
         Transformation {

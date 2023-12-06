@@ -27,8 +27,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    label.get(simulator)?
-                    );
+                    label.get(simulator)?,
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             } else {
                 return Ok(TransformationSequence::new_empty());
@@ -47,8 +47,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    label.get(simulator)?
-                    );
+                    label.get(simulator)?,
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             } else {
                 return Ok(TransformationSequence::new_empty());
@@ -67,8 +67,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    label.get(simulator)?
-                    );
+                    label.get(simulator)?,
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             } else {
                 return Ok(TransformationSequence::new_empty());
@@ -87,8 +87,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    label.get(simulator)?
-                    );
+                    label.get(simulator)?,
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             } else {
                 return Ok(TransformationSequence::new_empty());
@@ -107,8 +107,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    label.get(simulator)?
-                    );
+                    label.get(simulator)?,
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             } else {
                 return Ok(TransformationSequence::new_empty());
@@ -127,8 +127,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    label.get(simulator)?
-                    );
+                    label.get(simulator)?,
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             } else {
                 return Ok(TransformationSequence::new_empty());

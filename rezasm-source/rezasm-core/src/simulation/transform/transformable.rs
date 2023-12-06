@@ -47,12 +47,16 @@ impl Transformable {
         }
     }
 
-    pub fn create_transformation(&self, simulator: &Simulator, output: RawData) -> Result<Transformation, SimulatorError> {
+    pub fn create_transformation(
+        &self,
+        simulator: &Simulator,
+        output: RawData,
+    ) -> Result<Transformation, SimulatorError> {
         Ok(Transformation::new(
             self.clone(),
             self.get(simulator)?,
-            output
-            ))
+            output,
+        ))
     }
 }
 

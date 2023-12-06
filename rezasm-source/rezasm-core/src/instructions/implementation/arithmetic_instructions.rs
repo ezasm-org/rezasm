@@ -29,9 +29,9 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
-
         });
     pub static ref SUB: Instruction =
         instruction!(sub, |simulator: Simulator,
@@ -44,7 +44,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref MUL: Instruction =
@@ -81,7 +82,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref DIV: Instruction =
@@ -98,7 +100,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    RawData::from_int(k, simulator.get_word_size()));
+                    RawData::from_int(k, simulator.get_word_size()),
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             }
         });
@@ -113,7 +116,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref OR: Instruction =
@@ -127,7 +131,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref XOR: Instruction =
@@ -141,7 +146,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref NOT: Instruction =
@@ -153,7 +159,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref MOD: Instruction =
@@ -170,7 +177,8 @@ lazy_static! {
                 let transformation = Transformation::new(
                     Transformable::InputOutputTransformable(output),
                     output.get(simulator)?,
-                    RawData::from_int(k, simulator.get_word_size()));
+                    RawData::from_int(k, simulator.get_word_size()),
+                );
                 return Ok(TransformationSequence::new_single(transformation));
             }
         });
@@ -192,7 +200,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SRL: Instruction =
@@ -216,7 +225,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SRA: Instruction =
@@ -237,7 +247,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref INC: Instruction =
@@ -247,7 +258,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref DEC: Instruction =
@@ -257,7 +269,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
 }

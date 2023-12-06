@@ -1,5 +1,8 @@
 use std::fmt::Debug;
 
+use super::reader::{DummyReader, Reader, ReaderBox};
+use super::transform::transformable::Transformable;
+use super::transform::transformation_sequence::TransformationSequence;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::parser::line::Line;
 use crate::simulation::memory;
@@ -11,9 +14,6 @@ use crate::simulation::writer::{DummyWriter, Writer, WriterBox};
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
-use super::reader::{ReaderBox, Reader, DummyReader};
-use super::transform::transformable::Transformable;
-use super::transform::transformation_sequence::TransformationSequence;
 
 #[derive(Debug)]
 pub struct Simulator {
@@ -38,11 +38,21 @@ impl Simulator {
     }
 
     pub fn new_writer(writer: Box<dyn Writer>) -> Simulator {
-        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, Box::new(DummyReader::new()), writer)
+        Simulator::new_custom(
+            &DEFAULT_WORD_SIZE,
+            memory::DEFAULT_MEMORY_WORDS,
+            Box::new(DummyReader::new()),
+            writer,
+        )
     }
 
     pub fn new_reader(reader: Box<dyn Reader>) -> Simulator {
-        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, reader, Box::new(DummyWriter::new()))
+        Simulator::new_custom(
+            &DEFAULT_WORD_SIZE,
+            memory::DEFAULT_MEMORY_WORDS,
+            reader,
+            Box::new(DummyWriter::new()),
+        )
     }
 
     pub fn new_custom(
@@ -78,6 +88,7 @@ impl Simulator {
     pub fn reset_data(&mut self) {
         self.memory.reset();
         self.registry.reset();
+        self.sequence.clear();
     }
 
     pub fn reset(&mut self) {
@@ -217,10 +228,18 @@ impl Simulator {
         self.run_line(&line.clone())
     }
 
-    pub fn apply_transformation(&mut self, mut transform: TransformationSequence) -> Result<(), SimulatorError> {
+    pub fn apply_transformation(
+        &mut self,
+        mut transform: TransformationSequence,
+    ) -> Result<(), SimulatorError> {
         transform.apply(self)?;
-        let pc_transformable = Transformable::InputOutputTransformable(InputOutputTarget::RegisterInputOutput(registry::PC_NUMBER));
-        let pc_transformation = pc_transformable.create_transformation(self, RawData::from_int(pc_transformable.get(self)?.int_value()+1, &self.word_size))?;
+        let pc_transformable = Transformable::InputOutputTransformable(
+            InputOutputTarget::RegisterInputOutput(registry::PC_NUMBER),
+        );
+        let pc_transformation = pc_transformable.create_transformation(
+            self,
+            RawData::from_int(pc_transformable.get(self)?.int_value() + 1, &self.word_size),
+        )?;
         pc_transformation.apply(self)?;
 
         if self.can_undo {
@@ -233,8 +252,7 @@ impl Simulator {
     pub fn undo_last_transformation(&mut self) -> Result<bool, SimulatorError> {
         if !self.can_undo || self.sequence.is_empty() {
             Ok(false)
-        }
-        else {
+        } else {
             // unwrap is safe because emptiness is checked
             self.sequence.pop().unwrap().invert().apply(self)?;
             Ok(true)

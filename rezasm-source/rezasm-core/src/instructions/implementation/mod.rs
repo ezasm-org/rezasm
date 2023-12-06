@@ -2,9 +2,9 @@ pub mod arithmetic_instructions;
 pub mod branch_instructions;
 pub mod comparison_instructions;
 pub mod float_arithmetic_instructions;
-pub mod terminal_input_instructions;
 pub mod function_instructions;
 pub mod memory_instructions;
+pub mod terminal_input_instructions;
 pub mod terminal_output_instructions;
 
 pub fn register_instructions() {

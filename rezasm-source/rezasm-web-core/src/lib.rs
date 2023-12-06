@@ -78,7 +78,7 @@ pub fn step() -> Result<(), String> {
 
 pub fn step_back() -> Result<(), String> {
     match get_simulator_mut().undo_last_transformation() {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(error) => return Err(format!("Program error: {}", error)),
     }
 

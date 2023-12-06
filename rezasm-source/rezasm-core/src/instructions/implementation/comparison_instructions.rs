@@ -27,7 +27,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SNE: Instruction =
@@ -44,7 +45,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SLT: Instruction =
@@ -61,7 +63,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SLE: Instruction =
@@ -78,7 +81,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SGT: Instruction =
@@ -95,7 +99,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SGE: Instruction =
@@ -112,7 +117,8 @@ lazy_static! {
             let transformation = Transformation::new(
                 Transformable::InputOutputTransformable(output),
                 output.get(simulator)?,
-                RawData::from_int(k, simulator.get_word_size()));
+                RawData::from_int(k, simulator.get_word_size()),
+            );
             return Ok(TransformationSequence::new_single(transformation));
         });
 }

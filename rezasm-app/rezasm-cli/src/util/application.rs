@@ -11,10 +11,7 @@ pub struct Application {
 }
 
 impl Application {
-    pub fn new(
-        simulator: Simulator,
-        code_file: RezasmFileReader,
-    ) -> Application {
+    pub fn new(simulator: Simulator, code_file: RezasmFileReader) -> Application {
         Application {
             simulator,
             code_file,

@@ -6,8 +6,11 @@ use crate::simulation::simulator::Simulator;
 use crate::simulation::transform::transformation_sequence::TransformationSequence;
 use crate::util::error::SimulatorError;
 
-pub type TInstructionFunction =
-    fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<TransformationSequence, SimulatorError>;
+pub type TInstructionFunction = fn(
+    &mut Simulator,
+    &Vec<TypeId>,
+    &Vec<ArgumentType>,
+) -> Result<TransformationSequence, SimulatorError>;
 
 #[derive(Clone)]
 pub struct Instruction {

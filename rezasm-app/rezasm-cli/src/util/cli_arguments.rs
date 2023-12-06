@@ -60,8 +60,12 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
         None => OutputSink::new_console(),
     };
 
-    let simulator: Simulator =
-        Simulator::new_custom(&word_size, memory_size, Box::new(input_file), Box::new(output_file));
+    let simulator: Simulator = Simulator::new_custom(
+        &word_size,
+        memory_size,
+        Box::new(input_file),
+        Box::new(output_file),
+    );
 
     Ok(Application::new(simulator, code_file))
 }

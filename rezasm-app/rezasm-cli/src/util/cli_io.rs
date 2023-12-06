@@ -8,7 +8,7 @@ use rezasm_core::util::error::IoError;
 use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
 use scanner_rust::Scanner;
 use std::any::Any;
-use std::io::{stdin, stdout, Stdin, Write, self};
+use std::io::{self, stdin, stdout, Stdin, Write};
 
 #[derive(Debug)]
 pub enum InputSource {
@@ -42,11 +42,11 @@ impl io::Read for InputSource {
             ConsoleInput(scanner) => {
                 let next = scanner.next().unwrap().unwrap();
                 buf.write(next.as_bytes())
-            },
+            }
             FileInput(file) => {
                 let next = file.next().unwrap().unwrap();
                 buf.write(next.as_bytes())
-            },
+            }
         }
     }
 }
@@ -60,7 +60,6 @@ impl AsAny for InputSource {
         self
     }
 }
-
 
 #[derive(Debug)]
 pub enum OutputSink {
