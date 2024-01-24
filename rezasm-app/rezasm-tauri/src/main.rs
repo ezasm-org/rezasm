@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod tauri_writer;
+mod tauri_reader;
 
 extern crate lazy_static;
 extern crate tauri;
@@ -10,10 +11,11 @@ use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_word_size, is_completed, load, receive_input, register_writer, reset,
+    get_register_values, get_word_size, is_completed, load, receive_input, register_writer, register_reader, reset,
     step, step_back, stop,
 };
 use tauri::{Manager, Window};
+use tauri_reader::TauriReader;
 
 use crate::tauri_writer::TauriWriter;
 use std::sync::{Arc, RwLock};
@@ -111,6 +113,7 @@ fn tauri_receive_input(data: &str) {
 fn main() {
     register_instructions();
     register_writer(Box::new(TauriWriter::new()));
+    register_reader(Box::new(TauriReader::new()));
 
     tauri::Builder::default()
         .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))

@@ -2,7 +2,9 @@ use crate::util::as_any::AsAny;
 use std::any::Any;
 use std::fmt::Debug;
 use std::io;
-pub trait Reader: io::Read + AsAny + Sync + Send + Debug {}
+pub trait Reader: io::Read + AsAny + Sync + Send + Debug {
+    fn expand_buffer(&mut self, new_input: &str);
+}
 
 pub type ReaderBox = Box<dyn Reader>;
 
@@ -15,7 +17,11 @@ impl DummyReader {
     }
 }
 
-impl Reader for DummyReader {}
+impl Reader for DummyReader {
+    fn expand_buffer(&mut self, new_input: &str) {
+        //does nothing
+    }
+}
 
 impl AsAny for DummyReader {
     fn as_any(&self) -> &dyn Any {

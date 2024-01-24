@@ -1,4 +1,5 @@
 use rezasm_core::parser::lexer;
+use rezasm_core::simulation::reader::ReaderBox;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 
@@ -23,6 +24,10 @@ pub fn get_simulator_mut() -> SimulatorMutRef {
 
 pub fn register_writer(writer: WriterBox) {
     get_simulator_mut().set_writer(writer);
+}
+
+pub fn register_reader(reader: ReaderBox) {
+    get_simulator_mut().set_reader(reader);
 }
 
 pub fn stop() {
@@ -156,5 +161,6 @@ pub fn get_word_size() -> usize {
 }
 
 pub fn receive_input(data: &str) {
-    println!("{}", data);
+    let mut simulator = get_simulator_mut();
+    simulator.get_reader_mut().expand_buffer(data);
 }

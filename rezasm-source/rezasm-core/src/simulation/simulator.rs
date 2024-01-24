@@ -269,4 +269,8 @@ impl Simulator {
     pub fn set_writer(&mut self, writer: WriterBox) {
         self.writer = writer;
     }
+    
+    pub fn set_reader(&mut self, reader: ReaderBox) {
+        self.reader = reader;
+    }
 }
