@@ -1,6 +1,5 @@
 use crate::util::cli_io::InputSource::{ConsoleInput, FileInput};
 use crate::util::cli_io::OutputSink::{ConsoleOutput, FileOutput};
-use rezasm_core::instructions::targets::input_target::Input;
 use rezasm_core::simulation::reader::Reader;
 use rezasm_core::simulation::writer::Writer;
 use rezasm_core::util::as_any::AsAny;
@@ -34,7 +33,11 @@ impl InputSource {
     }
 }
 
-impl Reader for InputSource {}
+impl Reader for InputSource {
+    fn expand_buffer(&mut self, new_input: &str) {
+        //Does Nothing
+    }
+}
 
 impl io::Read for InputSource {
     fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
