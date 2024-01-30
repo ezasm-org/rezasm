@@ -133,6 +133,9 @@ pub enum SimulatorError {
 
     #[error("attempted to convert NaN value to an integer")]
     NaNConversionError,
+
+    #[error("could not read type {0}")]
+    ReadError(String),
 }
 
 #[derive(Error, Debug)]
