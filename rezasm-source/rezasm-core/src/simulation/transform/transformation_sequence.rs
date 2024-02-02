@@ -2,7 +2,7 @@ use crate::{simulation::simulator::Simulator, util::error::SimulatorError};
 
 use super::transformation::Transformation;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TransformationSequence {
     transformations: Vec<Transformation>,
 }
@@ -39,6 +39,16 @@ impl TransformationSequence {
                 .collect(),
         }
     }
+
+    pub fn contains_nullop(&self) -> bool {
+        for t in &self.transformations {
+            if t.is_nullop() {
+                return true;
+            }
+        }
+        false
+    }
+
 
     pub fn apply(&self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         for transformation in &self.transformations {

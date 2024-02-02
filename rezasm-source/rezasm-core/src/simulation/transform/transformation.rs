@@ -35,6 +35,10 @@ impl Transformation {
     pub fn apply(&self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         self.output.set(self.to.clone(), simulator)
     }
+
+    pub fn is_nullop(&self) -> bool {
+        self.output.is_nullop()
+    }
 }
 
 impl Clone for Transformation {

@@ -56,7 +56,7 @@ fn tauri_load(lines: &str) -> Result<(), String> {
 }
 
 #[tauri::command()]
-fn tauri_step() -> Result<(), String> {
+fn tauri_step() -> Result<bool, String> {
     step()
 }
 

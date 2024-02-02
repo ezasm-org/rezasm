@@ -1,4 +1,5 @@
 use crate::instructions::targets::output_target::Output;
+use crate::simulation::transform::transformable::Transformable;
 use crate::{
     instruction,
     instructions::{
@@ -14,18 +15,26 @@ use lazy_static::lazy_static;
 lazy_static! {
     pub static ref READI: Instruction =
         instruction!(readi, |simulator: Simulator, output: InputOutputTarget| {
-            let mut buf = [0u8; 8];
+            let mut buf = [0u8; 8]; // breaks on input of 123456789, or any other big integer
             simulator.get_reader_mut().read(&mut buf).unwrap();
             let integer_string = String::from_utf8_lossy(&buf)
                 .chars()
                 .filter(|c| c.is_numeric())
                 .collect::<String>();
-            let integer = integer_string.parse::<i64>().unwrap();
-            output.set(
-                simulator,
-                RawData::from_int(integer, simulator.get_word_size()),
-            );
-            Ok(TransformationSequence::new_empty())
+            let integer = match integer_string.parse::<i64>() {
+                Ok(i) => RawData::from_int(i, simulator.get_word_size()),
+                Err(e) => {
+                    match e.kind() {
+                        std::num::IntErrorKind::Empty => {
+                            let nullop = Transformable::NullOpTransformable.create_transformation(simulator, RawData::from_int(-1, simulator.get_word_size()))?;
+                            return Ok(TransformationSequence::new_single(nullop));
+                        },
+                        _ => return Err(crate::util::error::SimulatorError::IoError(crate::util::error::IoError::ReadError))
+                    }
+                }
+            };
+            let transformation = Transformable::InputOutputTransformable(output).create_transformation(simulator, integer)?;
+            Ok(TransformationSequence::new_single(transformation))
         });
     pub static ref READF: Instruction =
         instruction!(readf, |simulator: Simulator, output: InputOutputTarget| {

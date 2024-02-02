@@ -70,6 +70,9 @@ pub enum InternalError {
 
     #[error("improper usage of get_input_output_target")]
     GetInputOutputTargetError,
+
+    #[error("null op on transformation sequence")]
+    NullOpError,
 }
 
 #[derive(Error, Debug)]

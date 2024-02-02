@@ -34,7 +34,7 @@ impl Application {
         }
 
         while !self.simulator.is_done() {
-            self.simulator.run_line_from_pc()?
+            self.simulator.run_line_from_pc()?;
         }
 
         let r = self

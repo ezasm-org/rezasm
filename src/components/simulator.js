@@ -2,6 +2,7 @@ import {useCallback, useReducer, useRef, useState} from "react";
 import {RUST} from "../rust_functions.js";
 
 const STATE = {
+    AWAITING: 0,
     IDLE: 1,
     LOADING: 2,
     LOADED: 3,
@@ -115,7 +116,10 @@ export const useSimulator = () => {
 
     const handleStepCall = useCallback(async () => {
         RUST.STEP({})
-            .then(async () => {
+            .then(async (should_await) => {
+                if(should_await) {
+                    setState(STATE.AWAITING);
+                }
                 await checkProgramCompletion();
                 callStepCallbacks();
             })
@@ -138,7 +142,8 @@ export const useSimulator = () => {
     }, [checkProgramCompletion, handleStepCall, load, reset, state]);
 
     const stepBack = useCallback(async () => {
-        if (state.current > STATE.RUNNING) {
+        if (state.current > STATE.RUNNING || state.current == STATE.AWAITING) {
+            console.log(state.current);
             RUST.STEP_BACK({})
             .catch((error) => {
                 setError(error);

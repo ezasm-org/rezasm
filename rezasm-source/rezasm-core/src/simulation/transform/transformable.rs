@@ -7,12 +7,14 @@ use crate::util::raw_data::RawData;
 
 use super::transformation::Transformation;
 
+/// NullOpTransformable is primarily for signalling the simulator to enter AWAITING
 #[derive(Copy, Debug)]
 pub enum Transformable {
     FileReadTransformable(i64),
     HeapPointerTransformable,
     MemoryTransformable(usize),
     InputOutputTransformable(InputOutputTarget),
+    NullOpTransformable,
 }
 
 impl Transformable {
@@ -29,6 +31,7 @@ impl Transformable {
             Transformable::FileReadTransformable(cursor) => {
                 Ok(RawData::from_int(cursor.clone(), simulator.get_word_size()))
             }
+            _ => Ok(RawData::new(&[])),
         }
     }
 
@@ -44,6 +47,7 @@ impl Transformable {
                 simulator.get_memory_mut().write(address.clone(), &data)
             }
             Transformable::FileReadTransformable(cursor) => todo!(), //must be todo until read instructions are done
+            _ => Ok(())
         }
     }
 
@@ -57,6 +61,13 @@ impl Transformable {
             self.get(simulator)?,
             output,
         ))
+    }
+    
+    pub fn is_nullop(&self) -> bool {
+        match self {
+            Transformable::NullOpTransformable => true,
+            _ => false,
+        }
     }
 }
 
@@ -73,6 +84,7 @@ impl Clone for Transformable {
             Transformable::FileReadTransformable(cursor) => {
                 Transformable::FileReadTransformable(cursor.clone())
             }
+            Transformable::NullOpTransformable => Transformable::NullOpTransformable,
         }
     }
 }

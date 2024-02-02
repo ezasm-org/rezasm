@@ -30,7 +30,7 @@ pub fn wasm_load(lines: &str) -> Result<(), String> {
 }
 
 #[wasm_bindgen]
-pub fn wasm_step() -> Result<(), String> {
+pub fn wasm_step() -> Result<bool, String> {
     step()
 }
 
