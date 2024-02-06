@@ -13,6 +13,8 @@ use crate::{
 use lazy_static::lazy_static;
 
 lazy_static! {
+
+    /// Definition of the `readi` intruction, used to read an integer
     pub static ref READI: Instruction =
         instruction!(readi, |simulator: Simulator, output: InputOutputTarget| {
             let mut buf = [0u8; 8]; // breaks on input of 123456789, or any other big integer
@@ -26,16 +28,20 @@ lazy_static! {
                 Err(e) => {
                     match e.kind() {
                         std::num::IntErrorKind::Empty => {
-                            let nullop = Transformable::NullOpTransformable.create_transformation(simulator, RawData::from_int(-1, simulator.get_word_size()))?;
+                            let nullop = Transformable::NullOpTransformable.create_transformation(
+                                simulator, RawData::from_int(-1, simulator.get_word_size()))?;
                             return Ok(TransformationSequence::new_single(nullop));
                         },
-                        _ => return Err(crate::util::error::SimulatorError::IoError(crate::util::error::IoError::ReadError))
+                        _ => return Err(crate::util::error::SimulatorError::IoError(
+                            crate::util::error::IoError::ReadError))
                     }
                 }
             };
-            let transformation = Transformable::InputOutputTransformable(output).create_transformation(simulator, integer)?;
+            let transformation = Transformable::InputOutputTransformable(output)
+                .create_transformation(simulator, integer)?;
             Ok(TransformationSequence::new_single(transformation))
         });
+
     pub static ref READF: Instruction =
         instruction!(readf, |simulator: Simulator, output: InputOutputTarget| {
             let mut buf = [0u8; 8];
@@ -51,6 +57,7 @@ lazy_static! {
             );
             Ok(TransformationSequence::new_empty())
         });
+
     pub static ref READC: Instruction =
         instruction!(readc, |simulator: Simulator, output: InputOutputTarget| {
             let mut buf = [0u8; 4];
@@ -62,6 +69,7 @@ lazy_static! {
             );
             Ok(TransformationSequence::new_empty())
         });
+
     pub static ref READS: Instruction = instruction!(
         reads,
         |simulator: Simulator, input1: InputOutputTarget, input2: InputOutputTarget| {
@@ -84,22 +92,26 @@ lazy_static! {
             Ok(TransformationSequence::new_empty())
         }
     );
+
     pub static ref READS_UNSIZED: Instruction =
         instruction!(reads, |simulator: Simulator, input1: InputOutputTarget| {
             todo!();
         });
+
     pub static ref READLN: Instruction = instruction!(
         readln,
         |simulator: Simulator, input1: InputOutputTarget, input2: InputOutputTarget| {
             todo!();
         }
     );
+
     pub static ref READLN_UNSIZED: Instruction =
         instruction!(readln, |simulator: Simulator, input1: InputOutputTarget| {
             todo!();
         });
 }
 
+/// Registers the instructions found in this file
 pub fn register_instructions() {
     register_instruction(&READI);
     register_instruction(&READF);
