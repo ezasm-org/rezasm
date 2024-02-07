@@ -46,7 +46,7 @@ function Code() {
                 <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
             <div className="fill">
-                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} state={state} stepBack={stepBack} setState={setState}/>
+                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} state={state} start={start} stepBack={stepBack} setState={setState}/>
             </div>
         </div>
     );

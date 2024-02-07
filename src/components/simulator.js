@@ -40,6 +40,7 @@ export const useSimulator = () => {
 
     const setState = (newState) => {
         state.current = newState;
+        console.log(state.current);
         forceUpdate();
     };
 
@@ -77,6 +78,7 @@ export const useSimulator = () => {
         await RUST.STOP({});
     }, []);
 
+    // reset buffer
     const reset = useCallback(async () => {
         haltExecution(STATE.IDLE);
         await RUST.RESET({});

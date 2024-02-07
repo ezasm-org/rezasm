@@ -28,11 +28,14 @@ impl Read for TauriReader {
 }
 
 impl Reader for TauriReader {
-    fn expand_buffer(&mut self, new_input: &str) {
-        let other_vec: Vec<char> = new_input.chars().collect();
+    fn expand_buffer(&mut self, new_input: &str) { let other_vec: Vec<char> = new_input.chars().collect();
         for c in other_vec {
             self.buffer.push(c);
         }
+    }
+
+    fn flush_buffer(&mut self) {
+        self.buffer = Vec::new();
     }
 }
 

@@ -4,6 +4,7 @@ use std::fmt::Debug;
 use std::io;
 pub trait Reader: io::Read + AsAny + Sync + Send + Debug {
     fn expand_buffer(&mut self, new_input: &str);
+    fn flush_buffer(&mut self);
 }
 
 pub type ReaderBox = Box<dyn Reader>;
@@ -19,6 +20,10 @@ impl DummyReader {
 
 impl Reader for DummyReader {
     fn expand_buffer(&mut self, new_input: &str) {
+        //does nothing
+    }
+
+    fn flush_buffer(&mut self) {
         //does nothing
     }
 }

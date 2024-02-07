@@ -35,7 +35,11 @@ impl InputSource {
 
 impl Reader for InputSource {
     fn expand_buffer(&mut self, new_input: &str) {
-        //Does Nothing
+        //does nothing
+    }
+
+    fn flush_buffer(&mut self) {
+        //does nothing
     }
 }
 

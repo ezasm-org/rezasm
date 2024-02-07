@@ -6,7 +6,7 @@ import { debounce } from "lodash";
 
 const ENTER = 13;
 
-function Console({loaded, registerCallback, exitCode, error, state, stepBack, setState}) {
+function Console({loaded, registerCallback, exitCode, error, state, start, stepBack, setState}) {
     const input = useRef(null);
     const historyScrollbox = useRef(null);
 
@@ -46,13 +46,12 @@ function Console({loaded, registerCallback, exitCode, error, state, stepBack, se
     const onKeyPress = useCallback((event) => {
         if (event.keyCode === ENTER) {
             appendHistory([inputText, ""]);
-            setInputText("");
             RUST.RECEIVE_INPUT({data: inputText});
+            setInputText("");
 
             if (state.current === STATE.AWAITING) {
-                console.log("runit");
                 stepBack();
-                setState(STATE.RUNNING);
+                start();
             }
         }
     }, [inputText, state, stepBack, setState]);

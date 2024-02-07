@@ -95,6 +95,7 @@ impl Simulator {
         self.reset_data();
         self.program.reset();
         self.initialize();
+        self.reader.flush_buffer();
     }
 
     pub fn add_line(&mut self, line: Line, file: String) -> Result<(), SimulatorError> {
