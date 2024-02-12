@@ -1,6 +1,7 @@
 use std::char::ParseCharError;
 use std::num::{ParseFloatError, ParseIntError};
 use std::process;
+use scanner_rust::ScannerError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -189,6 +190,12 @@ impl From<ParseIntError> for ParserError {
 impl From<ParseCharError> for ParserError {
     fn from(error: ParseCharError) -> Self {
         ParserError::StringImmediateError(error.to_string())
+    }
+}
+
+impl From<ScannerError> for SimulatorError {
+    fn from(err: ScannerError) -> Self {
+        SimulatorError::IoError(IoError::ScannerError(err))
     }
 }
 

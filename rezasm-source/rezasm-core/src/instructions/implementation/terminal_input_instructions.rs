@@ -1,5 +1,6 @@
-use crate::instructions::targets::output_target::Output;
 use crate::simulation::transform::transformable::Transformable;
+use crate::simulation::transform::transformation::Transformation;
+use crate::util::error::IoError;
 use crate::{
     instruction,
     instructions::{
@@ -11,63 +12,43 @@ use crate::{
     util::raw_data::RawData,
 };
 use lazy_static::lazy_static;
+use scanner_rust::ScannerAscii;
 
 lazy_static! {
 
     /// Definition of the `readi` intruction, used to read an integer
     pub static ref READI: Instruction =
         instruction!(readi, |simulator: Simulator, output: InputOutputTarget| {
-            let mut buf = [0u8; 8]; // breaks on input of 123456789, or any other big integer
-            simulator.get_reader_mut().read(&mut buf).unwrap();
-            let integer_string = String::from_utf8_lossy(&buf)
-                .chars()
-                .filter(|c| c.is_numeric())
-                .collect::<String>();
-            let integer = match integer_string.parse::<i64>() {
-                Ok(i) => RawData::from_int(i, simulator.get_word_size()),
-                Err(e) => {
-                    match e.kind() {
-                        std::num::IntErrorKind::Empty => {
-                            let nullop = Transformable::NullOpTransformable.create_transformation(
-                                simulator, RawData::from_int(-1, simulator.get_word_size()))?;
-                            return Ok(TransformationSequence::new_single(nullop));
-                        },
-                        _ => return Err(crate::util::error::SimulatorError::IoError(
-                            crate::util::error::IoError::ReadError))
-                    }
-                }
-            };
+            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+
+            let integer = scanner.next_i64()?.ok_or(IoError::ReadError)?;
+            let data = RawData::from_int(integer, simulator.get_word_size());
+
             let transformation = Transformable::InputOutputTransformable(output)
-                .create_transformation(simulator, integer)?;
+                .create_transformation(simulator, data)?;
             Ok(TransformationSequence::new_single(transformation))
         });
 
     pub static ref READF: Instruction =
         instruction!(readf, |simulator: Simulator, output: InputOutputTarget| {
-            let mut buf = [0u8; 8];
-            simulator.get_reader_mut().read(&mut buf).unwrap();
-            let float_string = String::from_utf8_lossy(&buf)
-                .chars()
-                .filter(|c| c.is_numeric() || *c == '.')
-                .collect::<String>();
-            let float = float_string.parse::<f64>().unwrap();
-            output.set(
-                simulator,
-                RawData::from_float(float, simulator.get_word_size()),
-            );
-            Ok(TransformationSequence::new_empty())
+            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let float = scanner.next_f64()?.ok_or(IoError::ReadError)?;
+
+            let data = RawData::from_float(float, simulator.get_word_size());
+            let transformation = Transformable::InputOutputTransformable(output)
+                .create_transformation(simulator, data)?;
+            Ok(TransformationSequence::new_single(transformation))
         });
 
     pub static ref READC: Instruction =
         instruction!(readc, |simulator: Simulator, output: InputOutputTarget| {
-            let mut buf = [0u8; 4];
-            simulator.get_reader_mut().read(&mut buf).unwrap();
-            let char = String::from_utf8_lossy(&buf).chars().next().unwrap();
-            output.set(
-                simulator,
-                RawData::from_int(char as i64, simulator.get_word_size()),
-            );
-            Ok(TransformationSequence::new_empty())
+            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let char = scanner.next_char()?.ok_or(IoError::ReadError)?;
+
+            let data = RawData::from_int(char as i64, simulator.get_word_size());
+            let transformation = Transformable::InputOutputTransformable(output)
+                .create_transformation(simulator, data)?;
+            Ok(TransformationSequence::new_single(transformation))
         });
 
     pub static ref READS: Instruction = instruction!(
@@ -95,7 +76,18 @@ lazy_static! {
 
     pub static ref READS_UNSIZED: Instruction =
         instruction!(reads, |simulator: Simulator, input1: InputOutputTarget| {
-            todo!();
+            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+
+            let bytes = scanner.next_raw()?.ok_or(IoError::ReadError)?;
+
+            let address = input1.get(simulator)?.int_value() as usize;
+            let word_size = simulator.get_word_size().value();
+            bytes.into_iter().enumerate()
+                .map(|(offset, byte)| (address + offset * word_size, byte))
+                .map(|(address, byte)| Transformation::new(output, output.value, byte));
+            // FIX: need correct way to get output and output value for Transformation
+
+            Ok(TransformationSequence::new_empty())
         });
 
     pub static ref READLN: Instruction = instruction!(
