@@ -49,6 +49,15 @@ impl TransformationSequence {
         false
     }
 
+    pub fn get_nullop(&mut self) -> Option<&mut Transformation> {
+        for t in &mut self.transformations {
+            if t.is_nullop(){
+                return Some(t);
+            }
+        }
+        None
+    }
+
 
     pub fn apply(&self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         for transformation in &self.transformations {

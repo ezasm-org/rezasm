@@ -2,11 +2,10 @@ import React, {useCallback, useEffect, useReducer, useRef, useState} from "react
 import {listen} from "@tauri-apps/api/event";
 import {CALLBACKS_TRIGGERS, CALLBACK_TYPES, STATE} from "./simulator.js";
 import {RUST} from "../rust_functions.js";
-import { debounce } from "lodash";
 
 const ENTER = 13;
 
-function Console({loaded, registerCallback, exitCode, error, state, start, stepBack, setState}) {
+function Console({loaded, registerCallback, exitCode, error, state, start, stepBack, previousState, setState}) {
     const input = useRef(null);
     const historyScrollbox = useRef(null);
 
@@ -49,12 +48,15 @@ function Console({loaded, registerCallback, exitCode, error, state, start, stepB
             RUST.RECEIVE_INPUT({data: inputText});
             setInputText("");
 
-            if (state.current === STATE.AWAITING) {
+            if (state.current === STATE.AWAITING && previousState.current === STATE.RUNNING) {
                 stepBack();
                 start();
+            } else if (state.current === STATE.AWAITING && previousState.current === STATE.PAUSED) {
+                stepBack(); // JANK user is forced to press step twice
+                setState(STATE.PAUSED);
             }
         }
-    }, [inputText, state, stepBack, setState]);
+    }, [inputText, state, stepBack, start, setState, previousState]);
 
     // new logic will be needed if this effect ever is called more than once to prevent multiple
     // listeners from being made. hopefully loaded never remounts.

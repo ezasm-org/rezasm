@@ -201,6 +201,25 @@ impl Simulator {
         }
     }
 
+    fn reread(&mut self) -> Result<(), SimulatorError> {
+        let last = self.sequence.last_mut().unwrap();
+        if last.contains_nullop(){
+            let read_type = match last.get_nullop().unwrap().get_output() {
+                Transformable::TerminalReadTransformable { target, read_type, is_done } => read_type,
+                _ => return Err(SimulatorError::InternalError(crate::util::error::InternalError::NullOpError)) 
+            };
+            match read_type { // TODO read from the reader, change the transformable rerun transformation sequence
+                super::transform::transformable::ReadType::Integer => todo!(),
+                super::transform::transformable::ReadType::Float => todo!(),
+                super::transform::transformable::ReadType::Character => todo!(),
+                super::transform::transformable::ReadType::SizedString => todo!(),
+                super::transform::transformable::ReadType::UnsizedString => todo!(),
+                super::transform::transformable::ReadType::Line => todo!(),
+            }
+        }
+        Ok(())
+    }
+
     /// True -> Await
     /// False -> Don't Await
     fn run_line(&mut self, line: &Line) -> Result<bool, SimulatorError> {

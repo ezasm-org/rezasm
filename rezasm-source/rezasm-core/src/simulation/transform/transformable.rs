@@ -7,14 +7,24 @@ use crate::util::raw_data::RawData;
 
 use super::transformation::Transformation;
 
-/// NullOpTransformable is primarily for signalling the simulator to enter AWAITING
+#[derive(Copy, Clone, Debug)]
+pub enum ReadType {
+    Integer,
+    Float,
+    Character,
+    SizedString,
+    UnsizedString,
+    Line
+}
+
+/// InputReadTransformable is primarily for signalling the simulator to enter AWAITING
 #[derive(Copy, Debug)]
 pub enum Transformable {
     FileReadTransformable(i64),
     HeapPointerTransformable,
     MemoryTransformable(usize),
     InputOutputTransformable(InputOutputTarget),
-    NullOpTransformable,
+    TerminalReadTransformable{target: InputOutputTarget, read_type: ReadType, is_done: bool},
 }
 
 impl Transformable {
@@ -65,8 +75,16 @@ impl Transformable {
     
     pub fn is_nullop(&self) -> bool {
         match self {
-            Transformable::NullOpTransformable => true,
+            Self::TerminalReadTransformable { target, read_type, is_done: false} => true,
             _ => false,
+        }
+    }
+
+    pub fn complete_read(&mut self) {
+        match self {
+            Self::TerminalReadTransformable { target, read_type, is_done: true} => {},
+            Self::TerminalReadTransformable { target, read_type, ref mut is_done} => *is_done = true,
+            _ => {}
         }
     }
 }
@@ -84,7 +102,7 @@ impl Clone for Transformable {
             Transformable::FileReadTransformable(cursor) => {
                 Transformable::FileReadTransformable(cursor.clone())
             }
-            Transformable::NullOpTransformable => Transformable::NullOpTransformable,
+            Transformable::TerminalReadTransformable{target, read_type, is_done} => Transformable::TerminalReadTransformable{target: target.clone(), read_type: read_type.clone(), is_done: is_done.clone()},
         }
     }
 }

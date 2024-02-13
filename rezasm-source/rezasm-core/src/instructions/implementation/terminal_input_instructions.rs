@@ -1,5 +1,5 @@
 use crate::instructions::targets::output_target::Output;
-use crate::simulation::transform::transformable::Transformable;
+use crate::simulation::transform::transformable::{ReadType, Transformable};
 use crate::{
     instruction,
     instructions::{
@@ -26,14 +26,15 @@ lazy_static! {
                 Err(e) => {
                     match e.kind() {
                         std::num::IntErrorKind::Empty => {
-                            let nullop = Transformable::NullOpTransformable.create_transformation(simulator, RawData::from_int(-1, simulator.get_word_size()))?;
+                            let nullop = Transformable::TerminalReadTransformable{target: output, read_type: ReadType::Integer, is_done: false}
+                                .create_transformation(simulator, RawData::from_int(-1, simulator.get_word_size()))?;
                             return Ok(TransformationSequence::new_single(nullop));
                         },
                         _ => return Err(crate::util::error::SimulatorError::IoError(crate::util::error::IoError::ReadError))
                     }
                 }
             };
-            let transformation = Transformable::InputOutputTransformable(output).create_transformation(simulator, integer)?;
+            let transformation = Transformable::TerminalReadTransformable{target: output, read_type: ReadType::Integer, is_done: true}.create_transformation(simulator, integer)?;
             Ok(TransformationSequence::new_single(transformation))
         });
     pub static ref READF: Instruction =

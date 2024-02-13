@@ -12,6 +12,7 @@ function Code() {
 
     const {
         state,
+        previousState,
         error,
         exitCode,
         setState,
@@ -46,7 +47,7 @@ function Code() {
                 <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
             </div>
             <div className="fill">
-                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} state={state} start={start} stepBack={stepBack} setState={setState}/>
+                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} state={state} start={start} stepBack={stepBack} previousState={previousState} setState={setState}/>
             </div>
         </div>
     );

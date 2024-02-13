@@ -27,6 +27,7 @@ Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
 
 export const useSimulator = () => {
     const state = useRef(STATE.IDLE);
+    const previousState = useRef(STATE.AWAITING);
     const error = useRef("");
     const [exitCode, setExitCode] = useState("");
     const [code, setCode] = useState("");
@@ -39,8 +40,8 @@ export const useSimulator = () => {
     const [, forceUpdate] = useReducer(() => Date.now());
 
     const setState = (newState) => {
+        previousState.current = state.current;
         state.current = newState;
-        console.log(state.current);
         forceUpdate();
     };
 
@@ -183,6 +184,7 @@ export const useSimulator = () => {
 
     return {
         state,
+        previousState,
         error,
         exitCode,
         setState,

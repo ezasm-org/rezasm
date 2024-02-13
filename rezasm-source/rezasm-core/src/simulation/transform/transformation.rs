@@ -39,6 +39,14 @@ impl Transformation {
     pub fn is_nullop(&self) -> bool {
         self.output.is_nullop()
     }
+
+    pub fn get_output(&self) -> Transformable {
+        self.output
+    }
+
+    pub fn get_output_mut(&mut self) -> &mut Transformable {
+        &mut self.output
+    }
 }
 
 impl Clone for Transformation {
