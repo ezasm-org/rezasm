@@ -48,12 +48,6 @@ function Console({loaded, registerCallback, exitCode, error, state, stepBack, se
             appendHistory([inputText, ""]);
             setInputText("");
             RUST.RECEIVE_INPUT({data: inputText});
-
-            if (state.current === STATE.AWAITING) {
-                console.log("runit");
-                stepBack();
-                setState(STATE.RUNNING);
-            }
         }
     }, [inputText, state, stepBack, setState]);
 

@@ -21,6 +21,7 @@ lazy_static! {
                 .chars()
                 .filter(|c| c.is_numeric())
                 .collect::<String>();
+            println!("Integer read string: {}", integer_string);
             let integer = match integer_string.parse::<i64>() {
                 Ok(i) => RawData::from_int(i, simulator.get_word_size()),
                 Err(e) => {

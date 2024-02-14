@@ -63,10 +63,8 @@ pub fn load(lines: &str) -> Result<(), String> {
     Ok(())
 }
 
-pub fn step() -> Result<bool, String> {
-    let mut should_await = false;
+pub fn step() -> Result<(), String> {
     match get_simulator_mut().run_line_from_pc() {
-        Ok(true) => should_await = true,
         Ok(_) => {}
         Err(error) => return Err(format!("Program error: {}", error)),
     };
@@ -79,7 +77,7 @@ pub fn step() -> Result<bool, String> {
             simulator.get_registers().get_pc().get_data().int_value()
         ))
     } else {
-        Ok(should_await)
+        Ok(())
     }
 }
 

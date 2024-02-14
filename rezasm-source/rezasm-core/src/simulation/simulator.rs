@@ -200,9 +200,7 @@ impl Simulator {
         }
     }
 
-    /// True -> Await
-    /// False -> Don't Await
-    fn run_line(&mut self, line: &Line) -> Result<bool, SimulatorError> {
+    fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
         let result = match line {
             Line::Instruction(instruction, args) => {
                 instruction.get_function()(self, instruction.get_types(), &args)?
@@ -212,12 +210,13 @@ impl Simulator {
                 TransformationSequence::new_empty()
             }
         };
+        if result.contains_nullop() {
+            return Ok(());
+        }
         self.apply_transformation(result)
     }
 
-    /// True -> Await
-    /// False -> Don't Await
-    pub fn run_line_from_pc(&mut self) -> Result<bool, SimulatorError> {
+    pub fn run_line_from_pc(&mut self) -> Result<(), SimulatorError> {
         let line_number = match self.validate_pc() {
             Ok(x) => x,
             Err(error) => return Err(error),
@@ -232,12 +231,10 @@ impl Simulator {
         self.run_line(&line.clone())
     }
 
-    /// True -> Await
-    /// False -> Don't Await
     pub fn apply_transformation(
         &mut self,
         mut transform: TransformationSequence,
-    ) -> Result<bool, SimulatorError> {
+    ) -> Result<(), SimulatorError> {
         transform.apply(self)?;
         let pc_transformable = Transformable::InputOutputTransformable(
             InputOutputTarget::RegisterInputOutput(registry::PC_NUMBER),
@@ -252,10 +249,10 @@ impl Simulator {
             transform.concatenate(TransformationSequence::new_single(pc_transformation));
             self.sequence.push(transform.clone());
             if transform.contains_nullop() {
-                return Ok(true);
+                return Ok(());
             }
         }
-        Ok(false)
+        Ok(())
     }
 
     pub fn undo_last_transformation(&mut self) -> Result<bool, SimulatorError> {
