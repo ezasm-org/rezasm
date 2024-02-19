@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import RegistryView from "./RegistryView.jsx";
 import {loadWasm} from "../rust_functions.js";
-import Tabs from ".Tabs.jsx";
+import {Tabs, Tab} from "./Tabs.jsx";
 
 import MemoryView from "./MemoryView.jsx";
 import Console from "./Console.jsx";
@@ -48,13 +48,17 @@ function Code() {
                 </div>
             </div>
             <Tabs>
+                <Tab label="Console">
+                    <div className="fill" id="tabs_console" data-tab-active>
+                        <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} history={history}/>
+                    </div>
+                </Tab>
+                <Tab label="Memory Viewer">
+                    <div className="fill" id="tabs_memory">
+                        <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
+                    </div>
+                </Tab>
             </Tabs>
-            <div className="fill hidden" id="tabs_console" data-tab-active>
-                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} history={history}/>
-            </div>
-            <div className="fill" id="tabs_memory">
-                <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
-            </div>
         </div>
     );
 }
