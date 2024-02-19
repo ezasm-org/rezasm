@@ -23,9 +23,7 @@
   position: absolute;
   left: 50%;
   transform: translate(-50%, 0);
-  width: 50vw;
-  min-width: 600px;
-  max-width: 1000px;
+  width: 100%;
   margin: 0;
   padding-top: 2vh;
   display: flex;
@@ -37,6 +35,10 @@
 
 .fill {
   width: 100%;
+}
+
+.memory_viewer {
+    width: 100%;
 }
 
 .centered {
@@ -94,8 +96,13 @@ textarea {
   @apply font-bold py-2 px-4 rounded
 }
 
+
 button {
   margin: 2px;
+}
+
+.tab_content {
+    @apply hidden opacity-100 data-[tab-active]:block
 }
 
 .btn-basic {

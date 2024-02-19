@@ -29,6 +29,7 @@ export const useSimulator = () => {
     const error = useRef("");
     const [exitCode, setExitCode] = useState("");
     const [code, setCode] = useState("");
+    const history = useRef([]);
 
     const timerId = useRef(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
@@ -172,6 +173,7 @@ export const useSimulator = () => {
         step,
         load,
         reset,
+        history,
     };
 };
 
