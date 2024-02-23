@@ -156,6 +156,15 @@ td {
   word-wrap: break-word;
 }
 
+td {
+    @apply bg-transparent;
+}
+
+.data-table {
+    @apply odd:bg-gray-100 bg-gray-200;
+}
+
+
 .console-input-box {
   justify-content: left;
   margin-top: 1vh;
