@@ -30,7 +30,7 @@ function Tabs({children}) {
             )
         })
     return (
-        <div className="fill mx-auto">
+        <div className="fill px-4">
         <div className="flex border-b border-gray-300">
         {tab_bar}
         </div>

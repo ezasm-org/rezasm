@@ -19,20 +19,6 @@
   -webkit-text-size-adjust: 100%;
 }
 
-.container {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, 0);
-  width: 100%;
-  margin: 0;
-  padding-top: 2vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
-  align-items: center;
-}
-
 .fill {
   width: 100%;
 }

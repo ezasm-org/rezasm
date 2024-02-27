@@ -35,14 +35,14 @@ function Code() {
     }, []);
 
     return (
-        <div className="container">
-            <div className="fill">
+        <div>
+            <div className="fill px-4">
                 <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error}/>
                 <div className="mt-2 mb-2 row codearea">
-                    <div className="w-3/4 h-full pe-4">
+                    <div className="w-5/6 h-full pe-4">
                         <Editor state={state} setCode={setCode} />
                     </div>
-                    <div className="w-1/4">
+                    <div className="w-1/6">
                         <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
                     </div>
                 </div>
