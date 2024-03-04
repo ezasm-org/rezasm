@@ -1,6 +1,8 @@
-use crate::simulation::transform::transformable::Transformable;
-use crate::simulation::transform::transformation::Transformation;
+use crate::simulation::simulator::Simulator;
+use crate::simulation::transform::transformable::{self, Transformable};
+use crate::simulation::transform::transformation::{self, Transformation};
 use crate::util::error::IoError;
+use crate::util::word_size::{self, WordSize};
 use crate::{
     instruction,
     instructions::{
@@ -20,57 +22,78 @@ lazy_static! {
     pub static ref READI: Instruction =
         instruction!(readi, |simulator: Simulator, output: InputOutputTarget| {
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let word_size = simulator.get_word_size();
 
-            let integer = scanner.next_i64()?.ok_or(IoError::ReadError)?;
-            let data = RawData::from_int(integer, simulator.get_word_size());
+            let (transformable, data) = match scanner.next_i64()? {
+                Some(int) => (Transformable::InputOutputTransformable(output), RawData::from_int(int, word_size)),
+                None => (Transformable::NullOpTransformable, RawData::empty_data(word_size)),
+            };
 
-            let transformation = Transformable::InputOutputTransformable(output)
-                .create_transformation(simulator, data)?;
+            let transformation = transformable.create_transformation(simulator, data)?;
+
             Ok(TransformationSequence::new_single(transformation))
         });
 
     pub static ref READF: Instruction =
         instruction!(readf, |simulator: Simulator, output: InputOutputTarget| {
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
-            let float = scanner.next_f64()?.ok_or(IoError::ReadError)?;
+            let word_size = simulator.get_word_size();
 
-            let data = RawData::from_float(float, simulator.get_word_size());
-            let transformation = Transformable::InputOutputTransformable(output)
-                .create_transformation(simulator, data)?;
+            let (transformable, data) = match scanner.next_f64()? {
+                Some(float) => (Transformable::InputOutputTransformable(output), RawData::from_float(float, word_size)),
+                None => (Transformable::NullOpTransformable, RawData::empty_data(word_size)),
+            };
+
+            let transformation = transformable.create_transformation(simulator, data)?;
+
             Ok(TransformationSequence::new_single(transformation))
         });
 
     pub static ref READC: Instruction =
         instruction!(readc, |simulator: Simulator, output: InputOutputTarget| {
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
-            let char = scanner.next_char()?.ok_or(IoError::ReadError)?;
+            let word_size = simulator.get_word_size();
 
-            let data = RawData::from_int(char as i64, simulator.get_word_size());
-            let transformation = Transformable::InputOutputTransformable(output)
-                .create_transformation(simulator, data)?;
+            // FIX: for some reason the type system hates this line
+            // FIX: the word size here should be one, but I don't know what function to use for this
+            let (transformable, data): (Transformable, RawData) = match scanner.next_char()? {
+                Some(char) => (Transformable::InputOutputTransformable(output), RawData::(char as i64, word_size)),
+                None => (Transformable::NullOpTransformable, RawData::empty_data(word_size)),
+            };
+
+            let transformation = transformable.create_transformation(simulator, data)?;
+
             Ok(TransformationSequence::new_single(transformation))
         });
 
     pub static ref READS: Instruction = instruction!(
         reads,
         |simulator: Simulator, input1: InputOutputTarget, input2: InputOutputTarget| {
-            let mut address = input1.get(simulator)?.int_value();
-            let max_size = input2.get(simulator)?.int_value();
-            let mut s = vec![0; max_size as usize];
-            let word_size = simulator.get_word_size().clone();
-            simulator.get_reader_mut().read_exact(&mut s).unwrap();
-            let s = String::from_utf8(s).unwrap();
-            for b in s.bytes() {
-                simulator
-                    .get_memory_mut()
-                    .write(address as usize, &RawData::from_int(b as i64, &word_size))?;
-                address += simulator.get_memory().word_size().value() as i64;
-            }
-            simulator.get_memory_mut().write(
-                address as usize,
-                &RawData::from_int('\0' as i64, &word_size),
-            )?;
-            Ok(TransformationSequence::new_empty())
+            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let word_size = simulator.get_word_size();
+
+            // Get all relevant address stuff as integers for math
+            let word_bytes = word_size.value();
+            let target = input1.get(simulator)?.int_value() as usize;
+            let len = input2.get(simulator)?.int_value() as usize;
+
+            let string = scanner.next_bytes(len)?;
+
+            // Return NullOp if input is whitespace
+            let Some(string) = string else {
+                return TransformationSequence::new_nullop(simulator);
+            };
+
+            let transformation_vec = string.iter().enumerate()
+                // FIX: This skips all invalid transformations, which may not be the desired behavior
+                .filter_map(|(offset, _)| {
+                    let transformable = Transformable::MemoryTransformable(target + offset * word_bytes);
+                    let data = RawData::new(&[string[offset]]);
+                    Some(transformable.create_transformation(simulator, data).ok()?)
+                })
+                .collect::<Vec<_>>();
+
+            Ok(TransformationSequence::new(transformation_vec))
         }
     );
 
