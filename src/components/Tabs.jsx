@@ -7,8 +7,7 @@ function Tabs({children}) {
         setActiveTab(newTab);
     }
 
-    let tab_bar = children.map(child => {
-        return (
+    let tab_bar = children.map(child => 
             <button 
                 key = {child.props.label}
                 className = {
@@ -18,17 +17,13 @@ function Tabs({children}) {
             >
             {child.props.label}
             </button>
-        )
-    }
     );
 
-    let visible_tab = children.map(child => {
-            return (
+    let visible_tab = children.map(child =>
                 <div className = {`${ activeTab !== child.props.label ? 'hidden' : ''} py-3`}>
                     {child.props.children}
                 </div>
-            )
-        })
+        )
     return (
         <div className="fill px-4">
         <div className="flex border-b border-gray-300">

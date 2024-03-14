@@ -5,7 +5,8 @@ import {RUST} from "../rust_functions.js";
 
 const ENTER = 13;
 
-function Console({loaded, registerCallback, exitCode, error, history}) {
+function Console({loaded, registerCallback, exitCode, error}) {
+    const history = useRef([]);
     const input = useRef(null);
     const historyScrollbox = useRef(null);
 

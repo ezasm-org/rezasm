@@ -24,7 +24,6 @@ function Code() {
         step,
         load,
         reset,
-        history,
     } = useSimulator();
     const [wasmLoaded, setWasmLoaded] = useState(false);
 
@@ -50,7 +49,7 @@ function Code() {
             <Tabs>
                 <Tab label="Console">
                     <div className="fill" id="tabs_console" data-tab-active>
-                        <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} history={history}/>
+                        <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} />
                     </div>
                 </Tab>
                 <Tab label="Memory Viewer">
