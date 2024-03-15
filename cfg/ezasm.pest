@@ -1,0 +1,55 @@
+program = { SOI ~ (expr | NEWLINE)* ~ &EOI }
+
+expr = { COMMENT | label | import_expr | oii_expr | oi_expr | o_expr | i_expr | i_ii_expr | iii_expr | io_expr | lone_expr }
+
+import_expr = { "import" ~ string }
+
+oii_expr = { oii_inst ~ output ~ input ~ input }
+  // TODO check if shift expressions belong here
+  oii_inst = @{ (("add" | "sub" | "mul" | "div" | "mod") ~ "f"?) |
+  			    "and" | "or" | "xor" | "sll" | "srl" | "sra" }
+  
+oi_expr = { oi_inst ~ output ~ input }
+  oi_inst = @{ "ftoi" | "itof" | "not" | "load" | "store" | "alloc" | "move" }
+  
+o_expr = { o_inst ~ output }
+  o_inst = @{ ( "read" ~ ("i" | "f" | "c") ) }
+  
+i_expr = { i_inst ~ input }
+  i_inst = @{ "jump" | "jal" | "j" | "call" | "exit" | "push" | "pop" | ( "print" ~ ("i" | "f" | "c" ) ) }
+  
+i_ii_expr = { i_ii_inst ~ input ~ input? }
+  i_ii_inst = @{ "prints" | "reads" | "readln" }
+  
+iii_expr = { iii_inst ~ input ~ input ~ input }
+  iii_inst = @{ "blt" | "ble" | "bgt" | "bge" | "beq" | "bne" | "slt" | "sgt" | "sge" | "seq" | "sne" }
+  
+io_expr = { io_inst ~ input_output }
+  io_inst = @{ ("inc" | "dec") ~ "f"? }
+  
+lone_expr = @{ "return" }
+
+// TODO label_name should be an input
+input = ${ register | char | string | label_name | int }
+output = ${ register }
+input_output = ${ input | output }
+
+label = ${ label_name ~ ":" }
+  // TODO currently allows whitespace in name. Fix this
+  label_name = { ASCII_ALPHA ~ (!NEWLINE ~ !WHITESPACE ~ (ASCII_ALPHANUMERIC | "_"))* }
+
+register = @{ "$" ~ ( register_name | register_number ) }
+  register_number = _{ (ASCII_DIGIT ~ &WHITESPACE) | ('1'..'5' ~ ASCII_DIGIT ) | ("6" ~ '0'..'2') }
+  register_name = _{ ( ("s" | "fs" | "t" | "ft") ~ ASCII_DIGIT) |
+                     "zero" | "pid" | "fid" | "pc" | "sp" | "ra" |
+                     ( ("a" | "r") ~ '0'..'2') }
+
+int = @{ "-"? ~ ASCII_DIGIT+ }
+// TODO can char literal be empty?
+char = @{ "'" ~ ( !NEWLINE ~ ( escaped | "\\'" | (!"\\" ~ ANY) ) ) ~ "'" }
+string = @{ "\"" ~ (!NEWLINE ~ !"\"" ~ (escaped | "\\\"" | ANY))* ~ "\"" }
+escaped = _{ "\\" ~ ( "\\" | "n" | "r" | "t") }
+
+WHITESPACE = _{ " " | "\t" }
+COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* ~ NEWLINE* }
+
