@@ -123,7 +123,7 @@ function MemoryView({loaded, registerCallback}) {
                 </thead>
                 <tbody>
                     {table.map(row =>
-                        <tr key={count}>
+                        <tr className="data-table" key={count}>
                             <td>{`0x${(currentAddress + count++ * wordSize.current * WIDTH).toString(16)}`}</td>
                             {row.map(value =>
                                 <td>
