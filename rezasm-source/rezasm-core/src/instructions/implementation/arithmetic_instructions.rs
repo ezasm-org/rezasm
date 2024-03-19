@@ -7,7 +7,6 @@ use crate::instructions::instruction_registry::register_instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::targets::output_target::Output;
 use crate::simulation::register::Register;
 use crate::simulation::registry;
 use crate::simulation::transform::transformable::Transformable;

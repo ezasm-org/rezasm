@@ -8,7 +8,6 @@ use rezasm_core::parser::lexer::{
 };
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
-use rezasm_core::simulation::register::Register;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::registry::{self, get_register_number};
 use rezasm_core::simulation::simulator::Simulator;
