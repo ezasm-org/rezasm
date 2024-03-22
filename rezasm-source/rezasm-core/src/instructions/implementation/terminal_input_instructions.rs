@@ -71,16 +71,18 @@ lazy_static! {
             let len = input2.get(simulator)?.int_value() as usize;
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
 
-            let Some(mut bytes) = scanner.next_bytes(len)? else {
+            let Some(bytes) = scanner.next_bytes(len)? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
-            bytes.push(b'\0');
+
+            let mut words = pad_bytes(&bytes);
+            words.push(b'\0');
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
 
-            let transformation = Transformable::MemoryTransformable(bytes.len())
-                .create_transformation(simulator, RawData::new(&bytes))?;
+            let transformation = Transformable::MemoryTransformable(address)
+                .create_transformation(simulator, RawData::new(&words))?;
 
             Ok(TransformationSequence::new_single(transformation))
         }
@@ -90,16 +92,18 @@ lazy_static! {
         instruction!(reads, |simulator: Simulator, input1: InputOutputTarget| {
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
 
-            let Some(mut bytes) = scanner.next()? else {
+            let Some(input) = scanner.next()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
-            bytes.push('\0');
+
+            let mut words = pad_bytes(input.as_bytes());
+            words.push(0);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
 
-            let transformation = Transformable::MemoryTransformable(bytes.len())
-                .create_transformation(simulator, RawData::new(bytes.as_bytes()))?;
+            let transformation = Transformable::MemoryTransformable(address)
+                .create_transformation(simulator, RawData::new(&words))?;
 
             Ok(TransformationSequence::new_single(transformation))
         });
@@ -110,15 +114,18 @@ lazy_static! {
             let len = input2.get(simulator)?.int_value() as usize;
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
 
-            let Some(bytes) = scanner.next_line()? else {
+            let Some(input) = scanner.next_line()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
+
+            let mut words = pad_bytes(input.as_bytes());
+            words.push(b'\0');
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
 
-            let transformation = Transformable::MemoryTransformable(bytes.len())
-                .create_transformation(simulator, RawData::new(&bytes.as_bytes()[0..len]))?;
+            let transformation = Transformable::MemoryTransformable(address)
+                .create_transformation(simulator, RawData::new(&words))?;
 
             Ok(TransformationSequence::new_single(transformation))
         }
@@ -128,18 +135,29 @@ lazy_static! {
         instruction!(readln, |simulator: Simulator, input1: InputOutputTarget| {
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
 
-            let Some(bytes) = scanner.next_line()? else {
+            let Some(input) = scanner.next_line()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
+
+            let mut words = pad_bytes(input.as_bytes());
+            words.push(b'\0');
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
 
-            let transformation = Transformable::MemoryTransformable(bytes.len())
-                .create_transformation(simulator, RawData::new(bytes.as_bytes()))?;
+            let transformation = Transformable::MemoryTransformable(address)
+                .create_transformation(simulator, RawData::new(&words))?;
 
             Ok(TransformationSequence::new_single(transformation))
         });
+}
+
+fn pad_bytes(bytes: &[u8]) -> Vec<u8> {
+    bytes
+        .iter()
+        .map(|byte| vec![0u8, 0u8, 0u8, *byte])
+        .flatten()
+        .collect()
 }
 
 /// Registers the instructions found in this file
