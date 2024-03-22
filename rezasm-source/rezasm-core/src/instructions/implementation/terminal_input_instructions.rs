@@ -1,5 +1,6 @@
-use crate::simulation::reader::Reader;
+use crate::simulation::reader::{Reader, ReaderBox};
 use crate::simulation::transform::transformable::Transformable;
+use crate::util::error::{IoError, SimulatorError};
 use crate::{
     instruction,
     instructions::{
@@ -70,15 +71,16 @@ lazy_static! {
         |simulator: Simulator, input1: InputOutputTarget, input2: InputOutputTarget| {
 
             let len = input2.get(simulator)?.int_value() as usize;
-            let mut bytes = [0u8; len];
-            read_to_sized(simulator.get_reader_mut(), &mut bytes);
+            let mut bytes = vec![0u8; len - 1];
+            let read_count = read_to_sized(simulator.get_reader_mut(), &mut bytes)
+                .map_err(IoError::from)?;
 
-            let Some(bytes) = (len)? else {
+            if read_count == 0 {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes);
-            words.push(b'\0');
+            let mut words = pad_bytes(&bytes[0..read_count]);
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -99,7 +101,7 @@ lazy_static! {
             };
 
             let mut words = pad_bytes(input.as_bytes());
-            words.push(0);
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -121,7 +123,7 @@ lazy_static! {
             };
 
             let mut words = pad_bytes(input.as_bytes());
-            words.push(b'\0');
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -142,7 +144,7 @@ lazy_static! {
             };
 
             let mut words = pad_bytes(input.as_bytes());
-            words.push(b'\0');
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -173,23 +175,19 @@ fn pad_bytes(bytes: &[u8]) -> Vec<u8> {
 ///
 /// * `()` - if the read works.
 /// * `io::Error` - if the read fails for some reason.
-fn read_to_sized(mut reader: Box<Reader>, target: &mut [u8]) -> std::io::Result<()> {
+fn read_to_sized(reader: &ReaderBox, target: &mut [u8]) -> std::io::Result<usize> {
 
     let mut buf = [0u8];
 
-    for target_char in target.iter_mut().take(target.len() - 1) {
+    for (idx, target_char) in target.iter_mut().take(target.len() - 1).enumerate() {
         reader.read(&mut buf)?;
 
-        let ch = buf[0];
-        if ch.is_ascii_whitespace() {
-            *target_char = '\0';
-            break;
+        if buf[0].is_ascii_whitespace() {
+            return Ok(idx);
         }
     }
 
-    target[target.len() - 1] = 0u8;
-
-    Ok(())
+    Ok(target.len())
 }
 
 /// Registers the instructions found in this file
