@@ -1,3 +1,4 @@
+use crate::simulation::reader::Reader;
 use crate::simulation::transform::transformable::Transformable;
 use crate::{
     instruction,
@@ -69,9 +70,10 @@ lazy_static! {
         |simulator: Simulator, input1: InputOutputTarget, input2: InputOutputTarget| {
 
             let len = input2.get(simulator)?.int_value() as usize;
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let mut bytes = [0u8; len];
+            read_to_sized(simulator.get_reader_mut(), &mut bytes);
 
-            let Some(bytes) = scanner.next_bytes(len)? else {
+            let Some(bytes) = (len)? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
@@ -158,6 +160,36 @@ fn pad_bytes(bytes: &[u8]) -> Vec<u8> {
         .map(|byte| vec![0u8, 0u8, 0u8, *byte])
         .flatten()
         .collect()
+}
+
+/// Uses a boxed custom reader to read until whitespace or a size is reached.
+///
+/// # Arguments
+///
+/// * `reader` - the boxed reader used to get input.
+/// * `target` - the buffer to which to read.
+///
+/// # Returns
+///
+/// * `()` - if the read works.
+/// * `io::Error` - if the read fails for some reason.
+fn read_to_sized(mut reader: Box<Reader>, target: &mut [u8]) -> std::io::Result<()> {
+
+    let mut buf = [0u8];
+
+    for target_char in target.iter_mut().take(target.len() - 1) {
+        reader.read(&mut buf)?;
+
+        let ch = buf[0];
+        if ch.is_ascii_whitespace() {
+            *target_char = '\0';
+            break;
+        }
+    }
+
+    target[target.len() - 1] = 0u8;
+
+    Ok(())
 }
 
 /// Registers the instructions found in this file
