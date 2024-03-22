@@ -23,3 +23,8 @@ prints "Input a char: "
 readc $t1
 printc $t1
 prints "\n"
+alloc $t2 100
+prints "Input a line: "
+readln $t2 100
+prints $t2
+printc '\n'

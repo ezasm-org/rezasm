@@ -1,3 +1,4 @@
+use crate::instructions::targets::input_target::InputTarget;
 use crate::simulation::transform::transformable::Transformable;
 use crate::{
     instruction,
@@ -66,12 +67,12 @@ lazy_static! {
 
     pub static ref READS: Instruction = instruction!(
         reads,
-        |simulator: Simulator, input1: InputOutputTarget, input2: InputOutputTarget| {
+        |simulator: Simulator, input1: InputOutputTarget, input2: InputTarget| {
 
             let len = input2.get(simulator)?.int_value() as usize;
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
 
-            let Some(bytes) = scanner.next_bytes(len)? else {
+            let Some(bytes) = scanner.next_bytes(len-1)? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
@@ -110,15 +111,15 @@ lazy_static! {
 
     pub static ref READLN: Instruction = instruction!(
         readln,
-        |simulator: Simulator, input1: InputOutputTarget, input2: InputOutputTarget| {
+        |simulator: Simulator, input1: InputOutputTarget, input2: InputTarget| {
             let len = input2.get(simulator)?.int_value() as usize;
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
 
-            let Some(input) = scanner.next_line()? else {
+            let Some(input) = scanner.next_bytes(len-1)? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes());
+            let mut words = pad_bytes(&input);
             words.push(b'\0');
 
             let address = input1.get(simulator)?.int_value() as usize;
