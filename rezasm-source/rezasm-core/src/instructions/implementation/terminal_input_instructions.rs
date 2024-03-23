@@ -1,5 +1,7 @@
 use crate::instructions::targets::input_target::InputTarget;
+use crate::simulation::reader::{Reader, ReaderBox};
 use crate::simulation::transform::transformable::Transformable;
+use crate::util::error::{IoError, SimulatorError};
 use crate::{
     instruction,
     instructions::{
@@ -68,16 +70,22 @@ lazy_static! {
     pub static ref READS: Instruction = instruction!(
         reads,
         |simulator: Simulator, input1: InputOutputTarget, input2: InputTarget| {
-
             let len = input2.get(simulator)?.int_value() as usize;
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            if len == 1 {
+                return Ok(TransformationSequence::new_empty());
+            }
+            let mut bytes = vec![0u8; len - 1];
+            let read_count = read_to_sized(simulator.get_reader_mut(), &mut bytes, |c| {
+                c.is_ascii_whitespace()
+            })
+                .map_err(IoError::from)?;
 
-            let Some(bytes) = scanner.next_bytes(len-1)? else {
+            if read_count == 0 {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes);
-            words.push(b'\0');
+            let mut words = pad_bytes(&bytes[0..read_count]);
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -98,7 +106,7 @@ lazy_static! {
             };
 
             let mut words = pad_bytes(input.as_bytes());
-            words.push(0);
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -113,14 +121,21 @@ lazy_static! {
         readln,
         |simulator: Simulator, input1: InputOutputTarget, input2: InputTarget| {
             let len = input2.get(simulator)?.int_value() as usize;
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            if len == 1 {
+                return Ok(TransformationSequence::new_empty());
+            }
+            let mut bytes = vec![0u8; len - 1];
+            let read_count = read_to_sized(simulator.get_reader_mut(), &mut bytes, |c| {
+                *c == '\n' as u8
+            })
+                .map_err(IoError::from)?;
 
-            let Some(input) = scanner.next_bytes(len-1)? else {
+            if read_count == 0 {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&input);
-            words.push(b'\0');
+            let mut words = pad_bytes(&bytes[0..read_count]);
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -141,7 +156,7 @@ lazy_static! {
             };
 
             let mut words = pad_bytes(input.as_bytes());
-            words.push(b'\0');
+            words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -159,6 +174,39 @@ fn pad_bytes(bytes: &[u8]) -> Vec<u8> {
         .map(|byte| vec![0u8, 0u8, 0u8, *byte])
         .flatten()
         .collect()
+}
+
+/// Uses a boxed custom reader to read until whitespace or a size is reached.
+///
+/// # Arguments
+///
+/// * `reader` - the boxed reader used to get input.
+/// * `target` - the buffer to which to read.
+///
+/// # Returns
+///
+/// * `()` - if the read works.
+/// * `io::Error` - if the read fails for some reason.
+fn read_to_sized(
+    reader: &mut ReaderBox,
+    target: &mut [u8],
+    terminator: fn(&u8) -> bool,
+) -> std::io::Result<usize> {
+    let mut buf = [0u8];
+    let len = target.len();
+    for idx in 0usize..len {
+        if reader.read(&mut buf)? == 0usize {
+            buf[0] = 0u8;
+        }
+
+        if terminator(&buf[0]) || buf[0] == 0u8 {
+            return Ok(idx);
+        }
+
+        target[idx] = buf[0];
+    }
+
+    Ok(len)
 }
 
 /// Registers the instructions found in this file
