@@ -8,6 +8,7 @@ use rezasm_core::parser::lexer::{
 };
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
+use rezasm_core::simulation::reader::DummyReader;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::registry::{self, get_register_number};
 use rezasm_core::simulation::simulator::Simulator;
@@ -19,7 +20,6 @@ use std::fs;
 use std::io::Write;
 use std::ops::Deref;
 use std::path::PathBuf;
-use rezasm_core::simulation::reader::DummyReader;
 
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))

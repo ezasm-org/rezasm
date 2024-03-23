@@ -31,7 +31,9 @@ impl Transformable {
             Transformable::FileReadTransformable(cursor) => {
                 Ok(RawData::from_int(cursor.clone(), simulator.get_word_size()))
             }
-            Transformable::NullOpTransformable => Ok(RawData::new(&[])),
+            Transformable::NullOpTransformable => {
+                Ok(RawData::empty_data(simulator.get_word_size()))
+            }
         }
     }
 
@@ -46,7 +48,7 @@ impl Transformable {
             Transformable::MemoryTransformable(address) => {
                 simulator.get_memory_mut().write(address.clone(), &data)
             }
-            Transformable::FileReadTransformable(cursor) => todo!(), //must be todo until read instructions are done
+            Transformable::FileReadTransformable(cursor) => todo!(),
             Transformable::NullOpTransformable => Ok(()),
         }
     }

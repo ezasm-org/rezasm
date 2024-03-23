@@ -22,8 +22,7 @@ impl TauriReader {
     }
 }
 
-impl Reader for TauriReader {
-}
+impl Reader for TauriReader {}
 
 impl Read for TauriReader {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {

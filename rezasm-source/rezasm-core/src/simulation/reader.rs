@@ -4,8 +4,7 @@ use std::fmt::Debug;
 use std::io;
 
 /// A trait for any readers used with EzASM
-pub trait Reader: io::Read + AsAny + Sync + Send + Debug {
-}
+pub trait Reader: io::Read + AsAny + Sync + Send + Debug {}
 
 /// Type alias for a `Reader` trait in a `Box`
 pub type ReaderBox = Box<dyn Reader>;
@@ -23,8 +22,7 @@ impl DummyReader {
     }
 }
 
-impl Reader for DummyReader {
-}
+impl Reader for DummyReader {}
 
 impl AsAny for DummyReader {
     fn as_any(&self) -> &dyn Any {

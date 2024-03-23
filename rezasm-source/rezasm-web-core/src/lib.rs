@@ -7,10 +7,18 @@ use rezasm_core::simulation::writer::WriterBox;
 use std::string::ToString;
 use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-fn internal_simulator(reader: Option<ReaderBox>, writer: Option<WriterBox>) -> &'static RwLock<Simulator> {
+fn internal_simulator(
+    reader: Option<ReaderBox>,
+    writer: Option<WriterBox>,
+) -> &'static RwLock<Simulator> {
     static SIMULATOR: OnceLock<RwLock<Simulator>> = OnceLock::new();
     if reader.is_some() && writer.is_some() {
-        SIMULATOR.get_or_init(|| RwLock::new(Simulator::new_custom_reader_writer(reader.unwrap(), writer.unwrap())))
+        SIMULATOR.get_or_init(|| {
+            RwLock::new(Simulator::new_custom_reader_writer(
+                reader.unwrap(),
+                writer.unwrap(),
+            ))
+        })
     } else {
         SIMULATOR.get_or_init(|| RwLock::new(Simulator::new()))
     }

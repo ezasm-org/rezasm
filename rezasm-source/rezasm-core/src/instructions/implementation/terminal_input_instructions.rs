@@ -77,8 +77,7 @@ lazy_static! {
             let mut bytes = vec![0u8; len - 1];
             let read_count = read_to_sized(simulator.get_reader_mut(), &mut bytes, |c| {
                 c.is_ascii_whitespace()
-            })
-                .map_err(IoError::from)?;
+            }).map_err(IoError::from)?;
 
             if read_count == 0 {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
@@ -127,8 +126,7 @@ lazy_static! {
             let mut bytes = vec![0u8; len - 1];
             let read_count = read_to_sized(simulator.get_reader_mut(), &mut bytes, |c| {
                 *c == '\n' as u8
-            })
-                .map_err(IoError::from)?;
+            }).map_err(IoError::from)?;
 
             if read_count == 0 {
                 return Ok(TransformationSequence::new_nullop(simulator)?);

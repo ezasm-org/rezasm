@@ -33,8 +33,7 @@ impl InputSource {
     }
 }
 
-impl Reader for InputSource {
-}
+impl Reader for InputSource {}
 
 impl io::Read for InputSource {
     fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {

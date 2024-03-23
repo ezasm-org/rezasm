@@ -7,13 +7,13 @@ extern crate wasm_bindgen;
 
 use crate::wasm_writer::WasmWriter;
 use rezasm_core::instructions::implementation::register_instructions;
+use rezasm_core::simulation::reader::DummyReader;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed, load,
-    reset, step, stop
+    get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed,
+    load, reset, step, stop,
 };
 use wasm_bindgen::prelude::*;
-use rezasm_core::simulation::reader::DummyReader;
 
 #[wasm_bindgen]
 pub fn wasm_stop() {
@@ -87,5 +87,8 @@ pub fn wasm_receive_input(data: &str) {
 #[wasm_bindgen(start)]
 pub fn wasm_initialize_backend() {
     register_instructions();
-    initialize_simulator(Some(Box::new(DummyReader::new())), Some(Box::new(WasmWriter::new())));
+    initialize_simulator(
+        Some(Box::new(DummyReader::new())),
+        Some(Box::new(WasmWriter::new())),
+    );
 }
