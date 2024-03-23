@@ -113,7 +113,6 @@ lazy_static! {
         let fid_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(FID_NUMBER));
         final_sequence.concatenate(JUMP.call_function(simulator, &vec![ra_register.clone()])?);
         final_sequence.concatenate(POP.call_function(simulator, &vec![fid_register])?);
-        final_sequence.concatenate(POP.call_function(simulator, &vec![ra_register])?);
         final_sequence.concatenate(memory_instructions::consecutive_pop(simulator, ra_output, 1)?);
         Ok(final_sequence)
     });

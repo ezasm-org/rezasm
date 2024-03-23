@@ -1,5 +1,8 @@
+use std::sync::OnceLock;
+
 use crate::instructions::targets::input_target::InputTarget;
 use crate::simulation::reader::{Reader, ReaderBox};
+use crate::simulation::simulator::Simulator;
 use crate::simulation::transform::transformable::Transformable;
 use crate::util::error::{IoError, SimulatorError};
 use crate::{
@@ -16,6 +19,7 @@ use lazy_static::lazy_static;
 use scanner_rust::ScannerAscii;
 
 lazy_static! {
+
 
     /// Definition of the `readi` intruction, used to read an integer
     pub static ref READI: Instruction =

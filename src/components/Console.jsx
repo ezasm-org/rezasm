@@ -6,7 +6,7 @@ import { debounce } from "lodash";
 
 const ENTER = 13;
 
-function Console({loaded, registerCallback, exitCode, error, state, stepBack, setState}) {
+function Console({loaded, registerCallback, exitCode, error,}) {
     const input = useRef(null);
     const historyScrollbox = useRef(null);
 
@@ -49,7 +49,7 @@ function Console({loaded, registerCallback, exitCode, error, state, stepBack, se
             setInputText("");
             RUST.RECEIVE_INPUT({data: inputText});
         }
-    }, [inputText, state, stepBack, setState]);
+    }, [inputText, stepBack]);
 
     // new logic will be needed if this effect ever is called more than once to prevent multiple
     // listeners from being made. hopefully loaded never remounts.
