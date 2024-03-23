@@ -19,6 +19,7 @@ use std::fs;
 use std::io::Write;
 use std::ops::Deref;
 use std::path::PathBuf;
+use rezasm_core::simulation::reader::DummyReader;
 
 fn workspace_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -145,7 +146,8 @@ pub fn test_simulator_instruction() {
 pub fn test_print_instructions() {
     register_instructions();
     let writer = Box::new(TestWriter::new());
-    let mut simulator: Simulator = Simulator::new_writer(writer);
+    let reader = Box::new(DummyReader::new());
+    let mut simulator: Simulator = Simulator::new_custom_reader_writer(reader, writer);
     let program = "
         move $s2 \"Print Instructions Work!\\n\"
         add $s1 '\\n' 0
