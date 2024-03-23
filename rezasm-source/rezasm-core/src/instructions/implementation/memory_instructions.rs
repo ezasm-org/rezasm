@@ -15,7 +15,7 @@ use crate::simulation::transform::transformation_sequence::TransformationSequenc
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
-fn consecutive_push(
+pub fn consecutive_push(
     simulator: &Simulator,
     input: InputTarget,
     times: i64,
@@ -38,7 +38,7 @@ fn consecutive_push(
     Ok(TransformationSequence::new(vec![t1, t2]))
 }
 
-fn consecutive_pop(
+pub fn consecutive_pop(
     simulator: &Simulator,
     output: InputOutputTarget,
     times: i64,

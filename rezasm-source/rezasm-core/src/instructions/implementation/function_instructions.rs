@@ -1,6 +1,7 @@
 #![cfg_attr(rustfmt, rustfmt_skip)] // prevent rustfmt from breaking 0 argument instruction macros
 
 use crate::instructions::argument_type::ArgumentType;
+use crate::instructions::implementation::memory_instructions;
 use crate::instructions::implementation::memory_instructions::POP;
 use crate::instructions::implementation::memory_instructions::PUSH;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
@@ -75,15 +76,17 @@ lazy_static! {
             let ra_transformable = Transformable::InputOutputTransformable(ra_output);
             let pc_output = InputOutputTarget::new_register(&PC_NUMBER)?;
             let pc_transformable = Transformable::InputOutputTransformable(pc_output);
+            let fid_input = InputTarget::new_register(&FID_NUMBER)?;
             let fid_output = InputOutputTarget::new_register(&FID_NUMBER)?;
             let fid_transformable = Transformable::InputOutputTransformable(fid_output);
+            let ra_register = ArgumentType::Input(InputTarget::RegisterInput(RA_NUMBER));
             let pc_register = ArgumentType::Input(InputTarget::RegisterInput(PC_NUMBER));
             let fid_register = ArgumentType::Input(InputTarget::RegisterInput(FID_NUMBER));
             let word_size = simulator.get_word_size().clone();
             let mut final_sequence = TransformationSequence::new_empty();
 
-            final_sequence.concatenate(PUSH.call_function(simulator, &vec![pc_register])?);
-            final_sequence.concatenate(PUSH.call_function(simulator, &vec![fid_register])?);
+            final_sequence.concatenate(PUSH.call_function(simulator, &vec![ra_register])?);
+            final_sequence.concatenate(memory_instructions::consecutive_push(simulator, fid_input, 1)?);
 
             let (fid, pc) = match input {
                 InputTarget::LabelReferenceInput(label) => {
@@ -103,13 +106,15 @@ lazy_static! {
         });
 
     pub static ref RETURN: Instruction = instruction!(_return, |simulator: Simulator,| {
+        let ra_output = InputOutputTarget::new_register(&RA_NUMBER)?;
         let mut final_sequence = TransformationSequence::new_empty();
         let ra_register = ArgumentType::Input(InputTarget::RegisterInput(RA_NUMBER));
         let pc_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(PC_NUMBER));
         let fid_register = ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(FID_NUMBER));
-        final_sequence.concatenate(JUMP.call_function(simulator, &vec![ra_register])?);
+        final_sequence.concatenate(JUMP.call_function(simulator, &vec![ra_register.clone()])?);
         final_sequence.concatenate(POP.call_function(simulator, &vec![fid_register])?);
-        final_sequence.concatenate(POP.call_function(simulator, &vec![pc_register])?);
+        final_sequence.concatenate(POP.call_function(simulator, &vec![ra_register])?);
+        final_sequence.concatenate(memory_instructions::consecutive_pop(simulator, ra_output, 1)?);
         Ok(final_sequence)
     });
 
