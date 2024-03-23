@@ -42,9 +42,7 @@ impl Reader for InputSource {
 impl io::Read for InputSource {
     fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
         match self {
-            ConsoleInput(readable) => {
-                readable.read(buf)
-            }
+            ConsoleInput(readable) => readable.read(buf),
             FileInput(file) => {
                 let next = file.next().unwrap().unwrap();
                 buf.write(next.as_bytes())

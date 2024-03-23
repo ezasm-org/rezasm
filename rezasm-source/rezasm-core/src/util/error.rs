@@ -1,7 +1,7 @@
+use scanner_rust::ScannerError;
 use std::char::ParseCharError;
 use std::num::{ParseFloatError, ParseIntError};
 use std::process;
-use scanner_rust::ScannerError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]

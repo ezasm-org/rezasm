@@ -1,8 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod tauri_writer;
 mod tauri_reader;
+mod tauri_writer;
 
 extern crate lazy_static;
 extern crate tauri;
@@ -11,8 +11,8 @@ use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_word_size, is_completed, load, receive_input, register_writer, register_reader, reset,
-    step, step_back, stop,
+    get_register_values, get_word_size, is_completed, load, receive_input, register_reader,
+    register_writer, reset, step, step_back, stop,
 };
 use tauri::{Manager, Window};
 use tauri_reader::TauriReader;

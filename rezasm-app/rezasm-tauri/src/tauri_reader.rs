@@ -1,29 +1,32 @@
-use std::io::Read;
+use std::{collections::VecDeque, io::Read};
 
 use rezasm_core::{simulation::reader::Reader, util::as_any::AsAny};
 
 #[derive(Debug)]
 pub struct TauriReader {
-    buffer: Vec<char>
+    buffer: VecDeque<char>,
 }
 
 impl TauriReader {
     pub fn new() -> TauriReader {
-        TauriReader { buffer: Vec::new() }
+        TauriReader {
+            buffer: VecDeque::new(),
+        }
     }
 }
 
 impl Read for TauriReader {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let fallback_length = self.buffer.len();
         for i in 0..buf.len() {
-            match self.buffer.first() {
-                None => {return Ok(i);},
+            match self.buffer.front() {
+                None => {
+                    return Ok(i);
+                }
                 Some(c) => buf[i] = c.clone() as u8,
             };
-            self.buffer.remove(0);
+            self.buffer.pop_front();
         }
-        Ok(fallback_length)
+        Ok(buf.len())
     }
 }
 
@@ -31,7 +34,7 @@ impl Reader for TauriReader {
     fn expand_buffer(&mut self, new_input: &str) {
         let other_vec: Vec<char> = new_input.chars().collect();
         for c in other_vec {
-            self.buffer.push(c);
+            self.buffer.push_back(c);
         }
     }
 }

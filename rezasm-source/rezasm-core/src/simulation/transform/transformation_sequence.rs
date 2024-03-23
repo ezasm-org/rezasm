@@ -1,4 +1,7 @@
-use crate::{simulation::simulator::Simulator, util::{error::SimulatorError, raw_data::RawData}};
+use crate::{
+    simulation::simulator::Simulator,
+    util::{error::SimulatorError, raw_data::RawData},
+};
 
 use super::{transformable::Transformable, transformation::Transformation};
 
@@ -27,7 +30,8 @@ impl TransformationSequence {
     pub fn new_nullop(simulator: &Simulator) -> Result<TransformationSequence, SimulatorError> {
         let word_size = simulator.get_word_size();
         let data = RawData::empty_data(word_size);
-        let transformation = Transformable::NullOpTransformable.create_transformation(simulator, data)?;
+        let transformation =
+            Transformable::NullOpTransformable.create_transformation(simulator, data)?;
         Ok(TransformationSequence::new_single(transformation))
     }
 
@@ -55,7 +59,6 @@ impl TransformationSequence {
         }
         false
     }
-
 
     pub fn apply(&self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         for transformation in &self.transformations {

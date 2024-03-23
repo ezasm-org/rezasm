@@ -5,7 +5,6 @@ use std::io;
 
 /// A trait for any readers used with EzASM
 pub trait Reader: io::Read + AsAny + Sync + Send + Debug {
-
     /// Appends a string to the reader's buffer
     ///
     /// # Arguments

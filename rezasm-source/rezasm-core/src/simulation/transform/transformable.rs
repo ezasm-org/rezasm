@@ -47,7 +47,7 @@ impl Transformable {
                 simulator.get_memory_mut().write(address.clone(), &data)
             }
             Transformable::FileReadTransformable(cursor) => todo!(), //must be todo until read instructions are done
-            _ => Ok(())
+            _ => Ok(()),
         }
     }
 
@@ -62,7 +62,7 @@ impl Transformable {
             output,
         ))
     }
-    
+
     pub fn is_nullop(&self) -> bool {
         match self {
             Transformable::NullOpTransformable => true,
