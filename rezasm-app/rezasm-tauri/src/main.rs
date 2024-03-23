@@ -11,8 +11,8 @@ use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_word_size, is_completed, load, receive_input, register_reader,
-    register_writer, reset, step, step_back, stop,
+    get_register_values, get_word_size, initialize_simulator, is_completed, load, receive_input,
+    reset, step, step_back, stop,
 };
 use tauri::{Manager, Window};
 use tauri_reader::TauriReader;
@@ -112,8 +112,7 @@ fn tauri_receive_input(data: &str) {
 
 fn main() {
     register_instructions();
-    register_writer(Box::new(TauriWriter::new()));
-    register_reader(Box::new(TauriReader::new()));
+    initialize_simulator(Some(Box::new(TauriReader::new())), Some(Box::new(TauriWriter::new())));
 
     tauri::Builder::default()
         .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))

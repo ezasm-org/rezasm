@@ -1,10 +1,7 @@
-use std::sync::OnceLock;
-
 use crate::instructions::targets::input_target::InputTarget;
-use crate::simulation::reader::{Reader, ReaderBox};
-use crate::simulation::simulator::Simulator;
+use crate::simulation::reader::ReaderBox;
 use crate::simulation::transform::transformable::Transformable;
-use crate::util::error::{IoError, SimulatorError};
+use crate::util::error::IoError;
 use crate::{
     instruction,
     instructions::{
@@ -20,8 +17,7 @@ use scanner_rust::ScannerAscii;
 
 lazy_static! {
 
-
-    /// Definition of the `readi` intruction, used to read an integer
+    /// Definition of the `readi` instruction, used to read an integer
     pub static ref READI: Instruction =
         instruction!(readi, |simulator: Simulator, output: InputOutputTarget| {
             let mut scanner = ScannerAscii::new(simulator.get_reader_mut());

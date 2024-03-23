@@ -1,5 +1,3 @@
-use std::f64::NAN;
-
 use lazy_static::lazy_static;
 
 use crate::instructions::instruction::instruction;

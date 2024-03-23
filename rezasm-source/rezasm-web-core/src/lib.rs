@@ -7,27 +7,27 @@ use rezasm_core::simulation::writer::WriterBox;
 use std::string::ToString;
 use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-fn internal_simulator() -> &'static RwLock<Simulator> {
+fn internal_simulator(reader: Option<ReaderBox>, writer: Option<WriterBox>) -> &'static RwLock<Simulator> {
     static SIMULATOR: OnceLock<RwLock<Simulator>> = OnceLock::new();
-    SIMULATOR.get_or_init(|| RwLock::new(Simulator::new()))
+    if reader.is_some() && writer.is_some() {
+        SIMULATOR.get_or_init(|| RwLock::new(Simulator::new_custom_reader_writer(reader.unwrap(), writer.unwrap())))
+    } else {
+        SIMULATOR.get_or_init(|| RwLock::new(Simulator::new()))
+    }
+}
+
+pub fn initialize_simulator(reader: Option<ReaderBox>, writer: Option<WriterBox>) {
+    internal_simulator(reader, writer);
 }
 
 type SimulatorRef = RwLockReadGuard<'static, Simulator>;
 pub fn get_simulator() -> SimulatorRef {
-    internal_simulator().read().unwrap()
+    internal_simulator(None, None).read().unwrap()
 }
 
 type SimulatorMutRef = RwLockWriteGuard<'static, Simulator>;
 pub fn get_simulator_mut() -> SimulatorMutRef {
-    internal_simulator().write().unwrap()
-}
-
-pub fn register_writer(writer: WriterBox) {
-    get_simulator_mut().set_writer(writer);
-}
-
-pub fn register_reader(reader: ReaderBox) {
-    get_simulator_mut().set_reader(reader);
+    internal_simulator(None, None).write().unwrap()
 }
 
 pub fn stop() {
@@ -83,11 +83,9 @@ pub fn step() -> Result<(), String> {
 
 pub fn step_back() -> Result<(), String> {
     match get_simulator_mut().undo_last_transformation() {
-        Ok(_) => {}
+        Ok(_) => Ok(()),
         Err(error) => return Err(format!("Program error: {}", error)),
     }
-
-    Ok(())
 }
 
 pub fn is_completed() -> bool {

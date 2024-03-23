@@ -49,7 +49,7 @@ function Console({loaded, registerCallback, exitCode, error,}) {
             setInputText("");
             RUST.RECEIVE_INPUT({data: inputText});
         }
-    }, [inputText, stepBack]);
+    }, [inputText]);
 
     // new logic will be needed if this effect ever is called more than once to prevent multiple
     // listeners from being made. hopefully loaded never remounts.

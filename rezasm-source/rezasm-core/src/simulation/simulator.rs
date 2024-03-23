@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use super::reader::{DummyReader, Reader, ReaderBox};
+use super::reader::{DummyReader, ReaderBox};
 use super::transform::transformable::Transformable;
 use super::transform::transformation_sequence::TransformationSequence;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
@@ -10,7 +10,7 @@ use crate::simulation::memory::Memory;
 use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
-use crate::simulation::writer::{DummyWriter, Writer, WriterBox};
+use crate::simulation::writer::{DummyWriter, WriterBox};
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
@@ -37,29 +37,20 @@ impl Simulator {
         )
     }
 
-    pub fn new_writer(writer: Box<dyn Writer>) -> Simulator {
-        Simulator::new_custom(
-            &DEFAULT_WORD_SIZE,
-            memory::DEFAULT_MEMORY_WORDS,
-            Box::new(DummyReader::new()),
-            writer,
-        )
-    }
-
-    pub fn new_reader(reader: Box<dyn Reader>) -> Simulator {
+    pub fn new_custom_reader_writer(reader: ReaderBox, writer: WriterBox) -> Simulator {
         Simulator::new_custom(
             &DEFAULT_WORD_SIZE,
             memory::DEFAULT_MEMORY_WORDS,
             reader,
-            Box::new(DummyWriter::new()),
+            writer,
         )
     }
 
     pub fn new_custom(
         word_size: &WordSize,
         memory_size: usize,
-        reader: Box<dyn Reader>,
-        writer: Box<dyn Writer>,
+        reader: ReaderBox,
+        writer: WriterBox,
     ) -> Simulator {
         let mut sim = Simulator {
             memory: Memory::new_sized(word_size, memory_size),
@@ -270,13 +261,5 @@ impl Simulator {
             None => Err(SimulatorError::NonExistentLabelError(label.clone())),
             Some((_, line_number)) => Ok(line_number.clone()),
         }
-    }
-
-    pub fn set_writer(&mut self, writer: WriterBox) {
-        self.writer = writer;
-    }
-
-    pub fn set_reader(&mut self, reader: ReaderBox) {
-        self.reader = reader;
     }
 }
