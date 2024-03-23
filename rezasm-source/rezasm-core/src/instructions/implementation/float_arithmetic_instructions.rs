@@ -88,14 +88,7 @@ pub static ref DIVF: Instruction =
         let value1 = input1.get(&simulator)?.float_value();
         let value2 = input2.get(&simulator)?.float_value();
 
-        if value2 == 0f64 {
-            if value1 == 0f64 {
-                let transformation = Transformation::new(
-                    Transformable::InputOutputTransformable(output),
-                    output.get(simulator)?,
-                    RawData::from_float(NAN, simulator.get_word_size()));
-                return Ok(TransformationSequence::new_single(transformation));
-            }
+        if value2 == 0f64 && value1 != 0f64 {
             return Err(SimulatorError::DivideByZeroError);
         }
         let k = value1 / value2 ;
