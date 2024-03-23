@@ -9,8 +9,8 @@ use crate::wasm_writer::WasmWriter;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_word_size, initialize_simulator, is_completed, load, receive_input,
-    reset, step, stop,
+    get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed, load,
+    reset, step, stop
 };
 use wasm_bindgen::prelude::*;
 use rezasm_core::simulation::reader::DummyReader;
@@ -77,7 +77,11 @@ pub fn wasm_get_word_size() -> usize {
 
 #[wasm_bindgen]
 pub fn wasm_receive_input(data: &str) {
-    receive_input(data);
+    let mut simulator = get_simulator_mut();
+    let reader = simulator.get_reader_mut();
+    // TODO make wasm_reader and expand buffer for it, then use it here
+    let _ = reader.as_any_mut().downcast_mut::<DummyReader>().unwrap();
+    let _ = data;
 }
 
 #[wasm_bindgen(start)]

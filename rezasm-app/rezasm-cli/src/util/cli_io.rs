@@ -34,9 +34,6 @@ impl InputSource {
 }
 
 impl Reader for InputSource {
-    fn expand_buffer(&mut self, new_input: &str) {
-        //Does Nothing
-    }
 }
 
 impl io::Read for InputSource {

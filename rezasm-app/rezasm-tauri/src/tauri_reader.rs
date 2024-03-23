@@ -13,6 +13,16 @@ impl TauriReader {
             buffer: VecDeque::new(),
         }
     }
+
+    pub fn expand_buffer(&mut self, new_input: &str) {
+        let other_vec: Vec<char> = new_input.chars().collect();
+        for c in other_vec {
+            self.buffer.push_back(c);
+        }
+    }
+}
+
+impl Reader for TauriReader {
 }
 
 impl Read for TauriReader {
@@ -27,15 +37,6 @@ impl Read for TauriReader {
             self.buffer.pop_front();
         }
         Ok(buf.len())
-    }
-}
-
-impl Reader for TauriReader {
-    fn expand_buffer(&mut self, new_input: &str) {
-        let other_vec: Vec<char> = new_input.chars().collect();
-        for c in other_vec {
-            self.buffer.push_back(c);
-        }
     }
 }
 

@@ -157,8 +157,3 @@ pub fn get_memory_slice(address: usize, length: usize) -> Result<Vec<i64>, Strin
 pub fn get_word_size() -> usize {
     get_simulator().get_word_size().value()
 }
-
-pub fn receive_input(data: &str) {
-    let mut simulator = get_simulator_mut();
-    simulator.get_reader_mut().expand_buffer(data);
-}

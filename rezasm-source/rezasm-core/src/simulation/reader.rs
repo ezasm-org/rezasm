@@ -5,17 +5,6 @@ use std::io;
 
 /// A trait for any readers used with EzASM
 pub trait Reader: io::Read + AsAny + Sync + Send + Debug {
-    /// Appends a string to the reader's buffer
-    ///
-    /// # Arguments
-    ///
-    /// * new_input - input to add to this reader's buffer
-    ///
-    /// # Important
-    ///
-    /// DO NOT CALL THIS FUNCTION IN CORE.
-    /// It depends on the buffer NOT being stdin.
-    fn expand_buffer(&mut self, new_input: &str);
 }
 
 /// Type alias for a `Reader` trait in a `Box`
@@ -35,8 +24,6 @@ impl DummyReader {
 }
 
 impl Reader for DummyReader {
-    /// Dummy function that does nothing
-    fn expand_buffer(&mut self, new_input: &str) {}
 }
 
 impl AsAny for DummyReader {

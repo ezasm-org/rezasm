@@ -11,8 +11,8 @@ use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_word_size, initialize_simulator, is_completed, load, receive_input,
-    reset, step, step_back, stop,
+    get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed, load,
+    reset, step, step_back, stop
 };
 use tauri::{Manager, Window};
 use tauri_reader::TauriReader;
@@ -107,7 +107,10 @@ fn tauri_get_word_size() -> usize {
 
 #[tauri::command]
 fn tauri_receive_input(data: &str) {
-    receive_input(data);
+    let mut simulator = get_simulator_mut();
+    let reader = simulator.get_reader_mut();
+    let downcast = reader.as_any_mut().downcast_mut::<TauriReader>().unwrap();
+    downcast.expand_buffer(data);
 }
 
 fn main() {
