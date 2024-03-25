@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from "react";
 import RegistryView from "./RegistryView.jsx";
 import {loadWasm} from "../rust_functions.js";
+import {Tabs, Tab} from "./Tabs.jsx";
 
 import MemoryView from "./MemoryView.jsx";
 import Console from "./Console.jsx";
@@ -23,7 +24,7 @@ function Code() {
         step,
         stepBack,
         load,
-        reset
+        reset,
     } = useSimulator();
     const [wasmLoaded, setWasmLoaded] = useState(false);
 
@@ -34,20 +35,30 @@ function Code() {
     }, []);
 
     return (
-        <div className="container">
-            <div className="fill">
-                <Controls state={state} setState={setState} start={start} stop={stop} step={step} stepBack={stepBack} reset={reset} load={load} error={error}/>
+        <div>
+            <div className="fill px-4">
+                <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error}/>
                 <div className="mt-2 mb-2 row codearea">
-                    <Editor state={state} setCode={setCode} />
-                    <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
+                    <div className="w-5/6 h-full pe-4">
+                        <Editor state={state} setCode={setCode} />
+                    </div>
+                    <div className="w-1/6">
+                        <RegistryView loaded={wasmLoaded} registerCallback={registerCallback} />
+                    </div>
                 </div>
             </div>
-            <div className="fill">
-                <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
-            </div>
-            <div className="fill">
-                <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} />
-            </div>
+            <Tabs>
+                <Tab label="Console">
+                    <div className="fill" id="tabs_console" data-tab-active>
+                        <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} />
+                    </div>
+                </Tab>
+                <Tab label="Memory Viewer">
+                    <div className="fill" id="tabs_memory">
+                        <MemoryView loaded={wasmLoaded} registerCallback={registerCallback} />
+                    </div>
+                </Tab>
+            </Tabs>
         </div>
     );
 }

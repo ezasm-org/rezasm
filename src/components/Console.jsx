@@ -6,11 +6,11 @@ import { debounce } from "lodash";
 
 const ENTER = 13;
 
-function Console({loaded, registerCallback, exitCode, error,}) {
+function Console({loaded, registerCallback, exitCode, error}) {
+    const history = useRef([]);
     const input = useRef(null);
     const historyScrollbox = useRef(null);
 
-    const history = useRef([]);
     const [inputText, setInputText] = useState("");
 
     // forceUpdate is a hack to allow history to be modified as a ref instantly but still

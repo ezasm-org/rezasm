@@ -20,7 +20,7 @@ function RegistryView({loaded, registerCallback}) {
     let tableData = [];
     for (let i = 0; i < registers.length; ++i) {
         tableData.push(
-            <tr>
+            <tr className="data-table">
                 <td>{registerNames[i]}</td>
                 <td>{Number(registers[i])}</td>
             </tr>
