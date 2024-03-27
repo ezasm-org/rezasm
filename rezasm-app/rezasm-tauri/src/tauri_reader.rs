@@ -19,6 +19,7 @@ impl TauriReader {
         for c in other_vec {
             self.buffer.push_back(c);
         }
+        self.buffer.push_back('\n');
     }
 }
 
