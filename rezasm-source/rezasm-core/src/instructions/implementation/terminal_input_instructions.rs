@@ -2,16 +2,12 @@ use crate::instructions::targets::input_target::InputTarget;
 use crate::simulation::reader::ReaderBox;
 use crate::simulation::transform::transformable::Transformable;
 use crate::util::error::IoError;
-use crate::{
-    instruction,
-    instructions::{
-        instruction::Instruction,
-        instruction_registry::register_instruction,
-        targets::{input_output_target::InputOutputTarget, input_target::Input},
-    },
-    simulation::transform::transformation_sequence::TransformationSequence,
-    util::raw_data::RawData,
-};
+use crate::instruction;
+use crate::instructions::instruction::Instruction;
+use crate::instructions::instruction_registry::register_instruction;
+use crate::instructions::targets::{input_output_target::InputOutputTarget, input_target::Input};
+use crate::simulation::transform::transformation_sequence::TransformationSequence;
+use crate::util::raw_data::RawData;
 use lazy_static::lazy_static;
 use scanner_rust::ScannerAscii;
 
@@ -46,7 +42,8 @@ lazy_static! {
             let word_size = simulator.get_word_size();
 
             let data = RawData::from_float(num, word_size);
-            let transformation = Transformable::InputOutputTransformable(output).create_transformation(simulator, data)?;
+            let transformation = Transformable::InputOutputTransformable(output)
+                .create_transformation(simulator, data)?;
 
             Ok(TransformationSequence::new_single(transformation))
         });
@@ -62,7 +59,8 @@ lazy_static! {
             let word_size = simulator.get_word_size();
 
             let data = RawData::from_int(ch as i64, word_size);
-            let transformation = Transformable::InputOutputTransformable(output).create_transformation(simulator, data)?;
+            let transformation = Transformable::InputOutputTransformable(output)
+                .create_transformation(simulator, data)?;
 
             Ok(TransformationSequence::new_single(transformation))
         });
