@@ -1,4 +1,5 @@
 use crate::instructions::targets::input_target::InputTarget;
+use crate::simulation::simulator::Simulator;
 use crate::simulation::reader::ReaderBox;
 use crate::simulation::transform::transformable::Transformable;
 use crate::util::error::IoError;
@@ -81,7 +82,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes[0..read_count]);
+            let mut words = pad_bytes(&bytes[0..read_count], simulator);
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -102,7 +103,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes());
+            let mut words = pad_bytes(input.as_bytes(), simulator);
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -130,7 +131,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes[0..read_count]);
+            let mut words = pad_bytes(&bytes[0..read_count], simulator);
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -151,7 +152,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes());
+            let mut words = pad_bytes(input.as_bytes(), simulator);
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -164,10 +165,15 @@ lazy_static! {
         });
 }
 
-fn pad_bytes(bytes: &[u8]) -> Vec<u8> {
+fn pad_bytes(bytes: &[u8], simulator: &Simulator) -> Vec<u8> {
+    let pad_buffer = vec![0u8 ; simulator.get_word_size().value()-1];
     bytes
         .iter()
-        .map(|byte| vec![0u8, 0u8, 0u8, *byte])
+        .map(|byte| {
+            let mut new_bytes = pad_buffer.clone();
+            new_bytes.push(*byte);
+            return new_bytes;
+        })
         .flatten()
         .collect()
 }
