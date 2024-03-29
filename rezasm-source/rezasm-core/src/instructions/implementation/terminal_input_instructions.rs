@@ -82,7 +82,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes[0..read_count], simulator);
+            let mut words = pad_bytes(&bytes[0..read_count], simulator.get_word_size().value());
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -103,7 +103,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes(), simulator);
+            let mut words = pad_bytes(input.as_bytes(), simulator.get_word_size().value());
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -131,7 +131,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes[0..read_count], simulator);
+            let mut words = pad_bytes(&bytes[0..read_count], simulator.get_word_size().value());
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -152,7 +152,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes(), simulator);
+            let mut words = pad_bytes(input.as_bytes(), simulator.get_word_size().value());
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -165,8 +165,8 @@ lazy_static! {
         });
 }
 
-fn pad_bytes(bytes: &[u8], simulator: &Simulator) -> Vec<u8> {
-    let pad_buffer = vec![0u8 ; simulator.get_word_size().value()-1];
+fn pad_bytes(bytes: &[u8], size: usize) -> Vec<u8> {
+    let pad_buffer = vec![0u8 ; size-1];
     bytes
         .iter()
         .map(|byte| {
