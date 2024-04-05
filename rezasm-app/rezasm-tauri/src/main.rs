@@ -9,6 +9,8 @@ extern crate tauri;
 
 use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
+use rezasm_core::simulation::reader_cell::ReaderCell;
+use rezasm_core::util::as_any::AsAny;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
     get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed,
@@ -116,7 +118,7 @@ fn tauri_receive_input(data: &str) {
 fn main() {
     register_instructions();
     initialize_simulator(
-        Some(Box::new(TauriReader::new())),
+        Some(ReaderCell::new(TauriReader::new())),
         Some(Box::new(TauriWriter::new())),
     );
 

@@ -4,10 +4,7 @@ use std::fmt::Debug;
 use std::io;
 
 /// A trait for any readers used with EzASM
-pub trait Reader: io::Read + AsAny + Sync + Send + Debug {}
-
-/// Type alias for a `Reader` trait in a `Box`
-pub type ReaderBox = Box<dyn Reader>;
+pub trait Reader: io::Read + io::Write + AsAny + Sync + Send + Debug {}
 
 /// Placeholder reader that the GUI is created with, which should be replaced by said GUI during
 /// its initialization.
@@ -23,6 +20,16 @@ impl DummyReader {
 }
 
 impl Reader for DummyReader {}
+
+impl io::Write for DummyReader {
+    fn write(&mut self, _: &[u8]) -> io::Result<usize> {
+        Ok(0)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
 
 impl AsAny for DummyReader {
     fn as_any(&self) -> &dyn Any {
