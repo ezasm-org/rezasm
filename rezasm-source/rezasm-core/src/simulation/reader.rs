@@ -4,7 +4,7 @@ use std::fmt::Debug;
 use std::io;
 
 /// A trait for any readers used with EzASM
-pub trait Reader: io::Read + AsAny + Sync + Send + Debug {}
+pub trait Reader: io::Read + io::Write + AsAny + Sync + Send + Debug {}
 
 /// Placeholder reader that the GUI is created with, which should be replaced by said GUI during
 /// its initialization.
@@ -34,5 +34,15 @@ impl AsAny for DummyReader {
 impl io::Read for DummyReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         Ok(0usize)
+    }
+}
+
+impl io::Write for DummyReader {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        Ok(0)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
     }
 }

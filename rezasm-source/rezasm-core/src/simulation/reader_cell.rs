@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 use std::sync::Arc;
 
 use scanner_rust::ScannerAscii;
@@ -59,6 +59,16 @@ impl Clone for ReaderCell {
 impl Read for ReaderCell {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
         (*self.0.try_borrow_mut().unwrap()).read(buf)
+    }
+}
+
+impl Write for ReaderCell {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        (*self.0.try_borrow_mut().unwrap()).write(buf)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        (*self.0.try_borrow_mut().unwrap()).flush()
     }
 }
 

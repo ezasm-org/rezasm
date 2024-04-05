@@ -47,6 +47,16 @@ impl io::Read for InputSource {
     }
 }
 
+impl io::Write for InputSource {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        Ok(0)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
 impl AsAny for InputSource {
     fn as_any(&self) -> &dyn Any {
         self
