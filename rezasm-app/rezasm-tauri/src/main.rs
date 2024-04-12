@@ -20,7 +20,7 @@ use tauri::{Manager, Window};
 use tauri_reader::TauriReader;
 
 use crate::tauri_writer::TauriWriter;
-use std::sync::{Arc, RwLock};
+use std::{io::Write, sync::{Arc, RwLock}};
 
 lazy_static! {
     static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
@@ -111,8 +111,8 @@ fn tauri_get_word_size() -> usize {
 fn tauri_receive_input(data: &str) {
     let mut simulator = get_simulator_mut();
     let reader = simulator.get_reader_mut();
-    let downcast = reader.as_any_mut().downcast_mut::<TauriReader>().unwrap();
-    downcast.expand_buffer(data);
+    reader.write(data.as_bytes()).unwrap();
+    reader.write(&[b'\n']).unwrap();
 }
 
 fn main() {
