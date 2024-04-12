@@ -17,6 +17,7 @@ lazy_static! {
     pub static ref READI: Instruction =
         instruction!(readi, |simulator: Simulator, output: InputOutputTarget| {
             let scanner = simulator.get_scanner_mut();
+            scanner.skip_whitespaces()?;
 
             let Some(num) = scanner.next_i64()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
@@ -34,7 +35,7 @@ lazy_static! {
     pub static ref READF: Instruction =
         instruction!(readf, |simulator: Simulator, output: InputOutputTarget| {
             let scanner = simulator.get_scanner_mut();
-
+            scanner.skip_whitespaces()?;
             let Some(num) = scanner.next_f64()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
@@ -51,7 +52,7 @@ lazy_static! {
     pub static ref READC: Instruction =
         instruction!(readc, |simulator: Simulator, output: InputOutputTarget| {
             let scanner = simulator.get_scanner_mut();
-
+            scanner.skip_whitespaces()?;
             let Some(ch) = scanner.next_char()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
@@ -81,7 +82,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes[0..read_count], simulator);
+            let mut words = pad_bytes(&bytes[0..read_count], simulator.get_word_size().value());
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -97,13 +98,13 @@ lazy_static! {
     pub static ref READS_UNSIZED: Instruction =
         instruction!(reads, |simulator: Simulator, input1: InputOutputTarget| {
             let scanner = simulator.get_scanner_mut();
+            scanner.skip_whitespaces()?;
 
             let Some(input) = scanner.next()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes(), simulator);
-            words.append(&mut vec![0u8; 4]);
+            let words = pad_bytes(input.as_bytes(), simulator.get_word_size().value());
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -130,7 +131,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(&bytes[0..read_count], simulator);
+            let mut words = pad_bytes(&bytes[0..read_count], simulator.get_word_size().value());
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -151,7 +152,7 @@ lazy_static! {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes(), simulator);
+            let mut words = pad_bytes(input.as_bytes(), simulator.get_word_size().value());
             words.append(&mut vec![0u8; 4]);
 
             let address = input1.get(simulator)?.int_value() as usize;
@@ -164,8 +165,8 @@ lazy_static! {
         });
 }
 
-fn pad_bytes(bytes: &[u8], simulator: &Simulator) -> Vec<u8> {
-    let pad_buffer = vec![0u8 ; simulator.get_word_size().value()-1];
+fn pad_bytes(bytes: &[u8], word_size: usize) -> Vec<u8> {
+    let pad_buffer = vec![0u8 ; word_size-1];
     bytes
         .iter()
         .map(|byte| {
