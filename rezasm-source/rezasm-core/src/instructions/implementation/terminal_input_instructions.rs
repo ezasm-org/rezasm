@@ -1,6 +1,6 @@
 use crate::instructions::targets::input_target::InputTarget;
+use crate::simulation::reader::Reader;
 use crate::simulation::simulator::Simulator;
-use crate::simulation::reader::ReaderBox;
 use crate::simulation::transform::transformable::Transformable;
 use crate::util::error::IoError;
 use crate::instruction;
@@ -10,14 +10,14 @@ use crate::instructions::targets::{input_output_target::InputOutputTarget, input
 use crate::simulation::transform::transformation_sequence::TransformationSequence;
 use crate::util::raw_data::RawData;
 use lazy_static::lazy_static;
-use scanner_rust::ScannerAscii;
 
 lazy_static! {
 
     /// Definition of the `readi` instruction, used to read an integer
     pub static ref READI: Instruction =
         instruction!(readi, |simulator: Simulator, output: InputOutputTarget| {
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let scanner = simulator.get_scanner_mut();
+            scanner.skip_whitespaces()?;
 
             let Some(num) = scanner.next_i64()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
@@ -34,8 +34,8 @@ lazy_static! {
 
     pub static ref READF: Instruction =
         instruction!(readf, |simulator: Simulator, output: InputOutputTarget| {
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
-
+            let scanner = simulator.get_scanner_mut();
+            scanner.skip_whitespaces()?;
             let Some(num) = scanner.next_f64()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
@@ -51,8 +51,8 @@ lazy_static! {
 
     pub static ref READC: Instruction =
         instruction!(readc, |simulator: Simulator, output: InputOutputTarget| {
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
-
+            let scanner = simulator.get_scanner_mut();
+            scanner.skip_whitespaces()?;
             let Some(ch) = scanner.next_char()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
@@ -97,14 +97,14 @@ lazy_static! {
 
     pub static ref READS_UNSIZED: Instruction =
         instruction!(reads, |simulator: Simulator, input1: InputOutputTarget| {
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let scanner = simulator.get_scanner_mut();
+            scanner.skip_whitespaces()?;
 
             let Some(input) = scanner.next()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
 
-            let mut words = pad_bytes(input.as_bytes(), simulator.get_word_size().value());
-            words.append(&mut vec![0u8; 4]);
+            let words = pad_bytes(input.as_bytes(), simulator.get_word_size().value());
 
             let address = input1.get(simulator)?.int_value() as usize;
             let word_size = simulator.get_word_size().value();
@@ -146,7 +146,7 @@ lazy_static! {
 
     pub static ref READLN_UNSIZED: Instruction =
         instruction!(readln, |simulator: Simulator, input1: InputOutputTarget| {
-            let mut scanner = ScannerAscii::new(simulator.get_reader_mut());
+            let scanner = simulator.get_scanner_mut();
 
             let Some(input) = scanner.next_line()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
@@ -165,8 +165,8 @@ lazy_static! {
         });
 }
 
-fn pad_bytes(bytes: &[u8], size: usize) -> Vec<u8> {
-    let pad_buffer = vec![0u8 ; size-1];
+fn pad_bytes(bytes: &[u8], word_size: usize) -> Vec<u8> {
+    let pad_buffer = vec![0u8 ; word_size-1];
     bytes
         .iter()
         .map(|byte| {
@@ -189,8 +189,8 @@ fn pad_bytes(bytes: &[u8], size: usize) -> Vec<u8> {
 ///
 /// * `()` - if the read works.
 /// * `io::Error` - if the read fails for some reason.
-fn read_to_sized(
-    reader: &mut ReaderBox,
+fn read_to_sized<R: Reader>(
+    reader: &mut R,
     target: &mut [u8],
     terminator: fn(&u8) -> bool,
 ) -> std::io::Result<usize> {

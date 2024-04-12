@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 
-use super::reader::{DummyReader, ReaderBox};
+use scanner_rust::ScannerAscii;
+
+use super::reader::DummyReader;
+use super::reader_cell::{ReaderCell, Scanner};
 use super::transform::transformable::Transformable;
 use super::transform::transformation_sequence::TransformationSequence;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
@@ -21,7 +24,8 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
-    reader: ReaderBox,
+    scanner: Scanner,
+    reader: ReaderCell,
     writer: WriterBox,
     sequence: Vec<TransformationSequence>,
     can_undo: bool,
@@ -32,12 +36,12 @@ impl Simulator {
         Simulator::new_custom(
             &DEFAULT_WORD_SIZE,
             memory::DEFAULT_MEMORY_WORDS,
-            Box::new(DummyReader::new()),
+            ReaderCell::new(DummyReader::new()),
             Box::new(DummyWriter::new()),
         )
     }
 
-    pub fn new_custom_reader_writer(reader: ReaderBox, writer: WriterBox) -> Simulator {
+    pub fn new_custom_reader_writer(reader: ReaderCell, writer: WriterBox) -> Simulator {
         Simulator::new_custom(
             &DEFAULT_WORD_SIZE,
             memory::DEFAULT_MEMORY_WORDS,
@@ -49,7 +53,7 @@ impl Simulator {
     pub fn new_custom(
         word_size: &WordSize,
         memory_size: usize,
-        reader: ReaderBox,
+        reader: ReaderCell,
         writer: WriterBox,
     ) -> Simulator {
         let mut sim = Simulator {
@@ -57,6 +61,7 @@ impl Simulator {
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
+            scanner: ScannerAscii::new(reader.clone()),
             reader,
             writer,
             sequence: Vec::new(),
@@ -117,8 +122,12 @@ impl Simulator {
         &self.program
     }
 
-    pub fn get_reader(&self) -> &ReaderBox {
-        &self.reader
+    pub fn get_scanner_mut(&mut self) -> &mut Scanner {
+        &mut self.scanner
+    }
+
+    pub fn get_reader_cell(&self) -> ReaderCell {
+        self.reader.clone()
     }
 
     pub fn get_writer(&self) -> &WriterBox {
@@ -141,7 +150,7 @@ impl Simulator {
         &mut self.program
     }
 
-    pub fn get_reader_mut(&mut self) -> &mut ReaderBox {
+    pub fn get_reader_mut(&mut self) -> &mut ReaderCell {
         &mut self.reader
     }
 

@@ -9,6 +9,8 @@ extern crate tauri;
 
 use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
+use rezasm_core::simulation::reader_cell::ReaderCell;
+use rezasm_core::util::as_any::AsAny;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
     get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed,
@@ -18,7 +20,7 @@ use tauri::{Manager, Window};
 use tauri_reader::TauriReader;
 
 use crate::tauri_writer::TauriWriter;
-use std::sync::{Arc, RwLock};
+use std::{io::Write, sync::{Arc, RwLock}};
 
 lazy_static! {
     static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
@@ -109,14 +111,14 @@ fn tauri_get_word_size() -> usize {
 fn tauri_receive_input(data: &str) {
     let mut simulator = get_simulator_mut();
     let reader = simulator.get_reader_mut();
-    let downcast = reader.as_any_mut().downcast_mut::<TauriReader>().unwrap();
-    downcast.expand_buffer(data);
+    reader.write(data.as_bytes()).unwrap();
+    reader.write(&[b'\n']).unwrap();
 }
 
 fn main() {
     register_instructions();
     initialize_simulator(
-        Some(Box::new(TauriReader::new())),
+        Some(ReaderCell::new(TauriReader::new())),
         Some(Box::new(TauriWriter::new())),
     );
 

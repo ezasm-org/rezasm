@@ -1,10 +1,11 @@
-use std::{collections::VecDeque, io::Read};
+use std::collections::VecDeque;
+use std::io::{Read, Write};
 
 use rezasm_core::{simulation::reader::Reader, util::as_any::AsAny};
 
 #[derive(Debug)]
 pub struct TauriReader {
-    buffer: VecDeque<char>,
+    buffer: VecDeque<u8>,
 }
 
 impl TauriReader {
@@ -15,11 +16,8 @@ impl TauriReader {
     }
 
     pub fn expand_buffer(&mut self, new_input: &str) {
-        let other_vec: Vec<char> = new_input.chars().collect();
-        for c in other_vec {
-            self.buffer.push_back(c);
-        }
-        self.buffer.push_back('\n');
+        self.write(new_input.as_bytes()).unwrap();
+        self.buffer.push_back(b'\n');
     }
 }
 
@@ -27,18 +25,20 @@ impl Reader for TauriReader {}
 
 impl Read for TauriReader {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        for i in 0..buf.len() {
-            match self.buffer.front() {
-                None => {
-                    return Ok(i);
-                }
-                Some(c) => buf[i] = c.clone() as u8,
-            };
-            self.buffer.pop_front();
-        }
-        Ok(buf.len())
+        self.buffer.read(buf)
     }
 }
+
+impl Write for TauriReader {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        self.buffer.write(buf)
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        self.buffer.flush()
+    }
+}
+
 
 impl AsAny for TauriReader {
     fn as_any(&self) -> &dyn std::any::Any {

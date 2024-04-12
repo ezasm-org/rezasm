@@ -1,5 +1,5 @@
 use rezasm_core::parser::lexer;
-use rezasm_core::simulation::reader::ReaderBox;
+use rezasm_core::simulation::reader_cell::ReaderCell;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
 
@@ -8,7 +8,7 @@ use std::string::ToString;
 use std::sync::{OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 fn internal_simulator(
-    reader: Option<ReaderBox>,
+    reader: Option<ReaderCell>,
     writer: Option<WriterBox>,
 ) -> &'static RwLock<Simulator> {
     static SIMULATOR: OnceLock<RwLock<Simulator>> = OnceLock::new();
@@ -24,7 +24,7 @@ fn internal_simulator(
     }
 }
 
-pub fn initialize_simulator(reader: Option<ReaderBox>, writer: Option<WriterBox>) {
+pub fn initialize_simulator(reader: Option<ReaderCell>, writer: Option<WriterBox>) {
     internal_simulator(reader, writer);
 }
 

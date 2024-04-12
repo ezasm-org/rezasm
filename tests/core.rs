@@ -9,6 +9,7 @@ use rezasm_core::parser::lexer::{
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
 use rezasm_core::simulation::reader::DummyReader;
+use rezasm_core::simulation::reader_cell::ReaderCell;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::registry::{self, get_register_number};
 use rezasm_core::simulation::simulator::Simulator;
@@ -146,7 +147,7 @@ pub fn test_simulator_instruction() {
 pub fn test_print_instructions() {
     register_instructions();
     let writer = Box::new(TestWriter::new());
-    let reader = Box::new(DummyReader::new());
+    let reader = ReaderCell::new(DummyReader::new());
     let mut simulator: Simulator = Simulator::new_custom_reader_writer(reader, writer);
     let program = "
         move $s2 \"Print Instructions Work!\\n\"
