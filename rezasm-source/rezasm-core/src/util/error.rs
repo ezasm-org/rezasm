@@ -1,3 +1,5 @@
+use scanner_rust::ScannerError;
+use std::char::ParseCharError;
 use std::num::{ParseFloatError, ParseIntError};
 use std::process;
 use thiserror::Error;
@@ -69,6 +71,9 @@ pub enum InternalError {
 
     #[error("improper usage of get_input_output_target")]
     GetInputOutputTargetError,
+
+    #[error("null op on transformation sequence")]
+    NullOpError,
 }
 
 #[derive(Error, Debug)]
@@ -132,6 +137,9 @@ pub enum SimulatorError {
 
     #[error("attempted to convert NaN value to an integer")]
     NaNConversionError,
+
+    #[error("could not read type {0}")]
+    ReadError(String),
 }
 
 #[derive(Error, Debug)]
@@ -157,6 +165,9 @@ pub enum IoError {
     #[error("some bytes are not UTF-8 in the input file")]
     UnsupportedEncodingError,
 
+    #[error("read operation failed")]
+    ReadError,
+
     #[error("write operation failed")]
     WriteError,
 
@@ -173,6 +184,18 @@ impl From<ParseFloatError> for ParserError {
 impl From<ParseIntError> for ParserError {
     fn from(error: ParseIntError) -> Self {
         ParserError::NumericalImmediateError(error.to_string())
+    }
+}
+
+impl From<ParseCharError> for ParserError {
+    fn from(error: ParseCharError) -> Self {
+        ParserError::StringImmediateError(error.to_string())
+    }
+}
+
+impl From<ScannerError> for SimulatorError {
+    fn from(err: ScannerError) -> Self {
+        SimulatorError::IoError(IoError::ScannerError(err))
     }
 }
 

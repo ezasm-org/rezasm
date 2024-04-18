@@ -1,12 +1,19 @@
 use std::fmt::Debug;
 
+use scanner_rust::ScannerAscii;
+
+use super::reader::DummyReader;
+use super::reader_cell::{ReaderCell, Scanner};
+use super::transform::transformable::Transformable;
+use super::transform::transformation_sequence::TransformationSequence;
+use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::parser::line::Line;
 use crate::simulation::memory;
 use crate::simulation::memory::Memory;
 use crate::simulation::program::Program;
 use crate::simulation::registry;
 use crate::simulation::registry::Registry;
-use crate::simulation::writer::{DummyWriter, Writer, WriterBox};
+use crate::simulation::writer::{DummyWriter, WriterBox};
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 use crate::util::word_size::{WordSize, DEFAULT_WORD_SIZE};
@@ -17,7 +24,11 @@ pub struct Simulator {
     registry: Registry,
     program: Program,
     word_size: WordSize,
+    scanner: Scanner,
+    reader: ReaderCell,
     writer: WriterBox,
+    sequence: Vec<TransformationSequence>,
+    can_undo: bool,
 }
 
 impl Simulator {
@@ -25,25 +36,36 @@ impl Simulator {
         Simulator::new_custom(
             &DEFAULT_WORD_SIZE,
             memory::DEFAULT_MEMORY_WORDS,
+            ReaderCell::new(DummyReader::new()),
             Box::new(DummyWriter::new()),
         )
     }
 
-    pub fn new_writer(writer: Box<dyn Writer>) -> Simulator {
-        Simulator::new_custom(&DEFAULT_WORD_SIZE, memory::DEFAULT_MEMORY_WORDS, writer)
+    pub fn new_custom_reader_writer(reader: ReaderCell, writer: WriterBox) -> Simulator {
+        Simulator::new_custom(
+            &DEFAULT_WORD_SIZE,
+            memory::DEFAULT_MEMORY_WORDS,
+            reader,
+            writer,
+        )
     }
 
     pub fn new_custom(
         word_size: &WordSize,
         memory_size: usize,
-        writer: Box<dyn Writer>,
+        reader: ReaderCell,
+        writer: WriterBox,
     ) -> Simulator {
         let mut sim = Simulator {
             memory: Memory::new_sized(word_size, memory_size),
             registry: Registry::new(word_size),
             program: Program::new(),
             word_size: word_size.clone(),
+            scanner: ScannerAscii::new(reader.clone()),
+            reader,
             writer,
+            sequence: Vec::new(),
+            can_undo: true,
         };
         sim.initialize();
         sim
@@ -62,6 +84,7 @@ impl Simulator {
     pub fn reset_data(&mut self) {
         self.memory.reset();
         self.registry.reset();
+        self.sequence.clear();
     }
 
     pub fn reset(&mut self) {
@@ -99,6 +122,14 @@ impl Simulator {
         &self.program
     }
 
+    pub fn get_scanner_mut(&mut self) -> &mut Scanner {
+        &mut self.scanner
+    }
+
+    pub fn get_reader_cell(&self) -> ReaderCell {
+        self.reader.clone()
+    }
+
     pub fn get_writer(&self) -> &WriterBox {
         &self.writer
     }
@@ -119,12 +150,12 @@ impl Simulator {
         &mut self.program
     }
 
-    pub fn get_writer_mut(&mut self) -> &mut WriterBox {
-        &mut self.writer
+    pub fn get_reader_mut(&mut self) -> &mut ReaderCell {
+        &mut self.reader
     }
 
-    pub fn set_writer(&mut self, writer: WriterBox) {
-        self.writer = writer;
+    pub fn get_writer_mut(&mut self) -> &mut WriterBox {
+        &mut self.writer
     }
 
     pub fn end_pc(&self) -> usize {
@@ -172,18 +203,17 @@ impl Simulator {
     fn run_line(&mut self, line: &Line) -> Result<(), SimulatorError> {
         let result = match line {
             Line::Instruction(instruction, args) => {
-                instruction.get_function()(self, instruction.get_types(), &args)
+                instruction.get_function()(self, instruction.get_types(), &args)?
             }
             Line::Label(label) => {
                 // no-op
-                Ok(())
+                TransformationSequence::new_empty()
             }
         };
-        let new_pc = self.registry.get_pc().get_data().int_value() + 1;
-        self.registry
-            .get_pc_mut()
-            .set_data(RawData::from_int(new_pc, &self.word_size));
-        result
+        if result.contains_nullop() {
+            return Ok(());
+        }
+        self.apply_transformation(result)
     }
 
     pub fn run_line_from_pc(&mut self) -> Result<(), SimulatorError> {
@@ -201,8 +231,38 @@ impl Simulator {
         self.run_line(&line.clone())
     }
 
-    pub fn apply_transformation(&self) -> Result<(), SimulatorError> {
-        todo!()
+    pub fn apply_transformation(
+        &mut self,
+        mut transform: TransformationSequence,
+    ) -> Result<(), SimulatorError> {
+        transform.apply(self)?;
+        let pc_transformable = Transformable::InputOutputTransformable(
+            InputOutputTarget::RegisterInputOutput(registry::PC_NUMBER),
+        );
+        let pc_transformation = pc_transformable.create_transformation(
+            self,
+            RawData::from_int(pc_transformable.get(self)?.int_value() + 1, &self.word_size),
+        )?;
+        pc_transformation.apply(self)?;
+
+        if self.can_undo {
+            transform.concatenate(TransformationSequence::new_single(pc_transformation));
+            self.sequence.push(transform.clone());
+            if transform.contains_nullop() {
+                return Ok(());
+            }
+        }
+        Ok(())
+    }
+
+    pub fn undo_last_transformation(&mut self) -> Result<bool, SimulatorError> {
+        if !self.can_undo || self.sequence.is_empty() {
+            Ok(false)
+        } else {
+            // unwrap is safe because emptiness is checked
+            self.sequence.pop().unwrap().invert().apply(self)?;
+            Ok(true)
+        }
     }
 
     pub fn get_label_line_number(&self, label: &String) -> Result<i64, SimulatorError> {

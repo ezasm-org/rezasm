@@ -1,6 +1,7 @@
 use crate::util::application::Application;
 use crate::util::cli::Arguments;
 use crate::util::cli_io::{InputSource, OutputSink};
+use rezasm_core::simulation::reader_cell::ReaderCell;
 use rezasm_core::simulation::simulator::Simulator;
 use rezasm_core::util::error::{EzasmError, IoError, SimulatorError};
 use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
@@ -60,8 +61,12 @@ pub fn handle_arguments(arguments: Arguments) -> Result<Application, EzasmError>
         None => OutputSink::new_console(),
     };
 
-    let simulator: Simulator =
-        Simulator::new_custom(&word_size, memory_size, Box::new(output_file));
+    let simulator: Simulator = Simulator::new_custom(
+        &word_size,
+        memory_size,
+        ReaderCell::new(input_file),
+        Box::new(output_file),
+    );
 
-    Ok(Application::new(simulator, code_file, input_file))
+    Ok(Application::new(simulator, code_file))
 }

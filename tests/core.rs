@@ -1,6 +1,7 @@
 mod common;
 
 use crate::common::writer::TestWriter;
+use common::reader::TestReader;
 use rezasm_core::instructions::implementation::arithmetic_instructions::ADD;
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_core::parser::lexer::{
@@ -8,10 +9,12 @@ use rezasm_core::parser::lexer::{
 };
 use rezasm_core::parser::line::Line;
 use rezasm_core::simulation::memory::Memory;
-use rezasm_core::simulation::register::Register;
+use rezasm_core::simulation::reader::DummyReader;
+use rezasm_core::simulation::reader_cell::ReaderCell;
 use rezasm_core::simulation::registry::Registry;
 use rezasm_core::simulation::registry::{self, get_register_number};
 use rezasm_core::simulation::simulator::Simulator;
+use rezasm_core::simulation::writer::DummyWriter;
 use rezasm_core::util::error::ParserError;
 use rezasm_core::util::io::RezasmFileReader;
 use rezasm_core::util::raw_data::RawData;
@@ -102,7 +105,8 @@ pub fn test_macro() {
     let foo = &ADD;
 
     match foo.call_function(&mut simulator, &args) {
-        Ok(_) => {
+        Ok(seq) => {
+            seq.apply(&mut simulator).unwrap();
             assert_eq!(
                 simulator
                     .get_registers()
@@ -145,7 +149,8 @@ pub fn test_simulator_instruction() {
 pub fn test_print_instructions() {
     register_instructions();
     let writer = Box::new(TestWriter::new());
-    let mut simulator: Simulator = Simulator::new_writer(writer);
+    let reader = ReaderCell::new(DummyReader::new());
+    let mut simulator: Simulator = Simulator::new_custom_reader_writer(reader, writer);
     let program = "
         move $s2 \"Print Instructions Work!\\n\"
         add $s1 '\\n' 0
@@ -169,6 +174,45 @@ pub fn test_print_instructions() {
         .unwrap()
         .get_data();
     assert_eq!(output.as_str(), "3\n1.5\nPrint Instructions Work!\n");
+}
+
+#[test]
+pub fn test_read_instructions() {
+    // Test assumes all other instructions work properly
+    register_instructions();
+    let buffer = "10\n10.5\na\nHello"; //doesn't cover everything, should be close enough
+    let program = "
+        readi $t0
+        readf $t1
+        alloc $s0 $t0
+        readc $t2
+        reads $s0
+        printi $t0
+        printc '\\n'
+        printf $t1
+        printc '\\n'
+        printc $t2
+        printc '\\n'
+        prints $s0"
+        .to_string();
+
+    let mut reader = ReaderCell::new(TestReader::new());
+    let _ = reader.write(buffer.as_bytes()).unwrap();
+    let writer = Box::new(TestWriter::new());
+    let mut simulator: Simulator = Simulator::new_custom_reader_writer(reader, writer);
+    let lines = parse_lines(&program, simulator.get_word_size()).unwrap();
+    simulator.add_lines(lines, "".to_string()).unwrap();
+    while !simulator.is_done() {
+        simulator.run_line_from_pc().unwrap();
+    }
+    let writer = simulator.get_writer();
+    let output = writer
+        .deref()
+        .as_any()
+        .downcast_ref::<TestWriter>()
+        .unwrap()
+        .get_data();
+    assert_eq!(output.as_str(), "10\n10.5\na\nHello");
 }
 
 #[test]

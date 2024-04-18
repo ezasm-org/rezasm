@@ -7,7 +7,9 @@ use crate::instructions::instruction_registry::register_instruction;
 use crate::instructions::targets::input_output_target::InputOutputTarget;
 use crate::instructions::targets::input_target::Input;
 use crate::instructions::targets::input_target::InputTarget;
-use crate::instructions::targets::output_target::Output;
+use crate::simulation::transform::transformable::Transformable;
+use crate::simulation::transform::transformation::Transformation;
+use crate::simulation::transform::transformation_sequence::TransformationSequence;
 use crate::util::raw_data::RawData;
 
 lazy_static! {
@@ -18,11 +20,16 @@ lazy_static! {
                            input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
-            if value1 == value2 {
-                return output.set(simulator, RawData::from_int(1, simulator.get_word_size()));
-            } else {
-                return output.set(simulator, RawData::from_int(0, simulator.get_word_size()));
-            }
+            let k = match value1 == value2 {
+                true => 1,
+                false => 0,
+            };
+            let transformation = Transformation::new(
+                Transformable::InputOutputTransformable(output),
+                output.get(simulator)?,
+                RawData::from_int(k, simulator.get_word_size()),
+            );
+            return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SNE: Instruction =
         instruction!(sne, |simulator: Simulator,
@@ -31,11 +38,16 @@ lazy_static! {
                            input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
-            if value1 != value2 {
-                return output.set(simulator, RawData::from_int(1, simulator.get_word_size()));
-            } else {
-                return output.set(simulator, RawData::from_int(0, simulator.get_word_size()));
-            }
+            let k = match value1 != value2 {
+                true => 1,
+                false => 0,
+            };
+            let transformation = Transformation::new(
+                Transformable::InputOutputTransformable(output),
+                output.get(simulator)?,
+                RawData::from_int(k, simulator.get_word_size()),
+            );
+            return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SLT: Instruction =
         instruction!(slt, |simulator: Simulator,
@@ -44,11 +56,16 @@ lazy_static! {
                            input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
-            if value1 < value2 {
-                return output.set(simulator, RawData::from_int(1, simulator.get_word_size()));
-            } else {
-                return output.set(simulator, RawData::from_int(0, simulator.get_word_size()));
-            }
+            let k = match value1 < value2 {
+                true => 1,
+                false => 0,
+            };
+            let transformation = Transformation::new(
+                Transformable::InputOutputTransformable(output),
+                output.get(simulator)?,
+                RawData::from_int(k, simulator.get_word_size()),
+            );
+            return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SLE: Instruction =
         instruction!(sle, |simulator: Simulator,
@@ -57,11 +74,16 @@ lazy_static! {
                            input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
-            if value1 <= value2 {
-                return output.set(simulator, RawData::from_int(1, simulator.get_word_size()));
-            } else {
-                return output.set(simulator, RawData::from_int(0, simulator.get_word_size()));
-            }
+            let k = match value1 <= value2 {
+                true => 1,
+                false => 0,
+            };
+            let transformation = Transformation::new(
+                Transformable::InputOutputTransformable(output),
+                output.get(simulator)?,
+                RawData::from_int(k, simulator.get_word_size()),
+            );
+            return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SGT: Instruction =
         instruction!(sgt, |simulator: Simulator,
@@ -70,11 +92,16 @@ lazy_static! {
                            input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
-            if value1 > value2 {
-                return output.set(simulator, RawData::from_int(1, simulator.get_word_size()));
-            } else {
-                return output.set(simulator, RawData::from_int(0, simulator.get_word_size()));
-            }
+            let k = match value1 > value2 {
+                true => 1,
+                false => 0,
+            };
+            let transformation = Transformation::new(
+                Transformable::InputOutputTransformable(output),
+                output.get(simulator)?,
+                RawData::from_int(k, simulator.get_word_size()),
+            );
+            return Ok(TransformationSequence::new_single(transformation));
         });
     pub static ref SGE: Instruction =
         instruction!(sge, |simulator: Simulator,
@@ -83,11 +110,16 @@ lazy_static! {
                            input2: InputTarget| {
             let value1 = input1.get(&simulator)?.int_value();
             let value2 = input2.get(&simulator)?.int_value();
-            if value1 >= value2 {
-                return output.set(simulator, RawData::from_int(1, simulator.get_word_size()));
-            } else {
-                return output.set(simulator, RawData::from_int(0, simulator.get_word_size()));
-            }
+            let k = match value1 >= value2 {
+                true => 1,
+                false => 0,
+            };
+            let transformation = Transformation::new(
+                Transformable::InputOutputTransformable(output),
+                output.get(simulator)?,
+                RawData::from_int(k, simulator.get_word_size()),
+            );
+            return Ok(TransformationSequence::new_single(transformation));
         });
 }
 

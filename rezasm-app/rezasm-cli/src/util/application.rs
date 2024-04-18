@@ -1,4 +1,3 @@
-use crate::util::cli_io::InputSource;
 use rezasm_core::parser::lexer;
 use rezasm_core::simulation::registry;
 use rezasm_core::simulation::simulator::Simulator;
@@ -8,19 +7,13 @@ use rezasm_core::util::io::RezasmFileReader;
 pub struct Application {
     simulator: Simulator,
     code_file: RezasmFileReader,
-    input_file: InputSource,
 }
 
 impl Application {
-    pub fn new(
-        simulator: Simulator,
-        code_file: RezasmFileReader,
-        input_file: InputSource,
-    ) -> Application {
+    pub fn new(simulator: Simulator, code_file: RezasmFileReader) -> Application {
         Application {
             simulator,
             code_file,
-            input_file,
         }
     }
 
@@ -40,7 +33,7 @@ impl Application {
         }
 
         while !self.simulator.is_done() {
-            self.simulator.run_line_from_pc()?
+            self.simulator.run_line_from_pc()?;
         }
 
         let r = self

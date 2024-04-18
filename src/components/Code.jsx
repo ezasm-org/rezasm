@@ -22,6 +22,7 @@ function Code() {
         start,
         stop,
         step,
+        stepBack,
         load,
         reset,
     } = useSimulator();
