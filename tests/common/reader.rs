@@ -1,5 +1,5 @@
-use std::io::{Read, Write};
 use std::collections::VecDeque;
+use std::io::{Read, Write};
 
 use rezasm_core::simulation::reader::Reader;
 use rezasm_core::util::as_any::AsAny;
@@ -12,7 +12,7 @@ pub struct TestReader {
 impl TestReader {
     pub fn new() -> TestReader {
         TestReader {
-            buffer: VecDeque::new()
+            buffer: VecDeque::new(),
         }
     }
 }

@@ -1,13 +1,12 @@
-use crate::instructions::targets::input_target::InputTarget;
-use crate::simulation::reader::Reader;
-use crate::simulation::simulator::Simulator;
-use crate::simulation::transform::transformable::Transformable;
-use crate::util::error::IoError;
 use crate::instruction;
 use crate::instructions::instruction::Instruction;
 use crate::instructions::instruction_registry::register_instruction;
+use crate::instructions::targets::input_target::InputTarget;
 use crate::instructions::targets::{input_output_target::InputOutputTarget, input_target::Input};
+use crate::simulation::reader::Reader;
+use crate::simulation::transform::transformable::Transformable;
 use crate::simulation::transform::transformation_sequence::TransformationSequence;
+use crate::util::error::IoError;
 use crate::util::raw_data::RawData;
 use lazy_static::lazy_static;
 
@@ -36,6 +35,7 @@ lazy_static! {
         instruction!(readf, |simulator: Simulator, output: InputOutputTarget| {
             let scanner = simulator.get_scanner_mut();
             scanner.skip_whitespaces()?;
+
             let Some(num) = scanner.next_f64()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
@@ -53,6 +53,7 @@ lazy_static! {
         instruction!(readc, |simulator: Simulator, output: InputOutputTarget| {
             let scanner = simulator.get_scanner_mut();
             scanner.skip_whitespaces()?;
+
             let Some(ch) = scanner.next_char()? else {
                 return Ok(TransformationSequence::new_nullop(simulator)?);
             };
@@ -166,7 +167,7 @@ lazy_static! {
 }
 
 fn pad_bytes(bytes: &[u8], word_size: usize) -> Vec<u8> {
-    let pad_buffer = vec![0u8 ; word_size-1];
+    let pad_buffer = vec![0u8; word_size - 1];
     bytes
         .iter()
         .map(|byte| {

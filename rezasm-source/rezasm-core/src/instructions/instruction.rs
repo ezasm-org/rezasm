@@ -71,6 +71,7 @@ macro_rules! instruction {
                 };
                 _counter = _counter + 1;
             )*
+            #[allow(unused_braces)]
             $func
         }
         let mut instruction_name = std::stringify!($name);

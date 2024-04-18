@@ -34,7 +34,6 @@ impl Write for TauriReader {
     }
 }
 
-
 impl AsAny for TauriReader {
     fn as_any(&self) -> &dyn std::any::Any {
         self

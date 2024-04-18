@@ -1,6 +1,6 @@
 use std::cell::RefCell;
 use std::io::{self, Read, Write};
-use std::sync::Arc;
+use std::rc::Rc;
 
 use scanner_rust::ScannerAscii;
 
@@ -31,7 +31,7 @@ pub type Scanner = ScannerAscii<ReaderCell>;
 /// * When a mutable reference to the interior `Reader` already exists, yet another one is
 ///   requested, the program must panic in order to preserve Rust's memory safety guarantees.
 #[derive(Debug)]
-pub struct ReaderCell(Arc<RefCell<dyn Reader>>);
+pub struct ReaderCell(Rc<RefCell<dyn Reader>>);
 
 impl ReaderCell {
     /// Creates a new reader cell from a reader.
@@ -42,7 +42,7 @@ impl ReaderCell {
     /// let reader_cell = ReaderCell::new(std::io::stdin());
     /// ```
     pub fn new<R: Reader + 'static>(reader: R) -> Self {
-        Self(Arc::new(RefCell::new(reader)))
+        Self(Rc::new(RefCell::new(reader)))
     }
 }
 
@@ -58,17 +58,17 @@ impl Clone for ReaderCell {
 
 impl Read for ReaderCell {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        (*self.0.try_borrow_mut().unwrap()).read(buf)
+        (*self.0.borrow_mut()).read(buf)
     }
 }
 
 impl Write for ReaderCell {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        (*self.0.try_borrow_mut().unwrap()).write(buf)
+        (*self.0.borrow_mut()).write(buf)
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        (*self.0.try_borrow_mut().unwrap()).flush()
+        (*self.0.borrow_mut()).flush()
     }
 }
 

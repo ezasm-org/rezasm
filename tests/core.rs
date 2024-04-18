@@ -177,7 +177,8 @@ pub fn test_print_instructions() {
 }
 
 #[test]
-pub fn test_read_instructions() { // Test assumes all other instructions work properly
+pub fn test_read_instructions() {
+    // Test assumes all other instructions work properly
     register_instructions();
     let buffer = "10\n10.5\na\nHello"; //doesn't cover everything, should be close enough
     let program = "
@@ -192,7 +193,8 @@ pub fn test_read_instructions() { // Test assumes all other instructions work pr
         printc '\\n'
         printc $t2
         printc '\\n'
-        prints $s0".to_string();
+        prints $s0"
+        .to_string();
 
     let mut reader = ReaderCell::new(TestReader::new());
     let _ = reader.write(buffer.as_bytes()).unwrap();

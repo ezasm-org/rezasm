@@ -7,9 +7,9 @@ extern crate wasm_bindgen;
 
 use crate::wasm_writer::WasmWriter;
 use rezasm_core::instructions::implementation::register_instructions;
-use rezasm_core::util::as_any::AsAny;
 use rezasm_core::simulation::reader::DummyReader;
 use rezasm_core::simulation::reader_cell::ReaderCell;
+use rezasm_core::util::as_any::AsAny;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
     get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed,
