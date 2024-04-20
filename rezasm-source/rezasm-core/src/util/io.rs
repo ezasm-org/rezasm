@@ -1,11 +1,8 @@
 use super::error::IoError;
-use std::io::{BufRead, Read};
-use std::{
-    fs,
-    io::Write,
-    ops::{Deref, DerefMut},
-    path::{Path, PathBuf},
-};
+use std::io::{BufRead, Read, Write};
+use std::fs;
+use std::ops::{Deref, DerefMut};
+use std:: path::{Path, PathBuf};
 
 /// Rezasm file representation (reader).
 #[derive(Debug)]

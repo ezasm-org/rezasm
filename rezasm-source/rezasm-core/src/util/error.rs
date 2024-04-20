@@ -1,3 +1,12 @@
+//! Contains the monolith error handling for the Rezasm project.
+//!
+//! This module contains the error handling for the Rezasm project. It includes the `EzasmError`
+//! enum, which represents all non-panicking errors that can occur in Rezasm's business layer. 
+//! This includes errors from the scanner, parser, I/O, and "internal" errors. 
+//! 
+//! Generally, these errors are caused by the user's input assembly code. They are not fatal, but
+//! should be displayed to the user to allow them to correct their input or to report a bug.
+
 use std::num::{ParseFloatError, ParseIntError};
 use std::process;
 use thiserror::Error;
