@@ -37,7 +37,7 @@ function Code() {
     return (
         <div>
             <div className="fill px-4">
-                <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error}/>
+                <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error} stepBack={stepBack}/>
                 <div className="mt-2 mb-2 row codearea">
                     <div className="w-5/6 h-full pe-4">
                         <Editor state={state} setCode={setCode} />
