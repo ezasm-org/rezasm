@@ -1,4 +1,3 @@
-import React from "react";
 import {HashRouter, Route, Routes} from "react-router-dom";
 import Code from "./components/Code.jsx";
 import Home from "./components/Home.jsx";
