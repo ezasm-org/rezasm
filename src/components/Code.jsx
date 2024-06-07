@@ -7,7 +7,7 @@ import MemoryView from "./MemoryView.jsx";
 import Console from "./Console.jsx";
 import Controls from "./Controls.jsx";
 import Editor from "./Editor.jsx";
-import {useSimulator} from "./simulator.js";
+import {useSimulator} from "./simulator.ts";
 
 function Code() {
 

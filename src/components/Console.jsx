@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useReducer, useRef, useState} from "react";
 import {listen} from "@tauri-apps/api/event";
-import {CALLBACKS_TRIGGERS, CALLBACK_TYPES, STATE} from "./simulator.js";
+import {CALLBACKS_TRIGGERS, CALLBACK_TYPES, STATE} from "./simulator.ts";
 import {RUST} from "../rust_functions.js";
 import { debounce } from "lodash";
 

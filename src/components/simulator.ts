@@ -1,28 +1,37 @@
 import {useCallback, useReducer, useRef, useState} from "react";
 import {RUST} from "../rust_functions.js";
 
-const STATE = {
-    IDLE: 1,
-    LOADING: 2,
-    LOADED: 3,
-    RUNNING: 4,
-    PAUSED: 5,
-    STOPPED: 6,
-};
+enum STATE {
+    IDLE = 1,
+    LOADING = 2,
+    LOADED = 3,
+    RUNNING = 4,
+    PAUSED = 5,
+    STOPPED = 6,
+}
 
 const CALLBACKS_TRIGGERS = {
     RESET: "RESET",
     STEP: "STEP"
-};
+} as const;
+
+type ValidCallbackTriggers = keyof typeof CALLBACKS_TRIGGERS;
 
 const CALLBACK_TYPES = {
     CONSOLE: "CONSOLE",
     MEMORY: "MEMORY",
     REGISTRY: "REGISTRY",
-};
+} as const;
 
-let initialCallbacks = {};
-Object.values(CALLBACKS_TRIGGERS).map(x => initialCallbacks[x] = {});
+type ValidCallbackTypes = keyof typeof CALLBACK_TYPES;
+
+
+type CallbackTriggerObject = Partial<Record<ValidCallbackTypes, () => unknown>>;
+type CallbackObject = Record<ValidCallbackTriggers, CallbackTriggerObject>;
+const initialCallbacks: CallbackObject = Object.values(CALLBACKS_TRIGGERS).reduce((callbacks,  x) => {
+    callbacks[x] = {};
+    return callbacks;
+}, {} as Partial<CallbackObject>) as CallbackObject;
 
 export const useSimulator = () => {
     const state = useRef(STATE.IDLE);
@@ -30,42 +39,42 @@ export const useSimulator = () => {
     const [exitCode, setExitCode] = useState("");
     const [code, setCode] = useState("");
 
-    const timerId = useRef(null);
+    const timerId = useRef<number|null>(null);
     const [instructionDelay, setInstructionDelay] = useState(5);
     const callbacks = useRef(initialCallbacks);
 
     //Still kind of a hack
-    const [, forceUpdate] = useReducer(() => Date.now());
+    const [, forceUpdate] = useReducer(() => Date.now(), 0);
 
-    const setState = (newState) => {
+    const setState = useCallback((newState: STATE) => {
         state.current = newState;
         forceUpdate();
-    };
+    }, []);
 
-    const setError = (newError) => {
+    const setError = useCallback((newError: string) => {
         error.current = newError;
         forceUpdate();
-    };
+    }, []);
 
-    const registerCallback = (trigger, type, callback) => {
+    const registerCallback = (trigger: ValidCallbackTriggers, type: ValidCallbackTypes, callback: () => unknown) => {
         callbacks.current[trigger][type] = callback;
     };
 
-    const callStepCallbacks = () => {
+    const callStepCallbacks = useCallback(() => {
         Object.values(callbacks.current[CALLBACKS_TRIGGERS.STEP]).map(callback => callback());
-    };
+    }, [callbacks]);
 
-    const callResetCallbacks = () => {
+    const callResetCallbacks = useCallback(() => {
         Object.values(callbacks.current[CALLBACKS_TRIGGERS.RESET]).map(callback => callback());
-    };
+    }, [callbacks]);
 
-    const haltExecution = (newState) => {
+    const haltExecution = useCallback((newState: STATE) => {
         setState(newState ?? STATE.STOPPED);
         if (timerId.current !== null) {
             clearTimeout(timerId.current);
             timerId.current = null;
         }
-    };
+    }, [timerId]);
 
     const isError = () => {
         return error.current !== "";
@@ -138,20 +147,20 @@ export const useSimulator = () => {
     }, [checkProgramCompletion, handleStepCall, load, reset, state]);
 
     const stepBack = useCallback(async () => {
-        if (state.current > STATE.RUNNING || state.current == STATE.AWAITING) {
+        if (state.current > STATE.RUNNING) {
             console.log(state.current);
             RUST.STEP_BACK({})
-            .catch((error) => {
-                setError(error);
-                setState(STATE.STOPPED)
-            })
-            .finally(() => {
-                callStepCallbacks();
-            })
+                .catch((error) => {
+                    setError(error);
+                    setState(STATE.STOPPED);
+                })
+                .finally(() => {
+                    callStepCallbacks();
+                });
 
         }
     }
-    , [setError, setState, callStepCallbacks])
+    , [setError, setState, callStepCallbacks]);
 
     const recursiveStep = useCallback(async () => {
         if (state.current === STATE.STOPPED) {
@@ -160,6 +169,8 @@ export const useSimulator = () => {
         checkProgramCompletion().then(async completed => {
             if (!completed && state.current === STATE.RUNNING) {
                 handleStepCall().then(() => {
+                    // @ts-expect-error -- It assumes that setTimeout returns a NodeJS.Timeout object,
+                    // which does not exist in the browser
                     timerId.current = setTimeout(recursiveStep, instructionDelay);
                 }).catch((e) => {
                     timerId.current = null;
