@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import RegistryView from "./RegistryView.jsx";
-import {loadWasm} from "../rust_functions.js";
+import {loadWasm} from "../rust_functions.ts";
 import {Tabs, Tab} from "./Tabs.jsx";
 
 import MemoryView from "./MemoryView.jsx";

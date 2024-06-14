@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {RUST} from "../rust_functions.js";
+import {RUST} from "../rust_functions.ts";
 import {CALLBACK_TYPES, CALLBACKS_TRIGGERS} from "./simulator.ts";
 
 function RegistryView({loaded, registerCallback}) {
