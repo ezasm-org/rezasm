@@ -1,6 +1,6 @@
 import React from "react";
 import {useNavigate} from "react-router-dom";
-import {CODE_PATH} from "../App.jsx";
+import {CODE_PATH} from "../App.tsx";
 
 function Home() {
 

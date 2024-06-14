@@ -1,13 +1,13 @@
 import React, {useEffect, useState} from "react";
 import RegistryView from "./RegistryView.jsx";
-import {loadWasm} from "../rust_functions.js";
+import {loadWasm} from "../rust_functions.ts";
 import {Tabs, Tab} from "./Tabs.jsx";
 
 import MemoryView from "./MemoryView.jsx";
 import Console from "./Console.jsx";
 import Controls from "./Controls.jsx";
 import Editor from "./Editor.jsx";
-import {useSimulator} from "./simulator.js";
+import {useSimulator} from "./simulator.ts";
 
 function Code() {
 

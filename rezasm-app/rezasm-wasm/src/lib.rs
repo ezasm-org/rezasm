@@ -13,7 +13,7 @@ use rezasm_core::util::as_any::AsAny;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
     get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed,
-    load, reset, step, stop,
+    load, reset, step, step_back, stop,
 };
 use wasm_bindgen::prelude::*;
 
@@ -35,6 +35,11 @@ pub fn wasm_load(lines: &str) -> Result<(), String> {
 #[wasm_bindgen]
 pub fn wasm_step() -> Result<(), String> {
     step()
+}
+
+#[wasm_bindgen]
+pub fn wasm_step_back() -> Result<(), String> {
+    step_back()
 }
 
 #[wasm_bindgen]
