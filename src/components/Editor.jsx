@@ -7,6 +7,7 @@ function Editor({state, setCode}) {
             disabled={state.current !== STATE.IDLE && state.current !== STATE.STOPPED}
             onChange={(e) => setCode(e.currentTarget.value)}
             placeholder="Enter some ezasm code..."
+            className="codearea"
         />
     );
 }

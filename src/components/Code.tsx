@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import RegistryView from "./RegistryView.jsx";
 import {loadWasm} from "../rust_functions.ts";
 import {Tabs, Tab} from "./Tabs.jsx";
@@ -8,6 +8,7 @@ import Console from "./Console.jsx";
 import Controls from "./Controls.jsx";
 import Editor from "./Editor.jsx";
 import {useSimulator} from "./simulator.ts";
+import BrowserMenu from "./BrowserMenu.js";
 
 function Code() {
 
@@ -17,7 +18,7 @@ function Code() {
         exitCode,
         setState,
         setCode,
-        setInstructionDelay,
+        // setInstructionDelay,
         registerCallback,
         start,
         stop,
@@ -30,14 +31,14 @@ function Code() {
 
     useEffect(() => {
         loadWasm()
-            .then((loaded) => setWasmLoaded(loaded))
+            .then((loaded) => setWasmLoaded(Boolean(loaded)))
             .catch(() => setWasmLoaded(false));
     }, []);
 
     return (
         <div>
+            {!window.__TAURI__ && <BrowserMenu />}
             <div className="fill px-4">
-                <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error} stepBack={stepBack}/>
                 <div className="mt-2 mb-2 row codearea">
                     <div className="w-5/6 h-full pe-4">
                         <Editor state={state} setCode={setCode} />
@@ -47,9 +48,10 @@ function Code() {
                     </div>
                 </div>
             </div>
+            <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset} load={load} error={error} stepBack={stepBack}/>
             <Tabs>
                 <Tab label="Console">
-                    <div className="fill" id="tabs_console" data-tab-active>
+                    <div className="fill" id="tabs_console" data-tab-active="">
                         <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode} error={error} />
                     </div>
                 </Tab>

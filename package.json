@@ -17,6 +17,7 @@
     "wasm-build": "wasm-pack build -d ../../wasm --target web rezasm-app/rezasm-wasm/"
   },
   "dependencies": {
+    "@headlessui/react": "^2.0.4",
     "@tauri-apps/api": "^1.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -30,18 +31,18 @@
   "devDependencies": {
     "@babel/core": "^7.22.17",
     "@tauri-apps/cli": "^1.4.0",
-    "eslint-plugin-react": "^7.33.2",
-    "lodash": "^4.17.21",
-    "npm-run-all": "^4.1.5",
-    "tailwindcss": "^3.3.3",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vitejs/plugin-react": "^4.2.1",
     "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "lodash": "^4.17.21",
+    "npm-run-all": "^4.1.5",
+    "tailwindcss": "^3.3.3",
     "typescript": "^5.2.2",
     "vite": "^5.2.0"
   }
