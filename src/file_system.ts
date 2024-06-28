@@ -10,7 +10,7 @@ import { get_rust_function } from "./rust_functions";
 interface FileSystem {
 
     /**
-     * Copies a file or directory in the target filesystem
+     * Copies a file in the target filesystem
      * 
      * @param props a record with the `from` and `to` paths, represented by `string`s.
      * @returns a promise for the number of bytes copied.
@@ -19,7 +19,7 @@ interface FileSystem {
      * let copiedBytes: bigint = await fs.copy({from: "path/to/file", to: "new/path/to/file"});
      * ```
      */
-    copy(props: {from: string, to: string}): Promise<bigint>;
+    copy_file(props: {from: string, to: string}): Promise<bigint>;
 
     /**
      * Creates a new directory in the target filesystem.
@@ -65,13 +65,14 @@ interface FileSystem {
      * Reads a directory in the target filesystem.
      *
      * @param props a record with the `path` entry that refers to the target path.
-     * @returns a promise containing an array of the string names of the files in the directory.
+     * @returns a promise containing an array of tuples that contain the relative file name followed
+     *      by a boolean that is true iff the file is a directory.
      *
      * @example ```typescript
      * let files: string[] = await fs.readDir({path: "path/to/new/dir"});
      * ```
      */
-    readDir(props: {path: string}): Promise<string[]>;
+    readDir(props: {path: string}): Promise<[string, boolean][]>;
 
     /**
      * Reads a whole file in the target filesystem.
@@ -141,7 +142,7 @@ interface FileSystem {
  * browser based or system filesystem.
  */
 const fs = {
-    copy: get_rust_function("copy", ["from", "to"]),
+    copy_file: get_rust_function("copy", ["from", "to"]),
 	createDir: get_rust_function("create_dir", ["path"]),
 	createDirWithParents: get_rust_function("create_dir_with_parents", ["path"]),
 	createFile: get_rust_function("create_file", ["path"]),

@@ -1,10 +1,12 @@
 use wasm_bindgen::prelude::wasm_bindgen;
 
-#[wasm_bindgen]
-pub fn wasm_copy(_from: &str, _to: &str) -> u64 { todo!() }
+type StringResult<T> = Result<T, String>;
 
 #[wasm_bindgen]
-pub fn wasm_read_to_string(_path: &str) -> String { todo!() }
+pub fn wasm_copy_file(_from: &str, _to: &str) -> StringResult<u64> { todo!() }
+
+#[wasm_bindgen]
+pub fn wasm_read_to_string(_path: &str) -> StringResult<String> { todo!() }
 
 #[wasm_bindgen]
 pub fn wasm_create_dir(_path: &str) { todo!() }

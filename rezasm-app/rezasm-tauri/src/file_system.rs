@@ -23,7 +23,7 @@ macro_rules! return_or_error_command {
     };
 }
 
-return_or_error_command!(tauri_copy, std::fs::copy, u64, from: &str, to: &str);
+return_or_error_command!(tauri_copy_file, std::fs::copy, u64, from: &str, to: &str);
 return_or_error_command!(tauri_read_to_string, std::fs::read_to_string, String, path: &str);
 
 void_or_error_command!(tauri_create_dir, std::fs::create_dir, path: &str);
@@ -39,11 +39,12 @@ void_or_error_command!(tauri_remove_dir, std::fs::remove_dir, path: &str);
 void_or_error_command!(tauri_remove_dir_recursive, std::fs::remove_dir_all, path: &str);
 
 #[tauri::command]
-fn tauri_read_dir(path: &str) -> Result<Vec<String>, String> {
+fn tauri_read_dir(path: &str) -> Result<Vec<(String, bool)>, String> {
     Ok(fs::read_dir(path)
         .map_err(|err| err.to_string())?
         .into_iter()
-        .filter_map(|entry| entry.ok()?.path().to_str().map(|s| s.to_string()))
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .filter_map(|path| Some((path.to_str()?.to_string(), path.is_dir())))
         .collect())
 }
 
@@ -51,7 +52,7 @@ lazy_static::lazy_static! {
     /// The tauri handler containing all file system methods
     pub static ref HANDLER: Box<dyn Fn(tauri::Invoke) + Send + Sync> =
         Box::new(tauri::generate_handler![
-            tauri_copy,
+            tauri_copy_file,
             tauri_create_dir,
             tauri_create_dir_with_parents,
             tauri_create_file,
