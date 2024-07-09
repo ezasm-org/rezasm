@@ -1,12 +1,16 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod file_system;
+mod menu;
+mod tauri_reader;
 mod tauri_writer;
 
 extern crate lazy_static;
 extern crate tauri;
 
 use lazy_static::lazy_static;
+use menu::{MENU, menu_event_handler};
 use rezasm_core::instructions::implementation::register_instructions;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
@@ -124,6 +128,9 @@ fn main() {
             tauri_get_word_size,
             tauri_receive_input,
         ])
+        .invoke_handler(file_system_handler.as_ref())
+        .menu(MENU.clone())
+        .on_menu_event(menu_event_handler)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
