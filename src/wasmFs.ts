@@ -1,4 +1,4 @@
-import {BaseFileSystem} from "./fsContext.ts";
+import {BaseFileSystem, filename} from "./fsContext.ts";
 
 export default class WasmFs implements BaseFileSystem {
     private readonly rootDirectoryHandle: FileSystemDirectoryHandle;
@@ -23,13 +23,15 @@ export default class WasmFs implements BaseFileSystem {
 
     async getFileHandle(path: string): Promise<FileSystemFileHandle> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
-        return await parentHandle.getFileHandle(path);
+        const basename = filename(path);
+        return await parentHandle.getFileHandle(basename);
     }
 
     async copyFile(from: string, to: string): Promise<bigint> {
         const src = await this.getFileHandle(from);
         const dstParent = await this.getDirectoryHandle(WasmFs.getParentPath(to));
-        const dst = await dstParent.getFileHandle(to, {create: true});
+        const dstFilename = filename(to);
+        const dst = await dstParent.getFileHandle(dstFilename, {create: true});
         const writable = await dst.createWritable();
         await writable.write(await src.getFile());
         await writable.close();
@@ -38,7 +40,8 @@ export default class WasmFs implements BaseFileSystem {
 
     async createDir(path: string): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
-        await parentHandle.getDirectoryHandle(path, {create: true});
+        const folderName = filename(path);
+        await parentHandle.getDirectoryHandle(folderName, {create: true});
     }
     async createDirWithParents(path: string): Promise<void> {
         const parts = path.split("/");
@@ -49,7 +52,8 @@ export default class WasmFs implements BaseFileSystem {
     }
     async createFile(path: string): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
-        await parentHandle.getFileHandle(path, {create: true});
+        const fileName = filename(path);
+        await parentHandle.getFileHandle(fileName, {create: true});
     }
     async readDir(path: string): Promise<[string, boolean][]> {
         const dirHandle = await this.getDirectoryHandle(path);
@@ -66,7 +70,8 @@ export default class WasmFs implements BaseFileSystem {
     }
     async removeDir(path: string): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
-        await parentHandle.removeEntry(path);
+        const folderName = filename(path);
+        await parentHandle.removeEntry(folderName);
     }
     async removeDirRecursive(path: string): Promise<void> {
         const dirHandle = await this.getDirectoryHandle(path);
@@ -79,7 +84,8 @@ export default class WasmFs implements BaseFileSystem {
     }
     async removeFile(path: string): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
-        await parentHandle.removeEntry(path);
+        const fileName = filename(path);
+        await parentHandle.removeEntry(fileName);
     }
     async renameFile(from: string, to: string): Promise<void> {
         await this.copyFile(from, to);

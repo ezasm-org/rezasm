@@ -17,7 +17,7 @@ export abstract class AbstractFsFile {
     }
 }
 
-export class FsFile extends AbstractFsFile{
+export class FsFile extends AbstractFsFile {
     public isDir = false as const;
     public parent: FsDir;
 
@@ -29,14 +29,54 @@ export class FsFile extends AbstractFsFile{
 
 export class FsDir extends AbstractFsFile {
     public isDir = true as const;
-    public children: Map<string, FsItem> = new Map();
+    private fsChildren: Map<string, FsItem> = new Map();
+    private modificationCounter = 0; // This helps to track when the directory was last modified
 
     constructor(name: string, parent: FsDir | null) {
         super(name, true, parent);
     }
 
+    private get counter(): number {
+        return this.modificationCounter;
+    }
+
+    private set counter(value: number) {
+        this.modificationCounter = value;
+        this.parent?.counter && (this.parent.counter++);
+    }
+
+    /**
+     * Get the hash of when the directory was last modified.
+     *
+     * The value of the number is not significant, only that every time the
+     * directory's children are modified the number is incremented.
+     */
+    public get modifiedHash(): number {
+        return this.counter;
+    }
+
     addChild(child: FsItem) {
-        this.children.set(child.name, child);
+        this.fsChildren.set(child.name, child);
+        this.counter++;
+    }
+
+    removeChild(child: FsItem | string) {
+        this.fsChildren.delete(typeof child === "string" ? child : child.name);
+        this.counter++;
+    }
+
+    getChild(name: string): FsItem | undefined {
+        return this.fsChildren.get(name);
+    }
+
+
+    public get children(): Readonly<Record<string, FsItem>> {
+        return Object.fromEntries(this.fsChildren.entries());
+    }
+
+    public set children(children: Map<string, FsItem> | Readonly<Record<string, FsItem>>) {
+        this.fsChildren = children instanceof Map ? children : new Map(Object.entries(children));
+        this.counter++;
     }
 }
 
@@ -150,4 +190,13 @@ export const FsContext = createContext<FsContext>({
         removeFile: notDefined,
         renameFile: notDefined,
     }
+});
+
+export interface FsActions {
+    showCreateFileModal: (folder: FsDir, onSuccess: (filename: string) => unknown) => void;
+    showCreateDirModal: (folder: FsDir, onSuccess: (filename: string) => unknown) => void;
+}
+export const FsActionsContext = createContext<FsActions>({
+    showCreateFileModal: notDefined,
+    showCreateDirModal: notDefined,
 });

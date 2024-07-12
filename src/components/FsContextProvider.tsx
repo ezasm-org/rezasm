@@ -26,7 +26,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
         let current: FsDir = root;
         for (let num = 0; num < paths.length; num++) {
             const path_part = paths[num];
-            const next = current.children.get(path_part);
+            const next = current.getChild(path_part);
             if (!next || (num !== paths.length - 1 && !next.isDir)) {
                 return null;
             }
@@ -72,12 +72,12 @@ export default function FsContextProvider(props: PropsWithChildren) {
             let current = parent;
             for (let i = 0; i < pieces.length; i++) {
                 const piece = pieces[i];
-                if (!current.children.has(piece)) {
+                if (!current.getChild(piece)) {
                     const part = await FsOps.createDir(current, piece);
                     current.addChild(part);
                     current = part;
                 } else {
-                    const part = current.children.get(piece)!;
+                    const part = current.getChild(piece)!;
                     if (!part.isDir) {
                         throw new Error(`Path ${joinPath(parent, ...pieces.slice(0, i))} already exists as a file.`);
                     }
@@ -111,7 +111,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
 
         const removeFile: ContextFileSystem["removeFile"] = async (file: FsFile) => {
             await fsProvider!.removeFile(file.path());
-            file.parent.children.delete(file.name);
+            file.parent.removeChild(file.name);
         };
 
         const removeDir: ContextFileSystem["removeDir"] = async (dir: FsDir) => {
@@ -119,7 +119,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
                 throw new Error("Cannot remove root directory.");
             }
             await fsProvider!.removeDir(dir.path());
-            dir.parent.children.delete(dir.name);
+            dir.parent.removeChild(dir.name);
         };
 
         const removeDirRecursive: ContextFileSystem["removeDirRecursive"] = async (dir: FsDir) => {
@@ -127,7 +127,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
                 throw new Error("Cannot remove root directory.");
             }
             await fsProvider!.removeDirRecursive(dir.path());
-            dir.parent.children.delete(dir.name);
+            dir.parent.removeChild(dir.name);
         };
 
         const renameFile: ContextFileSystem["renameFile"] = async (file: FsFile, newPath: string) => {
@@ -137,9 +137,9 @@ export default function FsContextProvider(props: PropsWithChildren) {
                 throw new Error(`Parent directory of ${newPath} does not exist.`);
             }
             await fsProvider!.renameFile(file.path(), newPath);
-            file.parent.children.delete(file.name);
+            file.parent.removeChild(file.name);
             file.name = newName;
-            file.parent.children.set(newName, file);
+            file.parent.addChild(file);
             return file;
         };
 

@@ -11,6 +11,7 @@ import {useSimulator} from "./simulator.ts";
 import BrowserMenu from "./BrowserMenu.js";
 import FilesystemSidebar from "./FilesystemSidebar.tsx";
 import FsContextProvider from "./FsContextProvider.tsx";
+import FsActionsProvider from "./FsActionsProvider.tsx";
 
 function Code() {
 
@@ -38,7 +39,7 @@ function Code() {
     }, []);
 
     return (
-        <FsContextProvider>
+        <FsContextProvider><FsActionsProvider>
             {!window.__TAURI__ && <BrowserMenu/>}
             <div className="row">
                 <div className="w-1/4"><FilesystemSidebar/></div>
@@ -54,12 +55,12 @@ function Code() {
                         </div>
                     </div>
                     <Controls state={state} setState={setState} start={start} stop={stop} step={step} reset={reset}
-                              load={load} error={error} stepBack={stepBack}/>
+                        load={load} error={error} stepBack={stepBack}/>
                     <Tabs>
                         <Tab label="Console">
                             <div className="fill" id="tabs_console" data-tab-active="">
                                 <Console loaded={wasmLoaded} registerCallback={registerCallback} exitCode={exitCode}
-                                         error={error}/>
+                                    error={error}/>
                             </div>
                         </Tab>
                         <Tab label="Memory Viewer">
@@ -70,7 +71,7 @@ function Code() {
                     </Tabs>
                 </div>
             </div>
-        </FsContextProvider>
+        </FsActionsProvider></FsContextProvider>
     );
 }
 
