@@ -6,7 +6,7 @@ function DirectorySelectorContent(props: {directory: FsDir}) {
     const parentPath = props.directory.parent ? props.directory.parent.path() : null;
     const name = props.directory.name;
     return <span className="ml-3 block truncate font-normal group-data-[selected]:font-semibold">
-        {parentPath && <span className="text-gray-500">{parentPath}/</span>}
+        {parentPath && <span className="text-gray-400">{parentPath === "/" ? null : parentPath}/</span>}
         {name}
     </span>;
 }
@@ -14,12 +14,12 @@ function DirectorySelectorContent(props: {directory: FsDir}) {
 function DirectorySelectorOption(props: { directory: FsDir }) {
     return <ListboxOption
         value={props.directory}
-              className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
-            >
-              <div className="flex items-center">
-                <DirectorySelectorContent directory={props.directory}/>
-              </div>
-            </ListboxOption>;
+        className="group relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 data-[focus]:bg-indigo-600 data-[focus]:text-white"
+    >
+        <div className="flex items-center">
+            <DirectorySelectorContent directory={props.directory} />
+        </div>
+    </ListboxOption>;
 }
 
 function buildDirectorySelectorOptions(directory: FsDir): React.ReactNode[] {
@@ -60,33 +60,36 @@ export function CreateFileModal(props: {folder: FsDir, closeModal: () => unknown
                     <input type="text" id="filename" className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" required={true}  minLength={1} onChange={(e) => setName(e.target.value)}
                         value={name}/>
                     <Listbox value={props.folder} onChange={props.setAlternateDirectory}>
-      <Label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Create in</Label>
-      <div className="relative mt-2">
-        <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
-          <DirectorySelectorContent directory={props.folder} />
-          <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">
-            "▾"
-          </span>
-        </ListboxButton>
+                        <Label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Create in</Label>
+                        <div className="relative mt-2">
+                            <ListboxButton className="relative w-full cursor-default rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6">
+                                <DirectorySelectorContent directory={props.folder} />
+                                <span className="pointer-events-none absolute inset-y-0 right-0 ml-3 flex items-center pr-2">▾</span>
+                            </ListboxButton>
 
-        <ListboxOptions
-          className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
-        >
-            {options}
-        </ListboxOptions>
-      </div>
-    </Listbox>
+                            <ListboxOptions
+                                className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none data-[closed]:data-[leave]:opacity-0 data-[leave]:transition data-[leave]:duration-100 data-[leave]:ease-in sm:text-sm"
+                            >
+                                {options}
+                            </ListboxOptions>
+                        </div>
+                    </Listbox>
                 </div>
                 <div className="flex items-center p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
                     <button type="button"
-                        onClick={() => (props.creatingDirectory ? fs.ops.createDir : fs.ops.createFile)(props.folder, name).then(() => {
-                            props.closeModal();
-                            props.onSuccess(name);
-                        }).catch((error) => {
-                            console.error(`Error while creating ${props.creatingDirectory ? "folder": "file"}: ${error}`);
-                            alert(`Error while creating ${props.creatingDirectory ? "folder": "file"}: ${error}`);
-                            props.closeModal();
-                        })}
+                        onClick={() => {
+                            if (name.includes("/")) {
+                                alert("The name cannot contain a slash.");
+                            }
+                            (props.creatingDirectory ? fs.ops.createDir : fs.ops.createFile)(props.folder, name).then(() => {
+                                props.closeModal();
+                                props.onSuccess(name);
+                            }).catch((error) => {
+                                console.error(`Error while creating ${props.creatingDirectory ? "folder": "file"}: ${error}`);
+                                alert(`Error while creating ${props.creatingDirectory ? "folder": "file"}: ${error}`);
+                                props.closeModal();
+                            });
+                        }}
                         className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Create
                     </button>
                     <button type="button" onClick = {props.closeModal}

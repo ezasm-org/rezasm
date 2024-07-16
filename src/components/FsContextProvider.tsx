@@ -1,6 +1,6 @@
 import {
     BaseFileSystem,
-    ContextFileSystem, directoryname,
+    ContextFileSystem, directoryname, DummyFsOps,
     filename,
     FsContext,
     FsDir,
@@ -40,6 +40,9 @@ export default function FsContextProvider(props: PropsWithChildren) {
     }, [root]);
 
     const FsOps: ContextFileSystem = useMemo(() => {
+        if (!fsProvider) {
+            return DummyFsOps;
+        }
         const copyFile: ContextFileSystem["copyFile"] = async (from: FsFile, toParent: FsDir, toName?: string) => {
             const fromPath = from.path();
             const toFileName = toName ?? from.name;
@@ -89,7 +92,10 @@ export default function FsContextProvider(props: PropsWithChildren) {
         };
         
         const readDir: ContextFileSystem["readDir"] = async (parent: FsDir): Promise<Map<string, FsItem>> => {
+            console.debug("Starting: ");
+            console.debug(parent);
             const items = await fsProvider!.readDir(parent.path());
+            console.debug(items);
             const map = new Map<string, FsItem>();
             const dirs: FsDir[] = [];
             for (const [fileName, isDir] of items) {
@@ -101,6 +107,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
                 }
             }
             parent.children = map;
+            console.debug(dirs);
             await Promise.all(dirs.map(readDir));
             return map;
         };
@@ -143,6 +150,10 @@ export default function FsContextProvider(props: PropsWithChildren) {
             return file;
         };
 
+        const writeFile: ContextFileSystem["writeFile"] = async (file: FsFile, contents: string) => {
+            await fsProvider!.writeFile(file.path(), contents);
+        };
+
         return {
             copyFile,
             createFile,
@@ -154,6 +165,8 @@ export default function FsContextProvider(props: PropsWithChildren) {
             removeDir,
             removeDirRecursive,
             renameFile,
+            writeFile,
+            init: true
         };
     }, [fsProvider, getItem]);
 
@@ -161,6 +174,15 @@ export default function FsContextProvider(props: PropsWithChildren) {
         initEmptyFs().then((fs) => setFsProvider(fs));
         setRoot(new FsDir("/", null));
     }, []);
+
+    useEffect(() => {
+        // Load dir cache on root change
+        console.debug(root, FsOps.init);
+        if (root && FsOps.init) {
+            console.debug(root);
+            FsOps.readDir(root);
+        }
+    }, [root, FsOps]);
 
     return <FsContext.Provider value={{
         root: root,

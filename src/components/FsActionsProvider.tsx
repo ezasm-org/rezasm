@@ -1,5 +1,5 @@
 import {PropsWithChildren, useMemo, useState} from "react";
-import {filename, FsActions, FsActionsContext, FsDir} from "../fsContext.ts";
+import { FsActions, FsActionsContext, FsDir} from "../fsContext.ts";
 import {CreateFileModal} from "./FilesystemModals.tsx";
 
 export default function FsActionsProvider(props: PropsWithChildren) {

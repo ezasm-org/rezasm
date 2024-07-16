@@ -13,7 +13,7 @@ export abstract class AbstractFsFile {
     }
 
     path(): string {
-        return this.parent ? this.parent.path() + "/" + this.name : this.name;
+        return this.parent ? ((this.parent.parent ? this.parent.path() : "") + "/" + this.name) : this.name;
     }
 }
 
@@ -42,7 +42,9 @@ export class FsDir extends AbstractFsFile {
 
     private set counter(value: number) {
         this.modificationCounter = value;
-        this.parent?.counter && (this.parent.counter++);
+        if (this.parent) {
+            this.parent.counter++;
+        }
     }
 
     /**
@@ -149,6 +151,7 @@ export interface BaseFileSystem {
     removeDirRecursive(path: string): Promise<void>;
     removeFile(path: string): Promise<void>;
     renameFile(from: string, to: string): Promise<void>;
+    writeFile(path: string, contents: string): Promise<bigint>;
 }
 
 export interface ContextFileSystem {
@@ -162,6 +165,8 @@ export interface ContextFileSystem {
     removeDirRecursive(path: FsDir): Promise<void>;
     removeFile(path: FsFile): Promise<void>;
     renameFile(from: FsFile, to: string): Promise<FsFile>;
+    writeFile(file: FsFile, contents: string): Promise<void>;
+    init: boolean;
 }
 
 
@@ -175,21 +180,25 @@ const notDefined = () => {
     throw new Error("Method not implemented.");
 };
 
+export const DummyFsOps: ContextFileSystem = {
+    copyFile: notDefined,
+    createDir: notDefined,
+    createDirWithParents: notDefined,
+    createFile: notDefined,
+    readDir: notDefined,
+    readToString: notDefined,
+    removeDir: notDefined,
+    removeDirRecursive: notDefined,
+    removeFile: notDefined,
+    renameFile: notDefined,
+    writeFile: notDefined,
+    init: false
+};
+
 export const FsContext = createContext<FsContext>({
     root: undefined,
     getItem: () => null,
-    ops: {
-        copyFile: notDefined,
-        createDir: notDefined,
-        createDirWithParents: notDefined,
-        createFile: notDefined,
-        readDir: notDefined,
-        readToString: notDefined,
-        removeDir: notDefined,
-        removeDirRecursive: notDefined,
-        removeFile: notDefined,
-        renameFile: notDefined,
-    }
+    ops: DummyFsOps,
 });
 
 export interface FsActions {

@@ -41,7 +41,7 @@ function Code() {
     return (
         <FsContextProvider><FsActionsProvider>
             {!window.__TAURI__ && <BrowserMenu/>}
-            <div className="row">
+            <div className="row mt-2">
                 <div className="w-1/4"><FilesystemSidebar/></div>
                 <div className="w-3/4">
                     <div className="fill px-4">
