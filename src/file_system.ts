@@ -133,6 +133,18 @@ interface FileSystem {
      * ```
      */
     rename(props: {from: string, to: string}): Promise<void>;
+
+    /**
+     * Writes a string to a file.
+     *
+     * @param props a record with the `path` file path and `contents` which holds the contents of the new file
+     * @returns an empty promise.
+     *
+     * @example ```typescript
+     * await fs.rename({path: "some/path", contents: "this line will be the only contents of the file"});
+     * ```
+     */
+    writeFile(props: {path: string, contents: string}): Promise<void>;
 }
 
 /**
@@ -152,6 +164,7 @@ const fs = {
 	removeDirRecursive: get_rust_function("remove_dir_recursive", ["path"]),
 	removeFile: get_rust_function("remove_file", ["path"]),
 	rename: get_rust_function("rename", ["from", "to"]),
+	writeFile: get_rust_function("write_file", ["path", "contents"]),
 } as FileSystem;
 
 export default fs;

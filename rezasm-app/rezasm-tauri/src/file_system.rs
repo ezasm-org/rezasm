@@ -31,6 +31,7 @@ void_or_error_command!(tauri_create_dir_with_parents, std::fs::create_dir_all, p
 void_or_error_command!(tauri_create_file, std::fs::File::create, path: &str);
 void_or_error_command!(tauri_remove_file, std::fs::remove_file, path: &str);
 void_or_error_command!(tauri_rename, std::fs::rename, from: &str, to: &str);
+void_or_error_command!(tauri_write_file, std::fs::write, path: &str, contents: &str);
 
 // Can only delete empty directory
 void_or_error_command!(tauri_remove_dir, std::fs::remove_dir, path: &str);
@@ -62,5 +63,6 @@ lazy_static::lazy_static! {
             tauri_remove_dir_recursive,
             tauri_remove_file,
             tauri_rename,
+            tauri_write_file,
         ]);
 }

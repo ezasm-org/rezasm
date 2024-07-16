@@ -31,3 +31,6 @@ pub fn wasm_remove_dir(_path: &str) { todo!() }
 
 #[wasm_bindgen]
 pub fn wasm_remove_dir_recursive(_path: &str) { todo!() }
+
+#[wasm_bindgen]
+pub fn wasm_write_file(_path: &str, _contents: &str) { todo!() }
