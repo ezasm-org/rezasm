@@ -22,6 +22,7 @@ mod tests {
 
     use parser::lexer::parse_lines;
     use simulation::{program::Program, registry, simulator::Simulator};
+    use test_utils::workspace_root;
     use util::word_size::WordSize;
 
     use super::*;
@@ -33,8 +34,14 @@ mod tests {
 
         let mut simulator = Simulator::new_custom(&word_size, 1024, Box::new(io::stdout()));
 
-        let path = format!("{}/example/fibonacci_jump.ez", env!("CARGO_MANIFEST_DIR"));
-        let code = fs::read_to_string(path).expect("File read failed");
+        let workspace = workspace_root()
+            .to_str()
+            .expect("workspace_root to string failed")
+            .to_string();
+
+        let path = format!("{workspace}/example/fibonacci_jump.ez");
+
+        let code = fs::read_to_string(&path).expect(format!("File {}: read failed", path).as_str());
         let lines = parse_lines(&code, &word_size).expect("Lexing failed");
         let mut program = Program::new();
         lines.into_iter().for_each(|line| {

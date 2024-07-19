@@ -1,10 +1,7 @@
 #![cfg(test)]
 
+mod workspace_root;
 mod writer;
+
+pub use workspace_root::workspace_root;
 pub use writer::TestWriter;
-
-use std::path::PathBuf;
-
-pub fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-}
