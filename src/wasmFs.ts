@@ -1,4 +1,5 @@
-import {BaseFileSystem, directoryname, filename} from "./fsContext.ts";
+import {BaseFileSystem, type ContextFileSystem, directoryname, filename, FsDir, joinPath} from "./fsContext.ts";
+import {ProjectDataEntry, ProjectDataStore} from "./projectData.ts";
 
 export default class WasmFs implements BaseFileSystem {
     private readonly rootDirectoryHandle: FileSystemDirectoryHandle;
@@ -132,4 +133,160 @@ export default class WasmFs implements BaseFileSystem {
 export async function initEmptyFs(): Promise<WasmFs> {
     const root = await window.navigator.storage.getDirectory();
     return new WasmFs(root);
+}
+
+/*
+
+SAVE/OPEN PROJECT FUNCTIONALITY
+
+*/
+
+
+function promisifyRequest<T>(request: IDBRequest<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function promisifyTransaction(transaction: IDBTransaction): Promise<void> {
+    return new Promise((resolve, reject) => {
+        transaction.oncomplete = () => resolve();
+        transaction.onerror = () => reject(transaction.error);
+    });
+}
+
+interface IndexedDbProjectEntry extends ProjectDataEntry {
+    name: string;
+}
+
+export interface IndexedDbProjectItem {
+    name: string;
+    isDir: boolean;
+    contents: string | null;
+    children: IndexedDbProjectItem[] | null;
+}
+
+
+export class WasmProjectDataStore extends ProjectDataStore {
+    private indexedDb: IDBDatabase | null = null;
+    private readonly ops: ContextFileSystem;
+    private readonly basefs: WasmFs;
+    private static readonly highestVersion = 1;
+    
+    constructor(ops: ContextFileSystem, basefs: WasmFs) {
+        super();
+        this.ops = ops;
+        this.basefs = basefs;
+    }
+    /**
+     * Serialize a filesystem directory to an object suitable for IndexedDb insertion.
+     * @param input The directory to serialize
+     * @param ops Operations to interact with the filesystem
+     * @param nameOverride Used to override the name of the top-level directory, should only be used for the project root.
+     */
+    private async serializeFsDirToIndexedDb(input: FsDir, nameOverride?: string): Promise<IndexedDbProjectItem> {
+        const children = await Promise.all(Object.values(input.children).map(async (child) => {
+            if (child instanceof FsDir) {
+                return this.serializeFsDirToIndexedDb(child);
+            } else {
+                return {
+                    name: child.name,
+                    isDir: false,
+                    contents: await this.ops.readToString(child),
+                    children: null
+                };
+            }
+        }));
+        return {
+            name: nameOverride ?? input.name,
+            isDir: true,
+            contents: null,
+            children
+        };
+    }
+
+    /**
+     * Deserialize an IndexedDb object to a filesystem directory.
+     * @param input The object to deserialize
+     * @param basefs The filesystem to deserialize to
+     * @param parentDirName The name of the parent directory (do not touch this when calling externally)
+     */
+    private async deserializeIndexedDbToWasmFs(input: IndexedDbProjectItem, parentDirName = "/") {
+        if (!input.children) {
+            throw new Error("Invalid project data");
+        }
+        await Promise.all(input.children.map(async (child) => {
+            const path = joinPath(parentDirName, child.name);
+            if (child.isDir) {
+                await this.basefs.createDir(path);
+                await this.deserializeIndexedDbToWasmFs(child, path);
+            } else {
+                await this.basefs.writeFile(path, child.contents!);
+            }
+        }));
+    }
+
+    private async migrate(currentVersion: number): Promise<void> {
+        if (this.indexedDb === null) {
+            throw new Error("IndexedDB not initialized");
+        }
+        if (currentVersion <= 0) {
+            // Initial DB structure
+            const objectStore = this.indexedDb.createObjectStore("projects", {keyPath: "name"});
+            objectStore.createIndex("lastSaved", "lastSaved", { unique: false });
+            await promisifyTransaction(objectStore.transaction);
+            const objectStore2 = this.indexedDb.createObjectStore("projectData", {keyPath: "name"});
+            await promisifyTransaction(objectStore2.transaction);
+            // currentVersion = 1;
+        }
+
+    }
+    async initDataStore(): Promise<void> {
+        const request = indexedDB.open("projectData", WasmProjectDataStore.highestVersion);
+        let migrationNeededVersion = -1;
+        request.onupgradeneeded = (event) => migrationNeededVersion = event.oldVersion;
+        this.indexedDb = await promisifyRequest(request);
+        if (migrationNeededVersion !== -1) {
+            await this.migrate(migrationNeededVersion);
+        }
+        const fetchTransaction = this.indexedDb.transaction("projects", "readonly");
+        const objectStore = fetchTransaction.objectStore("projects");
+        const data: IndexedDbProjectEntry[] = await promisifyRequest(objectStore.getAll());
+        data.forEach(item => this.savedProjects[item.name] = item);
+    }
+
+    async saveProject(item: FsDir, projectName: string): Promise<void> {
+        if (this.indexedDb === null) {
+            throw new Error("IndexedDB not initialized");
+        }
+        const transaction = this.indexedDb.transaction(["projects", "projectData"], "readwrite");
+        const projectsObjectStore = transaction.objectStore("projects");
+        const lastModifiedTime = Date.now();
+        this.savedProjects[projectName] = {lastModified: lastModifiedTime};
+        const entry: IndexedDbProjectEntry = {
+            lastModified: lastModifiedTime,
+            name: projectName
+        };
+        projectsObjectStore.put(entry);
+        await promisifyTransaction(transaction);
+        const projectDataObjectStore = transaction.objectStore("projectData");
+        projectDataObjectStore.put(await this.serializeFsDirToIndexedDb(item));
+        await promisifyTransaction(transaction);
+    }
+
+    async getProject(projectName: string): Promise<FsDir | null> {
+        if (this.indexedDb === null) {
+            throw new Error("IndexedDB not initialized");
+        }
+        const transaction = this.indexedDb.transaction("projectData", "readonly");
+        const objectStore = transaction.objectStore("projectData");
+        const data: IndexedDbProjectItem | null = (await promisifyRequest(objectStore.get(projectName))) ?? null;
+        if (data === null) {
+            return null;
+        } else {
+            await this.deserializeIndexedDbToWasmFs(data);
+            return new FsDir("/", null);
+        }
+    }
 }

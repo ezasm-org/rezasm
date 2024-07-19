@@ -30,8 +30,15 @@ export default function FilesystemSidebar() {
         {rootSidebar}
         <div className="flex flex-col mt-6 gap-1.5">
             <button className="bg-blue-600 p-1 text-white">Open Folder</button>
-            <button className="bg-blue-600 p-1 text-white" onClick={() => actions.showCreateDirModal(fs.root!, setCounter)}>Create Directory</button>
-            <button className="bg-blue-600 p-1 text-white" onClick={() => actions.showCreateFileModal(fs.root!, setCounter)}>Create File</button>
+            <button className="bg-blue-600 p-1 text-white"
+                onClick={() => actions.showCreateDirModal(fs.root!, setCounter)}>Create Directory
+            </button>
+            <button className="bg-blue-600 p-1 text-white"
+                onClick={() => actions.showCreateFileModal(fs.root!, setCounter)}>Create File
+            </button>
+            <button className="bg-blue-600 p-1 text-white"
+                onClick={() => actions.showCreateDirModal(fs.root!, setCounter)}>Save Project
+            </button>
         </div>
     </div>;
 }

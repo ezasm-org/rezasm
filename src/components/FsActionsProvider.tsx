@@ -7,6 +7,8 @@ export default function FsActionsProvider(props: PropsWithChildren) {
     const [createDirModalDir, setCreateDirModalDir] = useState<FsDir | null>(null);
     const [createFileModalOnSuccessHandler, setCreateFileModalOnSuccessHandler] = useState<((filename: string) => unknown) | null>(null);
     const [createDirModalOnSuccessHandler, setCreateDirModalOnSuccessHandler] = useState<((filename: string) => unknown) | null>(null);
+    const [showOpenProjectModal, setShowOpenProjectModal] = useState(false);
+    const [saveProjectModalRoot, setSaveProjectModalRoot] = useState<FsDir | null>(null);
     const actions: FsActions = useMemo(() => ({
         showCreateFileModal: (folder: FsDir, onSuccess: (filename: string) => unknown) => {
             setCreateFileModalDir(folder);
@@ -16,6 +18,12 @@ export default function FsActionsProvider(props: PropsWithChildren) {
             setCreateDirModalDir(folder);
             setCreateDirModalOnSuccessHandler(() => onSuccess); // passing a callback to setState calls the callback to set the state.
         },
+        showOpenProjectModal: () => {
+            setShowOpenProjectModal(true);
+        },
+        showSaveProjectModal: (root: FsDir) => {
+            setSaveProjectModalRoot(root);
+        }
     }), []);
     return <FsActionsContext.Provider value={actions}>
         {(createFileModalDir !== null && createFileModalOnSuccessHandler !== null) && <CreateFileModal folder={createFileModalDir} onSuccess={createFileModalOnSuccessHandler} closeModal={() => setCreateFileModalDir(null)} creatingDirectory={false} setAlternateDirectory={setCreateFileModalDir} />}

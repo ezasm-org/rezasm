@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { createContext } from "react";
+import {ProjectDataStore} from "./projectData.ts";
 
 export abstract class AbstractFsFile {
     public name: string;
@@ -174,6 +175,7 @@ export interface FsContext {
     root: FsDir | undefined;
     getItem(path: string): FsItem | null;
     ops: ContextFileSystem;
+    projectHandler: ProjectDataStore;
 }
 
 const notDefined = () => {
@@ -195,17 +197,36 @@ export const DummyFsOps: ContextFileSystem = {
     init: false
 };
 
+class DummyProjectHandler extends ProjectDataStore {
+    async initDataStore() {
+         notDefined();
+    }
+    async saveProject() {
+        notDefined();
+    }
+    async getProject() {
+        notDefined();
+        return null;
+    }
+}
+
+
 export const FsContext = createContext<FsContext>({
     root: undefined,
     getItem: () => null,
     ops: DummyFsOps,
+    projectHandler: new DummyProjectHandler()
 });
 
 export interface FsActions {
     showCreateFileModal: (folder: FsDir, onSuccess: (filename: string) => unknown) => void;
     showCreateDirModal: (folder: FsDir, onSuccess: (filename: string) => unknown) => void;
+    showOpenProjectModal: () => void;
+    showSaveProjectModal: (root: FsDir) => void;
 }
 export const FsActionsContext = createContext<FsActions>({
     showCreateFileModal: notDefined,
     showCreateDirModal: notDefined,
+    showOpenProjectModal: notDefined,
+    showSaveProjectModal: notDefined,
 });
