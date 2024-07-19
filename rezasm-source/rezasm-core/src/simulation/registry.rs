@@ -253,3 +253,35 @@ impl Registry {
         self.get_register_by_number_mut(FID_NUMBER).unwrap()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{simulation::registry, util::word_size::DEFAULT_WORD_SIZE};
+
+    use super::*;
+
+    // Moved from Trevor's test in tests/core.rs
+    #[test]
+    fn test_registry() {
+        let mut registry: Registry = Registry::new(&DEFAULT_WORD_SIZE);
+        registry
+            .get_register_mut(&String::from(registry::T0))
+            .unwrap()
+            .set_data(RawData::from(255i32));
+        assert_eq!(
+            registry
+                .get_register(&String::from(registry::T0))
+                .unwrap()
+                .get_data()
+                .int_value(),
+            255
+        );
+
+        let k =
+            registry.get_register_by_number_mut(get_register_number(&"$0".to_string()).unwrap());
+
+        assert!(
+            k.is_err_and(|e| e.to_string() == ParserError::ImmutableZeroRegisterError.to_string())
+        );
+    }
+}

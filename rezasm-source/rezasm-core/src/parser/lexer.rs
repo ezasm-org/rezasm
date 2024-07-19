@@ -396,3 +396,36 @@ pub fn tokenize_line(text: &String) -> Vec<String> {
 
     tokens
 }
+
+#[cfg(test)]
+mod tests {
+
+    use crate::instructions::implementation::register_instructions;
+
+    use super::*;
+
+    // Moved from Trevor's test in tests/core.rs
+    #[test]
+    fn test_tokenize_line() {
+        assert_eq!(
+            std::format!(
+                "{:?}",
+                tokenize_line(&String::from("add $t0 1 2 # this - is = a # comment"))
+            ),
+            "[\"add\", \"$t0\", \"1\", \"2\"]"
+        );
+    }
+
+
+    // Moved from Trevor's implementation in tests/core.rs
+    #[test]
+    fn test_text_to_number() {
+        assert_eq!(
+            match text_to_number(String::from("0x0010.8000")).unwrap() {
+                EZNumber::Integer(_) => f64::INFINITY,
+                EZNumber::Float(x) => x,
+            },
+            16.5
+        );
+    }
+}

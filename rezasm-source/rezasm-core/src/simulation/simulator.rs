@@ -212,3 +212,73 @@ impl Simulator {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        instructions::implementation::register_instructions,
+        parser::lexer::{parse_line, parse_lines},
+    };
+
+    use super::*;
+
+    // Moved from Trevor's test in tests/core.rs
+    #[test]
+    pub fn test_simulator_instruction() {
+        register_instructions();
+        let mut simulator: Simulator = Simulator::new();
+
+        let line = parse_line(&"add $t0 $t0 1".to_string(), simulator.get_word_size())
+            .unwrap()
+            .unwrap();
+        let _ = simulator.add_line(line, "".to_string());
+        let _ = simulator.run_line_from_pc();
+
+        assert_eq!(
+            simulator
+                .get_registers()
+                .get_register(&registry::T0.to_string())
+                .unwrap()
+                .get_data()
+                .int_value(),
+            1i64
+        );
+    }
+
+    // Moved from Trevor's test in tests/core.rs
+    #[test]
+    pub fn test_simulator_labels() {
+        register_instructions();
+        let mut simulator: Simulator = Simulator::new();
+        let program = "
+        add $t0 0 0
+        add $t1 0 1
+        fib:
+        add $t2 $t0 $t1
+        add $t0 0 $t1
+        add $t1 0 $t2
+        add $pc 0 fib";
+        let lines = parse_lines(&program.to_string(), simulator.get_word_size()).unwrap();
+        match simulator.add_lines(lines, "".to_string()) {
+            Ok(_) => {}
+            Err(_) => assert!(false),
+        }
+
+        for _ in 0..50 {
+            match simulator.run_line_from_pc() {
+                Ok(_) => {}
+                Err(_) => assert!(false),
+            }
+        }
+
+        assert_eq!(
+            simulator
+                .get_registers()
+                .get_register(&registry::T1.to_string())
+                .unwrap()
+                .get_data()
+                .int_value(),
+            233i64
+        );
+    }
+}

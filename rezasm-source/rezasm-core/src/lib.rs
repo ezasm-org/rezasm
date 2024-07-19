@@ -12,3 +12,7 @@ pub mod parser;
 pub mod simulation;
 
 pub mod util;
+
+#[cfg(test)]
+pub mod test_utils;
+
