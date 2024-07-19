@@ -1,3 +1,12 @@
+#   fn hello_world() {
+#       sp.push([Hello world!\n\0])
+#       print(sp)
+#       sp <- sp - 4
+#       t0 <- 4
+#       sp.store(t0)    // stores 4 to stack
+#       sp.load(t1)     // should move 4 to t1
+#   }
+
 # Hello World!
 push 0
 push '\n'
