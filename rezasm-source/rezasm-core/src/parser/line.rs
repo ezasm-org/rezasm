@@ -12,7 +12,7 @@ use std::fmt::{Display, Formatter};
 
 use super::lexer;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Line {
     Instruction(&'static Instruction, Vec<ArgumentType>),
     Label(String),
@@ -20,7 +20,7 @@ pub enum Line {
 
 impl Line {
     pub fn new(
-        instruction: &String,
+        instruction: &str,
         args: Vec<String>,
         word_size: &WordSize,
     ) -> Result<Self, ParserError> {

@@ -8,7 +8,7 @@ use crate::util::error::SimulatorError;
 pub type TInstructionFunction =
     fn(&mut Simulator, &Vec<TypeId>, &Vec<ArgumentType>) -> Result<(), SimulatorError>;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Instruction {
     name: String,
     types: Vec<TypeId>,

@@ -15,7 +15,7 @@ impl<T: Input> Target for T {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InputTarget {
     ImmediateInput(RawData),
     RegisterInput(usize),

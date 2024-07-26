@@ -149,20 +149,18 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, ParserError>
     Ok(result)
 }
 
-pub fn looks_like_label(token: &String) -> bool {
+pub fn looks_like_label(token: &str) -> bool {
     match token.rfind(':') {
         None => false,
         Some(index) => index == token.len() - 1,
     }
 }
 
-pub fn is_label(token: &String) -> bool {
+pub fn is_label(token: &str) -> bool {
     match token.find(":") {
         None => false,
         Some(i) => {
-            token.len() > 1
-                && i == token.len() - 1
-                && all_alphanumeric_underscore(&token.as_str()[..i])
+            token.len() > 1 && i == token.len() - 1 && all_alphanumeric_underscore(&token[..i])
         }
     }
 }
@@ -287,7 +285,7 @@ pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, Pa
 }
 
 // TODO ake the simulator use this
-pub fn parse_lines(lines: &String, word_size: &WordSize) -> Result<Vec<Line>, ParserError> {
+pub fn parse_lines(lines: &str, word_size: &WordSize) -> Result<Vec<Line>, ParserError> {
     let mut output: Vec<Line> = Vec::new();
     for s in lines.lines() {
         output.push(match parse_line(&s.into(), word_size) {

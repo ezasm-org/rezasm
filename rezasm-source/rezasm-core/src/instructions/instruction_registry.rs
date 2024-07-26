@@ -30,7 +30,7 @@ impl InstructionRegistry {
 
     fn get_instruction(
         &self,
-        name: &String,
+        name: &str,
         argc: usize,
     ) -> Result<&'static Instruction, ParserError> {
         match self.instructions.get(name) {
@@ -61,11 +61,11 @@ pub fn register_instruction(instruction: &'static Instruction) {
         .register_instruction(instruction);
 }
 
-pub fn get_instruction(name: &String, argc: usize) -> Result<&'static Instruction, ParserError> {
+pub fn get_instruction(name: &str, argc: usize) -> Result<&'static Instruction, ParserError> {
     INSTRUCTIONS.lock().unwrap().get_instruction(name, argc)
 }
 
-pub fn is_instruction_name_registered(instruction: &String) -> bool {
+pub fn is_instruction_name_registered(instruction: &str) -> bool {
     INSTRUCTIONS
         .lock()
         .unwrap()

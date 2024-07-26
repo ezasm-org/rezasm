@@ -2,7 +2,7 @@ use bytebuffer::ByteBuffer;
 
 use crate::util::word_size::WordSize;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct RawData {
     pub data: Vec<u8>,
 }
