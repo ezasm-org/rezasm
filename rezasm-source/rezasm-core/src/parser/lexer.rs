@@ -397,10 +397,9 @@ pub fn tokenize_line(text: &String) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-
-    use crate::instructions::implementation::register_instructions;
-
     use super::*;
+    use crate::instructions::implementation::register_instructions;
+    use crate::instructions::instruction_registry::get_instruction;
 
     // Moved from Trevor's test in tests/core.rs
     #[test]
@@ -414,6 +413,64 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_parse_line() {
+        register_instructions();
+        let word_size = WordSize::default();
+
+        let add = get_instruction("add", 3).expect("Instruction not found");
+
+        let actual = parse_line(
+            &"add $t0 1 2 # this - is = a # comment".to_string(),
+            &word_size,
+        )
+        .expect("Parsing Empty")
+        .expect("Parsing Error");
+
+        let expected = Line::new(
+            "add",
+            vec!["$t0".into(), "1".into(), "2".into()],
+            &word_size,
+        ).expect("New line failed");
+
+        assert_eq!(expected, actual);
+
+        let actual = parse_line(
+            &r#"move $s0 "This has a # character"  # and a # comment"#.to_string(),
+            &word_size,
+        )
+            .expect("Parsing Empty")
+            .expect("Parsing Error");
+
+        let expected = Line::new(
+            "move",
+            vec!["$s0".into(), r#"This has a # character"#.into()],
+            &word_size,
+        ).expect("New line failed");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_parse_lines() {
+        register_instructions();
+        let code = r#"
+            move $s0 "This has a # character"  # and an end of line comment
+            prints $s0  # and another end of line comment
+            # This is a full-line comment, and the next line is white space"#;
+        let word_size = WordSize::default();
+
+        let actual = parse_lines(code, &word_size).expect("Parsing Error");
+
+        let expected = vec![Line::new(
+            "move",
+            vec!["$s0".into(), r#""This has a # character"#.into()],
+            &word_size,
+        )
+        .expect("New line failed")];
+
+        assert_eq!(expected, actual);
+    }
 
     // Moved from Trevor's implementation in tests/core.rs
     #[test]
