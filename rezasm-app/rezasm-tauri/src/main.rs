@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod file_system;
 mod tauri_reader;
 mod tauri_writer;
 
@@ -17,6 +18,8 @@ use rezasm_web_core::{
 };
 use tauri::{Manager, Window};
 use tauri_reader::TauriReader;
+
+use file_system::HANDLER as file_system_handler;
 
 use crate::tauri_writer::TauriWriter;
 use std::{
@@ -142,6 +145,7 @@ fn main() {
             tauri_get_word_size,
             tauri_receive_input,
         ])
+        .invoke_handler(file_system_handler.as_ref())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

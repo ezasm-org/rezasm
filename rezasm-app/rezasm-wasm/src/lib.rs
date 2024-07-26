@@ -1,4 +1,5 @@
 mod wasm_writer;
+mod file_system;
 
 extern crate rezasm_core;
 extern crate rezasm_web_core;
