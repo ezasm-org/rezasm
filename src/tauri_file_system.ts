@@ -19,7 +19,7 @@ interface FileSystem {
      * let copiedBytes: bigint = await fs.copy({from: "path/to/file", to: "new/path/to/file"});
      * ```
      */
-    copy_file(props: {from: string, to: string}): Promise<bigint>;
+    copyFile(props: {from: string, to: string}): Promise<bigint>;
 
     /**
      * Creates a new directory in the target filesystem.
@@ -154,17 +154,17 @@ interface FileSystem {
  * browser based or system filesystem.
  */
 const fs = {
-    copy_file: get_rust_function("copy", ["from", "to"]),
-	createDir: get_rust_function("create_dir", ["path"]),
-	createDirWithParents: get_rust_function("create_dir_with_parents", ["path"]),
-	createFile: get_rust_function("create_file", ["path"]),
-	readDir: get_rust_function("read_dir", ["path"]),
-	readToString: get_rust_function("read_to_string", ["path"]),
-	removeDir: get_rust_function("remove_dir", ["path"]),
-	removeDirRecursive: get_rust_function("remove_dir_recursive", ["path"]),
-	removeFile: get_rust_function("remove_file", ["path"]),
-	rename: get_rust_function("rename", ["from", "to"]),
-	writeFile: get_rust_function("write_file", ["path", "contents"]),
+    copyFile: get_rust_function("copy", ["from", "to"]),
+    createDir: get_rust_function("create_dir", ["path"]),
+    createDirWithParents: get_rust_function("create_dir_with_parents", ["path"]),
+    createFile: get_rust_function("create_file", ["path"]),
+    readDir: get_rust_function("read_dir", ["path"]),
+    readToString: get_rust_function("read_to_string", ["path"]),
+    removeDir: get_rust_function("remove_dir", ["path"]),
+    removeDirRecursive: get_rust_function("remove_dir_recursive", ["path"]),
+    removeFile: get_rust_function("remove_file", ["path"]),
+    rename: get_rust_function("rename", ["from", "to"]),
+    writeFile: get_rust_function("write_file", ["path", "contents"]),
 } as FileSystem;
 
 export default fs;
