@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { createContext } from "react";
 import {ProjectDataStore} from "./projectData.ts";
+import {FileSystem} from "./tauri_file_system.ts";
 
 export abstract class AbstractFsFile {
     public name: string;
@@ -135,25 +136,7 @@ export function directoryname(path: string): string {
     return path.substring(0, path.lastIndexOf("/"));
 }
 
-export interface BaseFileSystem {
-    copyFile(from: string, to: string): Promise<bigint>;
-    createDir(path: string): Promise<void>;
-    createDirWithParents(path: string): Promise<void>;
-    createFile(path: string): Promise<void>;
-
-    /**
-     * Read a directory and return its contents
-     * @param path The path to read
-     * @returns A list of [name, isDir] tuples
-     */
-    readDir(path: string): Promise<[string, boolean][]>;
-    readToString(path: string): Promise<string>;
-    removeDir(path: string): Promise<void>;
-    removeDirRecursive(path: string): Promise<void>;
-    removeFile(path: string): Promise<void>;
-    renameFile(from: string, to: string): Promise<void>;
-    writeFile(path: string, contents: string): Promise<bigint>;
-}
+type BaseFileSystem = FileSystem;
 
 export interface ContextFileSystem {
     copyFile(from: FsFile, toParent: FsDir, toName?: string): Promise<FsFile>;

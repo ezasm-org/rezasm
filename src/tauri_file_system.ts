@@ -7,7 +7,7 @@ import { get_rust_function } from "./rust_functions";
  *
  * This interface is implemented by the exported `fs` object.
  */
-interface FileSystem {
+export interface FileSystem {
 
     /**
      * Copies a file in the target filesystem
