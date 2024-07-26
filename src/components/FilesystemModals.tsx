@@ -1,6 +1,7 @@
 import {Label, Listbox, ListboxButton, ListboxOption, ListboxOptions} from "@headlessui/react";
 import {FsContext, FsDir} from "../fsContext.ts";
 import React, {useContext, useMemo, useState} from "react";
+import {ProjectDataEntry} from "../projectData.ts";
 
 function DirectorySelectorContent(props: { directory: FsDir }) {
     const parentPath = props.directory.parent ? props.directory.parent.path() : null;
@@ -71,7 +72,7 @@ function Modal(props: React.PropsWithChildren<{ heading: React.ReactNode, closeM
                         <span className="sr-only">Close modal</span>
                     </button>
                 </div>
-                <div className="p-4 md:p-5 space-y-4">
+                <div className="p-4 md:p-5 space-y-4 text-white">
                     {props.children}
                 </div>
             </div>
@@ -137,24 +138,58 @@ export function CreateFileModal(props: {
     </Modal>;
 }
 
-export function SaveProjectModal(props: { closeModal: () => unknown }) {
+export function SaveProjectModal(props: { root: FsDir, closeModal: () => unknown }) {
     const [name, setName] = useState("");
     const fs = useContext(FsContext);
     return <Modal heading="Save Project" closeModal={props.closeModal}>
         <div className="p-4 md:p-5 space-y-4">
             <label htmlFor="name"
-                className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Project Name</label>
+                className="block mb-2 font-medium text-gray-900 dark:text-white">Project Name</label>
             <input type="text" id="name"
                 className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                 required={true} minLength={1} onChange={(e) => setName(e.target.value)}
                 value={name}/>
+            {fs.projectHandler!.projects[name] !== undefined && <div className="text-red-300 text-sm mt-2">Project with name {name} already exists and was last saved on {new Date(fs.projectHandler!.projects[name].lastModified).toLocaleString()}. Saving will overwrite any existing project data.</div>}
         </div>
         <ModalButtons>
             <ModalPrimaryButton
                 onClick={() => {
-                    fs.projectHandler!.saveProject(fs.root!, name);
-                }
-                }>Create
+                    fs.projectHandler!.saveProject(props.root, name).then(props.closeModal);
+                }}>Save
+            </ModalPrimaryButton>
+            <CloseModalButton closeModal={props.closeModal}>Cancel</CloseModalButton>
+        </ModalButtons>
+    </Modal>;
+}
+
+function ProjectItem(props: {name: string, data: ProjectDataEntry, selected: boolean, onSelect: () => unknown}) {
+    return (
+        <button className={"block truncate font-normal cursor-pointer p-2 w-full border-2" + (props.selected ? " bg-purple-300 border-purple-300" : " ")} onClick={props.onSelect}>{props.name}</button>
+    );
+}
+
+export function OpenProjectModal(props: { closeModal: () => unknown }) {
+    const [selectedProjectName, setSelectedProjectName] = useState<string | null>(null);
+    const fs = useContext(FsContext);
+    return <Modal heading="Open Project" closeModal={props.closeModal}>
+        <div className="p-4 md:p-5 space-y-4">
+            <h2>Existing Projects</h2>
+            {Object.entries(fs.projectHandler!.projects).map(([name, data]) => <ProjectItem key={name} name={name} data={data} selected={selectedProjectName===name} onSelect={() => selectedProjectName === name ? setSelectedProjectName(null) : setSelectedProjectName(name)} />)}
+        </div>
+        <div className="text-red-300 text-sm mt-2">Opening a project will delete <b>ALL</b> current project data if not saved. Make sure to save your existing project before opening a new project.</div>
+        <ModalButtons>
+            <ModalPrimaryButton
+                disabled={selectedProjectName === null}
+                onClick={() => {
+                    fs.projectHandler!.getProject(selectedProjectName!).then((newRoot) => {
+                        if (newRoot) {
+                            fs.setRoot(newRoot);
+                        } else {
+                            alert("Invalid project found.")
+                        }
+                        props.closeModal();
+                    });
+                }}>Open
             </ModalPrimaryButton>
             <CloseModalButton closeModal={props.closeModal}>Cancel</CloseModalButton>
         </ModalButtons>

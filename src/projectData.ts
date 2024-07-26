@@ -13,6 +13,10 @@ export abstract class ProjectDataStore {
     abstract initDataStore(): Promise<void>;
     abstract saveProject(root: FsDir, projectName: string): Promise<void>;
     abstract getProject(projectName: string): Promise<FsDir | null>;
+
+    public get projects(): Readonly<ProjectData> {
+        return this.savedProjects;
+    }
 }
 
 export class TauriProjectDataStore extends ProjectDataStore {

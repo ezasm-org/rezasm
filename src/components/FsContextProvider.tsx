@@ -1,20 +1,26 @@
 import {
     BaseFileSystem,
-    ContextFileSystem, directoryname, DummyFsOps,
+    ContextFileSystem,
+    directoryname,
+    DummyFsOps,
     filename,
     FsContext,
     FsDir,
     FsFile,
     FsItem,
+    FsType,
     joinPath,
     parts
 } from "../fsContext.ts";
 import {PropsWithChildren, useCallback, useEffect, useMemo, useState} from "react";
-import {initEmptyFs} from "../wasmFs.ts";
+import WasmFs, {initEmptyFs, WasmProjectDataStore} from "../wasmFs.ts";
+import {ProjectDataStore, TauriProjectDataStore} from "../projectData.ts";
 
 export default function FsContextProvider(props: PropsWithChildren) {
+    const [fsType, setFsType] = useState<FsType>(FsType.WasmLocal);
     const [root, setRoot] = useState<FsDir | undefined>(undefined);
     const [fsProvider, setFsProvider] = useState<BaseFileSystem | undefined>(undefined);
+    const [projectDataStore, setProjectDataStore] = useState<ProjectDataStore | undefined>(undefined);
     const getItem = useCallback((path: string) => {
         if (!root || !path) {
             return null;
@@ -92,10 +98,10 @@ export default function FsContextProvider(props: PropsWithChildren) {
         };
         
         const readDir: ContextFileSystem["readDir"] = async (parent: FsDir): Promise<Map<string, FsItem>> => {
-            console.debug("Starting: ");
-            console.debug(parent);
+            // console.debug("Starting: ");
+            // console.debug(parent);
             const items = await fsProvider!.readDir(parent.path());
-            console.debug(items);
+            // console.debug(items);
             const map = new Map<string, FsItem>();
             const dirs: FsDir[] = [];
             for (const [fileName, isDir] of items) {
@@ -107,7 +113,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
                 }
             }
             parent.children = map;
-            console.debug(dirs);
+            // console.debug(dirs);
             await Promise.all(dirs.map(readDir));
             return map;
         };
@@ -177,16 +183,40 @@ export default function FsContextProvider(props: PropsWithChildren) {
 
     useEffect(() => {
         // Load dir cache on root change
-        console.debug(root, FsOps.init);
+        // console.debug(root, FsOps.init);
         if (root && FsOps.init) {
-            console.debug(root);
+            // console.debug(root);
             FsOps.readDir(root);
         }
     }, [root, FsOps]);
 
+    useEffect(() => {
+        switch (fsType) {
+        case FsType.Tauri: {
+            setProjectDataStore(new TauriProjectDataStore());
+            break;
+        }
+        case FsType.WasmLocal: {
+            if (fsProvider && fsProvider instanceof WasmFs) {
+                setProjectDataStore(new WasmProjectDataStore(FsOps, fsProvider));
+            }
+            break;
+        }
+        }
+    }, [FsOps, fsProvider]);
+
+    useEffect(() => {
+        if (projectDataStore) {
+            projectDataStore.initDataStore();
+        }
+    }, [projectDataStore]);
+
     return <FsContext.Provider value={{
-        root: root,
+        root,
         getItem,
-        ops: FsOps
+        ops: FsOps,
+        projectHandler: projectDataStore!,
+        setRoot,
+        setBaseFS: setFsProvider
     }} children={props.children} />;
 }

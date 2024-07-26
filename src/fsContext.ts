@@ -176,6 +176,8 @@ export interface FsContext {
     getItem(path: string): FsItem | null;
     ops: ContextFileSystem;
     projectHandler: ProjectDataStore;
+    setRoot: (root: FsDir) => void;
+    setBaseFS: (base: BaseFileSystem) => void;
 }
 
 const notDefined = () => {
@@ -215,7 +217,9 @@ export const FsContext = createContext<FsContext>({
     root: undefined,
     getItem: () => null,
     ops: DummyFsOps,
-    projectHandler: new DummyProjectHandler()
+    projectHandler: new DummyProjectHandler(),
+    setRoot: notDefined,
+    setBaseFS: notDefined
 });
 
 export interface FsActions {
@@ -230,3 +234,8 @@ export const FsActionsContext = createContext<FsActions>({
     showOpenProjectModal: notDefined,
     showSaveProjectModal: notDefined,
 });
+
+export enum FsType {
+    Tauri = 0,
+    WasmLocal = 1 // This is WASM but it does not directly write to the filesystem.
+}

@@ -6,7 +6,7 @@ export function FileSidebar(props: {file: AbstractFsFile, clickable?: boolean}) 
 }
 
 export function FolderSidebar(props: {folder: FsDir, hash: number}) {
-    console.debug(`Rerendering folder sidebar for ${props.folder.path()}, hash: ${props.hash}`);
+    // console.debug(`Rerendering folder sidebar for ${props.folder.path()}, hash: ${props.hash}`);
     const locked = props.folder.parent === null; // Root directory cannot be collapsed
     const [expanded, setExpanded] = useState(locked); // Set for development
     return <div className="folder-sidebar-item">
@@ -37,7 +37,10 @@ export default function FilesystemSidebar() {
                 onClick={() => actions.showCreateFileModal(fs.root!, setCounter)}>Create File
             </button>
             <button className="bg-blue-600 p-1 text-white"
-                onClick={() => actions.showCreateDirModal(fs.root!, setCounter)}>Save Project
+                onClick={() => actions.showOpenProjectModal()}>Open Project
+            </button>
+            <button className="bg-blue-600 p-1 text-white"
+                onClick={() => actions.showSaveProjectModal(fs.root!)}>Save Project
             </button>
         </div>
     </div>;

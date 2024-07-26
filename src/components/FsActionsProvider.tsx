@@ -1,6 +1,6 @@
 import {PropsWithChildren, useMemo, useState} from "react";
 import { FsActions, FsActionsContext, FsDir} from "../fsContext.ts";
-import {CreateFileModal} from "./FilesystemModals.tsx";
+import {CreateFileModal, OpenProjectModal, SaveProjectModal} from "./FilesystemModals.tsx";
 
 export default function FsActionsProvider(props: PropsWithChildren) {
     const [createFileModalDir, setCreateFileModalDir] = useState<FsDir | null>(null);
@@ -28,5 +28,7 @@ export default function FsActionsProvider(props: PropsWithChildren) {
     return <FsActionsContext.Provider value={actions}>
         {(createFileModalDir !== null && createFileModalOnSuccessHandler !== null) && <CreateFileModal folder={createFileModalDir} onSuccess={createFileModalOnSuccessHandler} closeModal={() => setCreateFileModalDir(null)} creatingDirectory={false} setAlternateDirectory={setCreateFileModalDir} />}
         {(createDirModalDir !== null && createDirModalOnSuccessHandler !== null) && <CreateFileModal folder={createDirModalDir} onSuccess={createDirModalOnSuccessHandler} closeModal={() => setCreateDirModalDir(null)} creatingDirectory={true} setAlternateDirectory={setCreateDirModalDir} />}
+        {showOpenProjectModal && <OpenProjectModal closeModal={() => setShowOpenProjectModal(false)} />}
+        {saveProjectModalRoot !== null && <SaveProjectModal root={saveProjectModalRoot} closeModal={() => setSaveProjectModalRoot(null)} />}
         {props.children}</FsActionsContext.Provider>;
 }
