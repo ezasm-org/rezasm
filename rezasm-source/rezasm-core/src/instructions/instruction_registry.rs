@@ -54,6 +54,11 @@ lazy_static! {
     static ref INSTRUCTIONS: Mutex<InstructionRegistry> = Mutex::new(InstructionRegistry::new());
 }
 
+/// Registers an instruction with the static INSTRUCTIONS
+///
+/// # Arguments
+///
+/// * instruction: the static-lifetime instruction to register
 pub fn register_instruction(instruction: &'static Instruction) {
     INSTRUCTIONS
         .lock()

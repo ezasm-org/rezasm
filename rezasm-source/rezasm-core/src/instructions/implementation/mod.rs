@@ -4,6 +4,7 @@ mod comparison_instructions;
 mod float_arithmetic_instructions;
 mod function_instructions;
 mod memory_instructions;
+mod terminal_input_instructions;
 mod terminal_output_instructions;
 
 pub fn register_instructions() {
@@ -11,6 +12,7 @@ pub fn register_instructions() {
     branch_instructions::register_instructions();
     comparison_instructions::register_instructions();
     float_arithmetic_instructions::register_instructions();
+    terminal_input_instructions::register_instructions();
     function_instructions::register_instructions();
     memory_instructions::register_instructions();
     terminal_output_instructions::register_instructions();

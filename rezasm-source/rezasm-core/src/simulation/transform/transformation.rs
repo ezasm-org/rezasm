@@ -5,6 +5,7 @@ use crate::{
 
 use super::transformable::Transformable;
 
+#[derive(Debug)]
 pub struct Transformation {
     output: Transformable,
     from: RawData,
@@ -12,6 +13,17 @@ pub struct Transformation {
 }
 
 impl Transformation {
+    pub fn get_to(&self) -> &RawData {
+        &self.to
+    }
+
+    pub fn get_from(&self) -> &RawData {
+        &self.from
+    }
+
+    pub fn new(output: Transformable, from: RawData, to: RawData) -> Transformation {
+        Transformation { output, from, to }
+    }
     pub fn invert(&mut self) -> Transformation {
         Transformation {
             output: self.output.clone(),
@@ -20,8 +32,12 @@ impl Transformation {
         }
     }
 
-    pub fn apply(&mut self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
+    pub fn apply(&self, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         self.output.set(self.to.clone(), simulator)
+    }
+
+    pub fn is_nullop(&self) -> bool {
+        self.output.is_nullop()
     }
 }
 

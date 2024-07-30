@@ -5,12 +5,16 @@ use crate::simulation::simulator::Simulator;
 use crate::util::error::SimulatorError;
 use crate::util::raw_data::RawData;
 
-#[derive(Copy)]
+use super::transformation::Transformation;
+
+/// NullOpTransformable is primarily for signalling the simulator to enter AWAITING
+#[derive(Copy, Debug)]
 pub enum Transformable {
     FileReadTransformable(i64),
     HeapPointerTransformable,
     MemoryTransformable(usize),
     InputOutputTransformable(InputOutputTarget),
+    NullOpTransformable,
 }
 
 impl Transformable {
@@ -27,9 +31,13 @@ impl Transformable {
             Transformable::FileReadTransformable(cursor) => {
                 Ok(RawData::from_int(cursor.clone(), simulator.get_word_size()))
             }
+            Transformable::NullOpTransformable => {
+                Ok(RawData::empty_data(simulator.get_word_size()))
+            }
         }
     }
-    pub fn set(&mut self, data: RawData, simulator: &mut Simulator) -> Result<(), SimulatorError> {
+
+    pub fn set(&self, data: RawData, simulator: &mut Simulator) -> Result<(), SimulatorError> {
         match self {
             Transformable::InputOutputTransformable(input_output) => {
                 input_output.set(simulator, data)
@@ -40,7 +48,27 @@ impl Transformable {
             Transformable::MemoryTransformable(address) => {
                 simulator.get_memory_mut().write(address.clone(), &data)
             }
-            Transformable::FileReadTransformable(cursor) => todo!(), //must be todo until read instructions are done
+            Transformable::FileReadTransformable(cursor) => todo!(),
+            Transformable::NullOpTransformable => Ok(()),
+        }
+    }
+
+    pub fn create_transformation(
+        &self,
+        simulator: &Simulator,
+        output: RawData,
+    ) -> Result<Transformation, SimulatorError> {
+        Ok(Transformation::new(
+            self.clone(),
+            self.get(simulator)?,
+            output,
+        ))
+    }
+
+    pub fn is_nullop(&self) -> bool {
+        match self {
+            Transformable::NullOpTransformable => true,
+            _ => false,
         }
     }
 }
@@ -58,6 +86,7 @@ impl Clone for Transformable {
             Transformable::FileReadTransformable(cursor) => {
                 Transformable::FileReadTransformable(cursor.clone())
             }
+            Transformable::NullOpTransformable => Transformable::NullOpTransformable,
         }
     }
 }

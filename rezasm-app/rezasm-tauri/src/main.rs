@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod tauri_reader;
 mod tauri_writer;
 
 extern crate lazy_static;
@@ -8,15 +9,20 @@ extern crate tauri;
 
 use lazy_static::lazy_static;
 use rezasm_core::instructions::implementation::register_instructions;
+use rezasm_core::simulation::reader_cell::ReaderCell;
 use rezasm_web_core::{
     get_exit_status, get_memory_bounds, get_memory_slice, get_register_names, get_register_value,
-    get_register_values, get_word_size, is_completed, load, receive_input, register_writer, reset,
-    step, stop,
+    get_register_values, get_simulator_mut, get_word_size, initialize_simulator, is_completed,
+    load, reset, step, step_back, stop,
 };
 use tauri::{Manager, Window};
+use tauri_reader::TauriReader;
 
 use crate::tauri_writer::TauriWriter;
-use std::sync::{Arc, RwLock};
+use std::{
+    io::Write,
+    sync::{Arc, RwLock},
+};
 
 lazy_static! {
     static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
@@ -56,6 +62,11 @@ fn tauri_load(lines: &str) -> Result<(), String> {
 #[tauri::command()]
 fn tauri_step() -> Result<(), String> {
     step()
+}
+
+#[tauri::command()]
+fn tauri_step_back() -> Result<(), String> {
+    step_back()
 }
 
 #[tauri::command]
@@ -100,12 +111,18 @@ fn tauri_get_word_size() -> usize {
 
 #[tauri::command]
 fn tauri_receive_input(data: &str) {
-    receive_input(data);
+    let mut simulator = get_simulator_mut();
+    let reader = simulator.get_reader_mut();
+    reader.write(data.as_bytes()).unwrap();
+    reader.write(&[b'\n']).unwrap();
 }
 
 fn main() {
     register_instructions();
-    register_writer(Box::new(TauriWriter::new()));
+    initialize_simulator(
+        Some(ReaderCell::new(TauriReader::new())),
+        Some(Box::new(TauriWriter::new())),
+    );
 
     tauri::Builder::default()
         .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))
@@ -113,6 +130,7 @@ fn main() {
             tauri_load,
             tauri_reset,
             tauri_step,
+            tauri_step_back,
             tauri_stop,
             tauri_is_completed,
             tauri_get_exit_status,

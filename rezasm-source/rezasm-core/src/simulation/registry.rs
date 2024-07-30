@@ -11,9 +11,11 @@ use crate::util::word_size::WordSize;
 const REGISTERS_COUNT: usize = 54;
 
 pub const ZERO_NUMBER: usize = 0;
+pub const FID_NUMBER: usize = 2;
 pub const PC_NUMBER: usize = 3;
 pub const SP_NUMBER: usize = 4;
-pub const FID_NUMBER: usize = 2;
+pub const RA_NUMBER: usize = 5;
+pub const R0_NUMBER: usize = 9;
 
 lazy_static! {
     pub static ref REGISTERS_MAP: BiMap<String, usize> = {

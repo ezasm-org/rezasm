@@ -1,62 +1,69 @@
 use crate::util::cli_io::InputSource::{ConsoleInput, FileInput};
 use crate::util::cli_io::OutputSink::{ConsoleOutput, FileOutput};
+use rezasm_core::simulation::reader::Reader;
 use rezasm_core::simulation::writer::Writer;
 use rezasm_core::util::as_any::AsAny;
 use rezasm_core::util::error::IoError;
 use rezasm_core::util::io::{RezasmFileReader, RezasmFileWriter};
-use scanner_rust::Scanner;
+use scanner_rust::{Scanner, ScannerAscii};
 use std::any::Any;
-use std::io::{stdin, stdout, Stdin, Write};
+use std::io::{self, stdin, stdout, Stdin, Write};
 
+#[derive(Debug)]
 pub enum InputSource {
     FileInput(Scanner<RezasmFileReader>),
-    ConsoleInput(Scanner<Stdin>),
+    ConsoleInput(Stdin),
 }
 
 impl InputSource {
     pub fn new_console() -> InputSource {
-        ConsoleInput(Scanner::new(stdin()))
+        ConsoleInput(stdin())
     }
 
     pub fn new_file(file: RezasmFileReader) -> InputSource {
         FileInput(Scanner::new(file))
     }
 
-    pub fn read_line(&mut self) -> Result<String, IoError> {
-        let s = match self {
-            FileInput(s) => s.next_line()?,
-            ConsoleInput(s) => s.next_line()?,
-        };
-        Ok(s.ok_or(IoError::OutOfBoundsError)?.trim().to_string())
-    }
-
-    pub fn read_word(&mut self) -> Result<String, IoError> {
-        let s = match self {
-            FileInput(s) => s.next()?,
-            ConsoleInput(s) => s.next()?,
-        };
-        s.ok_or(IoError::OutOfBoundsError)
-    }
-
-    pub fn read_char(&mut self) -> Result<char, IoError> {
-        let c = match self {
-            FileInput(s) => s.next_char()?,
-            ConsoleInput(s) => s.next_char()?,
-        }
-        .ok_or(IoError::OutOfBoundsError)?;
-        if char::is_whitespace(c) {
-            self.read_char()
-        } else {
-            Ok(c)
-        }
-    }
-
     pub fn read_raw(&mut self) -> Result<u8, IoError> {
         let b = match self {
             FileInput(s) => s.next_bytes(1)?,
-            ConsoleInput(s) => s.next_bytes(1)?,
+            ConsoleInput(s) => ScannerAscii::new(s).next_bytes(1)?,
         };
         Ok(b.ok_or(IoError::OutOfBoundsError)?[0])
+    }
+}
+
+impl Reader for InputSource {}
+
+impl io::Read for InputSource {
+    fn read(&mut self, mut buf: &mut [u8]) -> io::Result<usize> {
+        match self {
+            ConsoleInput(readable) => readable.read(buf),
+            FileInput(file) => {
+                let next = file.next().unwrap().unwrap();
+                buf.write(next.as_bytes())
+            }
+        }
+    }
+}
+
+impl io::Write for InputSource {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        Ok(0)
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        Ok(())
+    }
+}
+
+impl AsAny for InputSource {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
     }
 }
 
