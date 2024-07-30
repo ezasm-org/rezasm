@@ -356,18 +356,17 @@ pub fn is_numeric(token: &String) -> bool {
 
 pub fn tokenize_line(text: &String) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
-    let trimmed = match text.split("#").nth(0) {
-        None => text,
-        Some(first) => first,
-    }
-    .trim();
 
     let mut in_single_quotes = false;
     let mut in_double_quotes = false;
     let mut escape_next = false;
     let mut current: String = String::new();
 
-    for c in trimmed.chars() {
+    for c in text.chars() {
+        if c == '#' && !in_single_quotes && !in_double_quotes {
+            break;
+        }
+
         if escape_next {
             escape_next = false;
             current.push(c);
