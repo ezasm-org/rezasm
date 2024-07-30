@@ -20,15 +20,16 @@ pub mod test_utils;
 mod tests {
     use std::{fs, io};
 
+    use super::*;
+    use crate::instructions::implementation::register_instructions;
     use parser::lexer::parse_lines;
-    use simulation::{program::Program, registry, simulator::Simulator};
+    use simulation::simulator::Simulator;
     use test_utils::workspace_root;
     use util::word_size::WordSize;
 
-    use super::*;
-
     #[test]
     fn test_fibo() {
+        register_instructions();
         let word_size = WordSize::Eight;
         let file_name = "MainFile".to_string();
 
@@ -43,9 +44,8 @@ mod tests {
 
         let code = fs::read_to_string(&path).expect(format!("File {}: read failed", path).as_str());
         let lines = parse_lines(&code, &word_size).expect("Lexing failed");
-        let mut program = Program::new();
         lines.into_iter().for_each(|line| {
-            program
+            simulator
                 .add_line(line, file_name.clone())
                 .expect("Failed to add line")
         });
@@ -57,7 +57,7 @@ mod tests {
         assert_eq!(
             simulator
                 .get_registers_mut()
-                .get_register(&registry::A1.to_string())
+                .get_register("A1")
                 .expect("Register access error")
                 .get_data()
                 .int_value(),

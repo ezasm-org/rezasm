@@ -354,7 +354,7 @@ pub fn is_numeric(token: &String) -> bool {
         || decimal_pattern.is_match(lower.as_str())
 }
 
-pub fn tokenize_line(text: &String) -> Vec<String> {
+pub fn tokenize_line(text: &str) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
 
     let mut in_single_quotes = false;
@@ -399,6 +399,8 @@ mod tests {
     use super::*;
     use crate::instructions::implementation::register_instructions;
     use crate::instructions::instruction_registry::get_instruction;
+    use crate::test_utils::workspace_root;
+    use std::fs;
 
     // Moved from Trevor's test in tests/core.rs
     #[test]
@@ -430,7 +432,8 @@ mod tests {
             "add",
             vec!["$t0".into(), "1".into(), "2".into()],
             &word_size,
-        ).expect("New line failed");
+        )
+        .expect("New line failed");
 
         assert_eq!(expected, actual);
 
@@ -438,14 +441,15 @@ mod tests {
             &r#"move $s0 "This has a # character"  # and a # comment"#.to_string(),
             &word_size,
         )
-            .expect("Parsing Empty")
-            .expect("Parsing Error");
+        .expect("Parsing Empty")
+        .expect("Parsing Error");
 
         let expected = Line::new(
             "move",
-            vec!["$s0".into(), r#"This has a # character"#.into()],
+            vec!["$s0".into(), r#""This has a # character""#.into()],
             &word_size,
-        ).expect("New line failed");
+        )
+        .expect("New line failed");
 
         assert_eq!(expected, actual);
     }
@@ -461,12 +465,15 @@ mod tests {
 
         let actual = parse_lines(code, &word_size).expect("Parsing Error");
 
-        let expected = vec![Line::new(
-            "move",
-            vec!["$s0".into(), r#""This has a # character"#.into()],
-            &word_size,
-        )
-        .expect("New line failed")];
+        let expected = vec![
+            Line::new(
+                "move",
+                vec!["$s0".into(), r#""This has a # character""#.into()],
+                &word_size,
+            )
+            .expect("New line failed"),
+            Line::new("prints", vec!["$s0".into()], &word_size).expect("New line failed"),
+        ];
 
         assert_eq!(expected, actual);
     }
@@ -481,5 +488,41 @@ mod tests {
             },
             16.5
         );
+    }
+
+    #[test]
+    fn test_parse_fibo() {
+        register_instructions();
+        let word_size = WordSize::default();
+
+        let workspace = workspace_root()
+            .to_str()
+            .expect("workspace_root to string failed")
+            .to_string();
+        let path = format!("{workspace}/example/fibonacci_jump.ez");
+
+        let code = fs::read_to_string(&path).expect(&format!("File {path}: read failed"));
+        let actual = parse_lines(&code, &word_size).expect("Parsing failed");
+
+        let expected_args = vec![
+            ("move", vec!["$a0".to_string(), "10".into()]),
+            ("move", vec!["$t0".into(), "0".into()]),
+            ("move", vec!["$t1".into(), "1".into()]),
+            ("move", vec!["$t3".into(), "0".into()]),
+            ("fib:", vec![]),
+            ("add", vec!["$t2".into(), "$t0".into(), "$t1".into()]),
+            ("move", vec!["$t0".into(), "$t1".into()]),
+            ("move", vec!["$t1".into(), "$t2".into()]),
+            ("add", vec!["$t3".into(), "$t3".into(), "1".into()]),
+            ("bne", vec!["$t3".into(), "$a0".into(), "fib".into()]),
+            ("move", vec!["$a1".into(), "$t1".into()]),
+        ];
+
+        let mut expected = vec![];
+        for (inst, args) in expected_args {
+            expected.push(Line::new(inst, args, &word_size).expect("Failed to create Line"));
+        }
+
+        assert_eq!(expected, actual);
     }
 }

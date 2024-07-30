@@ -205,7 +205,7 @@ impl Registry {
         }
     }
 
-    pub fn get_register(&self, register: &String) -> Result<&Register, ParserError> {
+    pub fn get_register(&self, register: &str) -> Result<&Register, ParserError> {
         let no_dollar = if register.starts_with('$') {
             register[1..].to_uppercase()
         } else {
