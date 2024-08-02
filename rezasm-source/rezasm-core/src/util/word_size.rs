@@ -24,3 +24,10 @@ impl WordSize {
         }
     }
 }
+
+impl Default for WordSize {
+    #[inline]
+    fn default() -> Self {
+        WordSize::Four
+    }
+}

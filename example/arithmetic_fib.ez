@@ -1,15 +1,30 @@
+#   function fibonacci(t9: num) -> num {
+#       t0 <- 0
+#       t1 <- 1
+#
+#       t8 <- 0
+#       while (t8 < t9) {
+#           t2 <- t0 + t1
+#           t0 <- t1
+#           t1 <- t2
+#           t8 <- t8 + 1
+#       }
+#
+#       return t2
+#   }
+
 # Setup
-add $t0 0 0
-add $t1 0 1
-add $t9 0 10
-add $t8 0 0
+add $t0 0 0         # Set $t0 to 0
+add $t1 0 1         # Set $t1 to 1
+add $t9 0 10        # Set $t9 to 10
+add $t8 0 0         # Set $t8 to 0
 
 # Fibonacci
 fib:
-add $t2 $t0 $t1
-add $t0 0 $t1
-add $t1 0 $t2
-add $t8 $t8 1
+add $t2 $t0 $t1     # $t2 <- $t0 + $t1
+add $t0 0 $t1       # $t0 <- $t1
+add $t1 0 $t2       # $t1 <- $t2
+add $t8 $t8 1       # $t8++
 
 # If counter $t8 < $t9, go back to fib
 div $t7 $t8 $t9
@@ -19,5 +34,6 @@ sub $t6 $pc fib
 add $t6 $t6 3
 mul $t6 $t6 $t7
 sub $pc $pc $t6
+# ^^ This whole section just jumps to fib if $t8 < $t9, otherwise it continues
 
-add $r0 0 $t2
+add $r0 0 $t2       # Returns the $t9'th Fibonacci number as the exit code

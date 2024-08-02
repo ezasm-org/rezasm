@@ -1,0 +1,33 @@
+#   function fibonacci(a0: num) -> num {
+#       t0 <- 0
+#       t1 <- 1
+#
+#       t3 <- 0
+#       while (t3 != num) {
+#           t2 <- t0 + t1
+#           t0 <- t1
+#           t1 <- t2
+#           t3 <- t3 + 1
+#       }
+#
+#       return t1 through a1
+#   }
+
+move $a0 10
+
+move $t0 0
+move $t1 1
+
+move $t3 0
+
+fib:
+  # Do the Fibonacci update
+  add $t2 $t0 $t1
+  move $t0 $t1
+  move $t1 $t2
+
+  add $t3 $t3 1  # Increment iteration tracking register
+  bne $t3 $a0 fib  # returns to fib if the result if iteration needed.
+
+move $a1 $t1
+

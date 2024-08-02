@@ -12,7 +12,7 @@ pub type TInstructionFunction = fn(
     &Vec<ArgumentType>,
 ) -> Result<TransformationSequence, SimulatorError>;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub struct Instruction {
     name: String,
     types: Vec<TypeId>,
