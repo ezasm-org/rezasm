@@ -39,7 +39,7 @@ export default class WasmFs implements BaseFileSystem {
     }
 
 
-    async copyFile(from: string, to: string): Promise<bigint> {
+    async copyFile({from, to}: {from: string, to: string}): Promise<bigint> {
         const src = await this.getFileHandle(from);
         const dstParent = await this.getDirectoryHandle(WasmFs.getParentPath(to));
         const dstFilename = filename(to);
@@ -51,13 +51,13 @@ export default class WasmFs implements BaseFileSystem {
         return BigInt(0);
     }
 
-    async createDir(path: string): Promise<void> {
+    async createDir({path}: {path: string}): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
         const folderName = filename(path);
         // console.debug(`Creating directory ${folderName} in ${parentHandle.name}`);
         await parentHandle.getDirectoryHandle(folderName, {create: true});
     }
-    async createDirWithParents(path: string): Promise<void> {
+    async createDirWithParents({path}: {path: string}): Promise<void> {
         const parts = path.split("/");
         let current = this.rootDirectoryHandle;
         // console.debug(`Creating parts: ${JSON.stringify(parts)}`);
@@ -65,13 +65,13 @@ export default class WasmFs implements BaseFileSystem {
             current = await current.getDirectoryHandle(part, {create: true});
         }
     }
-    async createFile(path: string): Promise<void> {
+    async createFile({path}: {path: string}): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
         const fileName = filename(path);
         // console.debug(`Creating file ${fileName} in ${parentHandle.name}`);
         await parentHandle.getFileHandle(fileName, {create: true});
     }
-    async readDir(path: string): Promise<[string, boolean][]> {
+    async readDir({path}: {path: string}): Promise<[string, boolean][]> {
         // console.debug(path);
         const dirHandle = await this.getDirectoryHandle(path);
         // console.debug(dirHandle);
@@ -83,42 +83,42 @@ export default class WasmFs implements BaseFileSystem {
         // console.debug(entries);
         return entries.map((entry) => [entry.name, entry.kind === "directory"]);
     }
-    async readToString(path: string): Promise<string> {
+    async readToString({path}: {path: string}): Promise<string> {
         const handle = await this.getFileHandle(path);
         // console.debug(`Reading file ${path}`);
         const file = await handle.getFile();
         return await file.text();
     }
-    async removeDir(path: string): Promise<void> {
+    async removeDir({path}: {path: string}): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
         const folderName = filename(path);
         // console.debug(`Removing directory ${folderName} from ${parentHandle.name}`);
         await parentHandle.removeEntry(folderName);
         this.dirHandleCache.delete(path);
     }
-    async removeDirRecursive(path: string): Promise<void> {
+    async removeDirRecursive({path}: {path: string}): Promise<void> {
         const dirHandle = await this.getDirectoryHandle(path);
         const promises: Promise<unknown>[] = [];
         // console.debug(`Removing directory ${dirHandle.name} recursively`);
         for await (const value of dirHandle.values()) {
             const truePath = joinPath(path, value.name);
-            promises.push(value.kind === "directory" ? this.removeDirRecursive(truePath) : this.removeFile(truePath));
+            promises.push(value.kind === "directory" ? this.removeDirRecursive({path: truePath}) : this.removeFile({path: truePath}));
         }
         await Promise.all(promises);
-        await this.removeDir(path);
+        await this.removeDir({path});
     }
-    async removeFile(path: string): Promise<void> {
+    async removeFile({path}: {path: string}): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
         const fileName = filename(path);
         // console.debug(`Removing file ${fileName} from ${parentHandle.name}`);
         await parentHandle.removeEntry(fileName);
     }
-    async renameFile(from: string, to: string): Promise<void> {
-        await this.copyFile(from, to);
-        await this.removeFile(from);
+    async rename({from, to}: {from: string, to: string}): Promise<void> {
+        await this.copyFile({from, to});
+        await this.removeFile({path: from});
     }
 
-    async writeFile(path:string, contents:string): Promise<bigint> {
+    async writeFile({path, contents}: {path: string, contents: string}): Promise<void> {
         const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
         const fileName = filename(path);
         // console.debug(`Writing to file ${fileName} in ${parentHandle.name}`);
@@ -126,7 +126,6 @@ export default class WasmFs implements BaseFileSystem {
         const writable = await fileHandle.createWritable();
         await writable.write(contents);
         await writable.close();
-        return BigInt(contents.length);
 
     }
 }
@@ -220,10 +219,10 @@ export class WasmProjectDataStore extends ProjectDataStore {
         await Promise.all(input.children.map(async (child) => {
             const path = joinPath(parentDirName, child.name);
             if (child.isDir) {
-                await this.basefs.createDir(path);
+                await this.basefs.createDir({path});
                 await this.deserializeIndexedDbToWasmFs(child, path);
             } else {
-                await this.basefs.writeFile(path, child.contents!);
+                await this.basefs.writeFile({path, contents: child.contents!});
             }
         }));
     }
@@ -275,22 +274,21 @@ export class WasmProjectDataStore extends ProjectDataStore {
         await promisifyTransaction(transaction2);
     }
 
+    async closeProject(): Promise<void> {
+        const existingData = await this.basefs.readDir({path: "/"});
+        await Promise.all(existingData.map(([name, isDir]) => isDir ? this.basefs.removeDirRecursive({path: "/" + name}) : this.basefs.removeFile({path: "/" +name})));
+    }
+
     async getProject(projectName: string): Promise<FsDir | null> {
-        console.log(1);
         if (this.indexedDb === null) {
             throw new Error("IndexedDB not initialized");
         }
-        console.log(2);
         const transaction = this.indexedDb.transaction("projectData", "readonly");
         const objectStore = transaction.objectStore("projectData");
-        console.log(3);
         const data: IndexedDbProjectItem | null = (await promisifyRequest(objectStore.get(projectName))) ?? null;
-        console.log(data);
         if (data === null) {
             return null;
         } else {
-            const existingData = await this.basefs.readDir("/");
-            await Promise.all(existingData.map(([name, isDir]) => isDir ? this.basefs.removeDirRecursive("/" + name) : this.basefs.removeFile("/" + name)));
             await this.deserializeIndexedDbToWasmFs(data);
             return new FsDir("/", null);
         }

@@ -12,6 +12,7 @@ export abstract class ProjectDataStore {
     protected savedProjects: ProjectData = {};
     abstract initDataStore(): Promise<void>;
     abstract saveProject(root: FsDir, projectName: string): Promise<void>;
+    abstract closeProject(): Promise<void>;
     abstract getProject(projectName: string): Promise<FsDir | null>;
 
     public get projects(): Readonly<ProjectData> {
@@ -36,5 +37,9 @@ export class TauriProjectDataStore extends ProjectDataStore {
             return null;
         }
         return new FsDir("/", null);
+    }
+
+    async closeProject(): Promise<void> {
+        // No-op
     }
 }

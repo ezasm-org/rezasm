@@ -133,10 +133,13 @@ export function filename(path: string): string {
 }
 
 export function directoryname(path: string): string {
+    if (path.lastIndexOf("/") === 0) {
+        return "/";
+    }
     return path.substring(0, path.lastIndexOf("/"));
 }
 
-type BaseFileSystem = FileSystem;
+export type BaseFileSystem = FileSystem;
 
 export interface ContextFileSystem {
     copyFile(from: FsFile, toParent: FsDir, toName?: string): Promise<FsFile>;
@@ -148,7 +151,7 @@ export interface ContextFileSystem {
     removeDir(path: FsDir): Promise<void>;
     removeDirRecursive(path: FsDir): Promise<void>;
     removeFile(path: FsFile): Promise<void>;
-    renameFile(from: FsFile, to: string): Promise<FsFile>;
+    rename(from: FsFile, to: string): Promise<FsFile>;
     writeFile(file: FsFile, contents: string): Promise<void>;
     init: boolean;
 }
@@ -177,18 +180,22 @@ export const DummyFsOps: ContextFileSystem = {
     removeDir: notDefined,
     removeDirRecursive: notDefined,
     removeFile: notDefined,
-    renameFile: notDefined,
+    rename: notDefined,
     writeFile: notDefined,
     init: false
 };
 
 class DummyProjectHandler extends ProjectDataStore {
     async initDataStore() {
-         notDefined();
+        notDefined();
     }
     async saveProject() {
         notDefined();
     }
+    async closeProject() {
+        notDefined();
+    }
+
     async getProject() {
         notDefined();
         return null;

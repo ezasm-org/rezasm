@@ -181,11 +181,11 @@ export function OpenProjectModal(props: { closeModal: () => unknown }) {
             <ModalPrimaryButton
                 disabled={selectedProjectName === null}
                 onClick={() => {
-                    fs.projectHandler!.getProject(selectedProjectName!).then((newRoot) => {
+                    fs.projectHandler!.closeProject().then(() => fs.projectHandler.getProject(selectedProjectName!)).then((newRoot) => {
                         if (newRoot) {
                             fs.setRoot(newRoot);
                         } else {
-                            alert("Invalid project found.")
+                            alert("Invalid project found.");
                         }
                         props.closeModal();
                     });

@@ -1,5 +1,8 @@
 import {useContext, useEffect, useMemo, useReducer, useState} from "react";
-import {AbstractFsFile, FsActionsContext, FsContext, FsDir} from "../fsContext.ts";
+import {AbstractFsFile, directoryname, FsActionsContext, FsContext, FsDir} from "../fsContext.ts";
+import {open} from "@tauri-apps/api/dialog";
+import tauri_file_system from "../tauri_file_system.ts";
+import {initEmptyFs} from "../wasmFs.ts";
 
 export function FileSidebar(props: {file: AbstractFsFile, clickable?: boolean}) {
     return <span className={(props.clickable ?? true) ? "hover:bg-gray-200 cursor-pointer" : undefined}>{props.file.name}</span>;
@@ -29,7 +32,63 @@ export default function FilesystemSidebar() {
     return <div className="filesystem-sidebar border mx-2 px-2 flex flex-col">
         {rootSidebar}
         <div className="flex flex-col mt-6 gap-1.5">
-            <button className="bg-blue-600 p-1 text-white">Open Folder</button>
+            <button className="bg-blue-600 p-1 text-white" onClick={() => {
+                if (window.__TAURI__) {
+                    open({
+                        directory: true,
+                        multiple: false,
+                        title: "Open Project",
+                        recursive: true
+                    }).then((result) => {
+                        if (result === null) {
+                            return;
+                        }
+                        if (Array.isArray(result)) {
+                            result = result[0];
+                        }
+                        fs.setBaseFS(tauri_file_system);
+                        fs.setRoot(new FsDir(result, null));
+                    });
+                } else {
+                    fs.ops.rename(fs.getItem("/testfolder")!, "/testfolder2");
+                    const inputElement = document.createElement("input");
+                    inputElement.type = "file";
+                    inputElement.webkitdirectory = true;
+                    inputElement.onchange = (e) => {
+                        const files = (e.target as HTMLInputElement).files;
+                        if (files === null) {
+                            return;
+                        }
+                        console.log(1);
+                        fs.projectHandler!.closeProject().then(async () => {
+                            console.log(2);
+                            const filesArray = Array.from(files);
+                            const newFoldersToCreate = new Set<string>();
+                            filesArray.forEach(file => {
+                                const properDirectory = directoryname(file.webkitRelativePath.substring(file.webkitRelativePath.indexOf("/")));
+                                newFoldersToCreate.add(properDirectory);
+                            });
+                            console.log(3);
+                            const baseFs = await initEmptyFs();
+                            console.log(newFoldersToCreate);
+                            await Promise.all(Array.from(newFoldersToCreate).filter(folder=>!!folder).map((folder) => baseFs.createDir({path: folder})));
+                            console.log(4);
+                            await Promise.all(filesArray.map(async (file) => {
+                                const properPath = file.webkitRelativePath.substring(file.webkitRelativePath.indexOf("/"));
+                                await baseFs.createFile({path: properPath});
+                                await baseFs.writeFile({path: properPath, contents: await file.text()});
+                            }));
+                            console.log(5);
+                            fs.setRoot(new FsDir("/", null));
+                            fs.setBaseFS(baseFs);
+                        });
+                    };
+                    inputElement.style.display = "none";
+                    document.body.appendChild(inputElement);
+                    inputElement.click();
+                    document.body.removeChild(inputElement);
+                }
+            }}>Open Folder</button>
             <button className="bg-blue-600 p-1 text-white"
                 onClick={() => actions.showCreateDirModal(fs.root!, setCounter)}>Create Directory
             </button>

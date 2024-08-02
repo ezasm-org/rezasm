@@ -25,14 +25,20 @@ export default function FsContextProvider(props: PropsWithChildren) {
         if (!root || !path) {
             return null;
         }
+        if (path === "/") {
+            return root;
+        }
         const paths = path.split("/");
-        if (paths[0] === root.name) {
+        if (paths[0] === root.name || paths[0] === "") {
             paths.shift();
         }
+        console.log(paths);
         let current: FsDir = root;
         for (let num = 0; num < paths.length; num++) {
+            console.log(current);
             const path_part = paths[num];
             const next = current.getChild(path_part);
+            console.log(next, !next, num !== paths.length, !next!.isDir);
             if (!next || (num !== paths.length - 1 && !next.isDir)) {
                 return null;
             }
@@ -41,6 +47,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
             }
             current = next;
         }
+        console.log("Current: %o", current);
         return current;
 
     }, [root]);
@@ -52,7 +59,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
         const copyFile: ContextFileSystem["copyFile"] = async (from: FsFile, toParent: FsDir, toName?: string) => {
             const fromPath = from.path();
             const toFileName = toName ?? from.name;
-            await fsProvider!.copyFile(fromPath, joinPath(toParent, toFileName));
+            await fsProvider!.copyFile({from: fromPath, to: joinPath(toParent, toFileName)});
             const toFile = new FsFile(toFileName, toParent);
             toParent.addChild(toFile);
             return toFile;
@@ -60,7 +67,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
         
         const createFile: ContextFileSystem["createFile"] = async(parent: FsDir, path: string)  => {
             const targetPath = joinPath(parent, path);
-            await fsProvider!.createFile(targetPath);
+            await fsProvider!.createFile({path: targetPath});
             const fileName = filename(targetPath);
             const newFile = new FsFile(fileName, parent);
             parent.addChild(newFile);
@@ -69,7 +76,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
         
         const createDir: ContextFileSystem["createDir"] = async (parent: FsDir, path: string)=> {
             const targetPath = joinPath(parent, path);
-            await fsProvider!.createDir(targetPath);
+            await fsProvider!.createDir({path: targetPath});
             const dirName = filename(targetPath);
             const newDir = new FsDir(dirName, parent);
             parent.addChild(newDir);
@@ -82,7 +89,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
             for (let i = 0; i < pieces.length; i++) {
                 const piece = pieces[i];
                 if (!current.getChild(piece)) {
-                    const part = await FsOps.createDir(current, piece);
+                    const part = await createDir(current, piece);
                     current.addChild(part);
                     current = part;
                 } else {
@@ -100,7 +107,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
         const readDir: ContextFileSystem["readDir"] = async (parent: FsDir): Promise<Map<string, FsItem>> => {
             // console.debug("Starting: ");
             // console.debug(parent);
-            const items = await fsProvider!.readDir(parent.path());
+            const items = await fsProvider!.readDir({path: parent.path()});
             // console.debug(items);
             const map = new Map<string, FsItem>();
             const dirs: FsDir[] = [];
@@ -119,11 +126,11 @@ export default function FsContextProvider(props: PropsWithChildren) {
         };
 
         const readToString: ContextFileSystem["readToString"] = async (file: FsFile) => {
-            return fsProvider!.readToString(file.path());
+            return fsProvider!.readToString({path: file.path()});
         };
 
         const removeFile: ContextFileSystem["removeFile"] = async (file: FsFile) => {
-            await fsProvider!.removeFile(file.path());
+            await fsProvider!.removeFile({path: file.path()});
             file.parent.removeChild(file.name);
         };
 
@@ -131,7 +138,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
             if (dir.parent === null) {
                 throw new Error("Cannot remove root directory.");
             }
-            await fsProvider!.removeDir(dir.path());
+            await fsProvider!.removeDir({path: dir.path()});
             dir.parent.removeChild(dir.name);
         };
 
@@ -139,17 +146,17 @@ export default function FsContextProvider(props: PropsWithChildren) {
             if (dir.parent === null) {
                 throw new Error("Cannot remove root directory.");
             }
-            await fsProvider!.removeDirRecursive(dir.path());
+            await fsProvider!.removeDirRecursive({path: dir.path()});
             dir.parent.removeChild(dir.name);
         };
 
-        const renameFile: ContextFileSystem["renameFile"] = async (file: FsFile, newPath: string) => {
+        const rename: ContextFileSystem["rename"] = async (file: FsFile, newPath: string) => {
             const newName = filename(newPath);
             const newPathParent = getItem(directoryname(newPath));
             if (!newPathParent) {
                 throw new Error(`Parent directory of ${newPath} does not exist.`);
             }
-            await fsProvider!.renameFile(file.path(), newPath);
+            await fsProvider!.rename({from: file.path(), to: newPath});
             file.parent.removeChild(file.name);
             file.name = newName;
             file.parent.addChild(file);
@@ -157,7 +164,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
         };
 
         const writeFile: ContextFileSystem["writeFile"] = async (file: FsFile, contents: string) => {
-            await fsProvider!.writeFile(file.path(), contents);
+            await fsProvider!.writeFile({path: file.path(), contents});
         };
 
         return {
@@ -170,7 +177,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
             removeFile,
             removeDir,
             removeDirRecursive,
-            renameFile,
+            rename,
             writeFile,
             init: true
         };
