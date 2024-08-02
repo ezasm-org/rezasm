@@ -25,14 +25,15 @@ mod tests {
     use std::ops::Deref;
 
     use arithmetic_instructions::ADD;
-    use crate::parser::lexer::parse_lines;
-    use crate::test_utils::{workspace_root, TestWriter};
 
+    use crate::instructions::argument_type::ArgumentType;
+    use crate::instructions::targets::input_output_target::InputOutputTarget;
+    use crate::instructions::targets::input_target::InputTarget;
+    use crate::parser::lexer::parse_lines;
+    use crate::simulation::simulator::Simulator;
+    use crate::test_utils::{workspace_root, TestWriter};
     use crate::util::io::RezasmFileReader;
-    use crate::{
-        parser::line::Line,
-        simulation::{registry, simulator::Simulator},
-    };
+    use crate::util::raw_data::RawData;
 
     use super::*;
 
@@ -41,37 +42,31 @@ mod tests {
     pub fn test_macro() {
         register_instructions();
         let mut simulator: Simulator = Simulator::new();
+        let word_size = simulator.get_word_size();
 
-        let line: Line = Line::new(
-            &String::from("add"),
-            ["$T0".to_string(), "$T0".to_string(), "121".to_string()].to_vec(),
-            simulator.get_word_size(),
-        )
-        .unwrap();
+        let args = vec![
+            ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(22)),
+            ArgumentType::Input(InputTarget::RegisterInput(22)),
+            ArgumentType::Input(InputTarget::ImmediateInput(RawData::from_int(
+                121, word_size,
+            ))),
+        ];
 
-        let args = match line {
-            Line::Instruction(_, args) => args,
-            _ => Vec::new(),
-        };
-
-        let foo = &ADD;
-
-        match foo.call_function(&mut simulator, &args) {
-            Ok(_) => {
-                assert_eq!(
-                    simulator
-                        .get_registers()
-                        .get_register(&registry::T0.to_string())
-                        .unwrap()
-                        .get_data()
-                        .int_value(),
-                    121
-                );
-            }
-            Err(_) => {
-                assert!(false);
-            }
-        }
+        let seq = ADD
+            .call_function(&mut simulator, &args)
+            .expect("Failed to call function");
+        simulator
+            .apply_transformation(seq)
+            .expect("Failed to apply transformation sequence");
+        assert_eq!(
+            simulator
+                .get_registers()
+                .get_register("T0")
+                .expect("Register access error")
+                .get_data()
+                .int_value(),
+            121
+        );
     }
 
     // Moved from Trevor's test in tests/core.rs
@@ -90,7 +85,7 @@ mod tests {
         printf $t1
         printc $s1
         prints $s2";
-        let lines = parse_lines(&program.to_string(), simulator.get_word_size()).unwrap();
+        let lines = parse_lines(program, simulator.get_word_size()).unwrap();
         simulator.add_lines(lines, "".to_string()).unwrap();
         while !simulator.is_done() {
             simulator.run_line_from_pc().unwrap();
@@ -146,7 +141,7 @@ mod tests {
         assert_eq!(35, rezasmfile.peek_absolute_byte(0).unwrap());
 
         // Check validity (should be invalid).
-        assert_eq!(false, rezasmfile.is_cursor_valid());
+        assert!(!rezasmfile.is_cursor_valid());
 
         // Convert to a writer.
         let file_path = workspace_root().join("example").join("arith_modified.ez");

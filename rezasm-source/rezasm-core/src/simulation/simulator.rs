@@ -40,6 +40,13 @@ impl Simulator {
             Box::new(DummyWriter::new()),
         )
     }
+    
+    pub fn new_writer(writer: WriterBox) -> Self {
+        Simulator::new_custom_reader_writer(
+            ReaderCell::new(DummyReader::new()),
+            writer
+        )
+    }
 
     pub fn new_custom_reader_writer(reader: ReaderCell, writer: WriterBox) -> Simulator {
         Simulator::new_custom(

@@ -22,6 +22,8 @@ mod tests {
 
     use super::*;
     use crate::instructions::implementation::register_instructions;
+    use crate::simulation::reader::DummyReader;
+    use crate::simulation::reader_cell::ReaderCell;
     use parser::lexer::parse_lines;
     use simulation::simulator::Simulator;
     use test_utils::workspace_root;
@@ -33,7 +35,12 @@ mod tests {
         let word_size = WordSize::Eight;
         let file_name = "MainFile".to_string();
 
-        let mut simulator = Simulator::new_custom(&word_size, 1024, Box::new(io::stdout()));
+        let mut simulator = Simulator::new_custom(
+            &word_size,
+            1024,
+            ReaderCell::new(DummyReader::new()),
+            Box::new(io::stdout()),
+        );
 
         let workspace = workspace_root()
             .to_str()
