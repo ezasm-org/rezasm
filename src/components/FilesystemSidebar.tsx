@@ -50,7 +50,6 @@ export default function FilesystemSidebar() {
                         fs.setRoot(new FsDir(result, null));
                     });
                 } else {
-                    fs.ops.rename(fs.getItem("/testfolder")!, "/testfolder2");
                     const inputElement = document.createElement("input");
                     inputElement.type = "file";
                     inputElement.webkitdirectory = true;

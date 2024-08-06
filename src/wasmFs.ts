@@ -1,7 +1,10 @@
 import {BaseFileSystem, type ContextFileSystem, directoryname, filename, FsDir, joinPath} from "./fsContext.ts";
+import {FsType} from "./fsShared.ts";
 import {ProjectDataEntry, ProjectDataStore} from "./projectData.ts";
 
 export default class WasmFs implements BaseFileSystem {
+    readonly type = FsType.WasmLocal;
+
     private readonly rootDirectoryHandle: FileSystemDirectoryHandle;
     private readonly dirHandleCache: Map<string, FileSystemDirectoryHandle>;
 
@@ -260,9 +263,10 @@ export class WasmProjectDataStore extends ProjectDataStore {
         const transaction = this.indexedDb.transaction("projects", "readwrite");
         const projectsObjectStore = transaction.objectStore("projects");
         const lastModifiedTime = Date.now();
-        this.savedProjects[projectName] = {lastModified: lastModifiedTime};
+        this.savedProjects[projectName] = {lastModified: lastModifiedTime, rootPath: "/"};
         const entry: IndexedDbProjectEntry = {
             lastModified: lastModifiedTime,
+            rootPath: "/",
             name: projectName
         };
         projectsObjectStore.put(entry);

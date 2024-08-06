@@ -65,11 +65,11 @@ export const get_rust_function = (name: string, shape?: string[]) => {
     return async (props: Record<string, unknown>) => {
         props = props ?? {};
         if (!setsEqual(shapeSet, new Set(Object.keys(props)))) {
-            throw new Error(`Function '${name} passed with unexpected shape'`);
+            throw new Error(`Function '${name}' passed with unexpected shape`);
         }
         // @ts-expect-error -- This is not always going to exist, but the compiler doesn't know that
         if (window.__TAURI_IPC__) {
-            return invoke(`tauri_${name}`, props);
+            return await invoke(`tauri_${name}`, props);
         } else {
             if (!isValidWasmCommandString(name)) {
                 throw new Error(`Function '${name}' is not a valid wasm command`);
@@ -77,7 +77,7 @@ export const get_rust_function = (name: string, shape?: string[]) => {
             while (! await isWasmLoaded()) {
                 // wait
             }
-            return callWorkerFunction({command: name, argument: props, shape: shape});
+            return await callWorkerFunction({command: name, argument: props, shape: shape});
         }
     };
 };

@@ -1,4 +1,5 @@
-import { get_rust_function } from "./rust_functions";
+import {get_rust_function} from "./rust_functions";
+import {FsType} from "./fsShared.ts";
 
 // TODO: comment in the exception that is thrown when an error is encountered in the functions
 
@@ -145,6 +146,11 @@ export interface FileSystem {
      * ```
      */
     writeFile(props: {path: string, contents: string}): Promise<void>;
+
+    /**
+     * Identifies the type of FileSystem.
+     */
+    readonly type: FsType;
 }
 
 /**
@@ -165,6 +171,7 @@ const fs = {
     removeFile: get_rust_function("remove_file", ["path"]),
     rename: get_rust_function("rename", ["from", "to"]),
     writeFile: get_rust_function("write_file", ["path", "contents"]),
+    type: FsType.Tauri,
 } as FileSystem;
 
 export default fs;

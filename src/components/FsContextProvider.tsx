@@ -8,16 +8,15 @@ import {
     FsDir,
     FsFile,
     FsItem,
-    FsType,
     joinPath,
     parts
 } from "../fsContext.ts";
+import {FsType} from "../fsShared.ts";
 import {PropsWithChildren, useCallback, useEffect, useMemo, useState} from "react";
 import WasmFs, {initEmptyFs, WasmProjectDataStore} from "../wasmFs.ts";
 import {ProjectDataStore, TauriProjectDataStore} from "../projectData.ts";
 
 export default function FsContextProvider(props: PropsWithChildren) {
-    const [fsType, setFsType] = useState<FsType>(FsType.WasmLocal);
     const [root, setRoot] = useState<FsDir | undefined>(undefined);
     const [fsProvider, setFsProvider] = useState<BaseFileSystem | undefined>(undefined);
     const [projectDataStore, setProjectDataStore] = useState<ProjectDataStore | undefined>(undefined);
@@ -64,8 +63,8 @@ export default function FsContextProvider(props: PropsWithChildren) {
             toParent.addChild(toFile);
             return toFile;
         };
-        
-        const createFile: ContextFileSystem["createFile"] = async(parent: FsDir, path: string)  => {
+
+        const createFile: ContextFileSystem["createFile"] = async (parent: FsDir, path: string) => {
             const targetPath = joinPath(parent, path);
             await fsProvider!.createFile({path: targetPath});
             const fileName = filename(targetPath);
@@ -73,8 +72,8 @@ export default function FsContextProvider(props: PropsWithChildren) {
             parent.addChild(newFile);
             return newFile;
         };
-        
-        const createDir: ContextFileSystem["createDir"] = async (parent: FsDir, path: string)=> {
+
+        const createDir: ContextFileSystem["createDir"] = async (parent: FsDir, path: string) => {
             const targetPath = joinPath(parent, path);
             await fsProvider!.createDir({path: targetPath});
             const dirName = filename(targetPath);
@@ -82,8 +81,8 @@ export default function FsContextProvider(props: PropsWithChildren) {
             parent.addChild(newDir);
             return newDir;
         };
-        
-        const createDirWithParents: ContextFileSystem["createDirWithParents"] =  async (parent: FsDir, path: string) => {
+
+        const createDirWithParents: ContextFileSystem["createDirWithParents"] = async (parent: FsDir, path: string) => {
             const pieces = parts(path);
             let current = parent;
             for (let i = 0; i < pieces.length; i++) {
@@ -103,7 +102,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
             console.assert(current.path() === joinPath(parent, path), `Path ${current.path()} does not match ${joinPath(parent, path)}`);
             return current;
         };
-        
+
         const readDir: ContextFileSystem["readDir"] = async (parent: FsDir): Promise<Map<string, FsItem>> => {
             // console.debug("Starting: ");
             // console.debug(parent);
@@ -120,7 +119,6 @@ export default function FsContextProvider(props: PropsWithChildren) {
                 }
             }
             parent.children = map;
-            // console.debug(dirs);
             await Promise.all(dirs.map(readDir));
             return map;
         };
@@ -191,23 +189,32 @@ export default function FsContextProvider(props: PropsWithChildren) {
     useEffect(() => {
         // Load dir cache on root change
         // console.debug(root, FsOps.init);
-        if (root && FsOps.init) {
+        if (root && FsOps.init &&
+            (!(window.__TAURI__ && root.name === "/")) // Don't load root when on Tauri, this will brick the program since we recursively read all data.
+        ) {
             // console.debug(root);
             FsOps.readDir(root);
         }
     }, [root, FsOps]);
 
     useEffect(() => {
-        switch (fsType) {
+        if (!fsProvider) {
+            return;
+        }
+        switch (fsProvider.type) {
         case FsType.Tauri: {
             setProjectDataStore(new TauriProjectDataStore());
             break;
         }
         case FsType.WasmLocal: {
-            if (fsProvider && fsProvider instanceof WasmFs) {
-                setProjectDataStore(new WasmProjectDataStore(FsOps, fsProvider));
+            if (!(fsProvider instanceof WasmFs)) {
+                throw new Error("WasmLocal filesystem must be an instance of WasmFs");
             }
+            setProjectDataStore(new WasmProjectDataStore(FsOps, fsProvider));
             break;
+        }
+        default: {
+            throw new Error(`Unknown filesystem type: ${fsProvider.type}`);
         }
         }
     }, [FsOps, fsProvider]);
@@ -223,7 +230,8 @@ export default function FsContextProvider(props: PropsWithChildren) {
         getItem,
         ops: FsOps,
         projectHandler: projectDataStore!,
+        type: fsProvider?.type,
         setRoot,
         setBaseFS: setFsProvider
-    }} children={props.children} />;
+    }} children={props.children}/>;
 }

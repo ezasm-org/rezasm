@@ -1,9 +1,11 @@
 import {FsDir} from "./fsContext.ts";
 import {fs} from "@tauri-apps/api";
 import {BaseDirectory} from "@tauri-apps/api/fs";
+import tauri_file_system from "./tauri_file_system.ts";
 
 export interface ProjectDataEntry {
     lastModified: number; // Unix timestamp
+    rootPath: string;
 }
 
 export type ProjectData = Record<string, ProjectDataEntry>;
@@ -22,21 +24,32 @@ export abstract class ProjectDataStore {
 
 export class TauriProjectDataStore extends ProjectDataStore {
     async initDataStore(): Promise<void> {
+        if (!await fs.exists("", {dir: BaseDirectory.AppLocalData})) {
+            await fs.createDir("", {dir: BaseDirectory.AppLocalData, recursive: true});
+        }
         if (await fs.exists("projects.json", {dir: BaseDirectory.AppLocalData})) {
             this.savedProjects = JSON.parse(await fs.readTextFile("projects.json", {dir: BaseDirectory.AppLocalData}));
         }
     }
 
-    async saveProject(_: FsDir, projectName: string): Promise<void> {
-        this.savedProjects[projectName] = {lastModified: Date.now()};
+    async saveProject(dir: FsDir, projectName: string): Promise<void> {
+        this.savedProjects[projectName] = {lastModified: Date.now(), rootPath: dir.path()};
         await fs.writeTextFile("projects.json", JSON.stringify(this.savedProjects), {dir: BaseDirectory.AppLocalData});
     }
 
     async getProject(projectName: string): Promise<FsDir | null> {
-        if (!this.savedProjects[projectName]) {
+        const projectData = this.savedProjects[projectName];
+        if (!projectData) {
             return null;
         }
-        return new FsDir("/", null);
+        try {
+            await tauri_file_system.readDir({path: projectData.rootPath});
+        } catch (e) {
+            console.error(e);
+            throw(e);
+            // TODO: Handle project directory deleted
+        }
+        return new FsDir(projectData.rootPath, null);
     }
 
     async closeProject(): Promise<void> {

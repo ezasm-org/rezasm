@@ -2,6 +2,7 @@
 import { createContext } from "react";
 import {ProjectDataStore} from "./projectData.ts";
 import {FileSystem} from "./tauri_file_system.ts";
+import {type FsType} from "./fsShared.ts";
 
 export abstract class AbstractFsFile {
     public name: string;
@@ -15,7 +16,7 @@ export abstract class AbstractFsFile {
     }
 
     path(): string {
-        return this.parent ? ((this.parent.parent ? this.parent.path() : "") + "/" + this.name) : this.name;
+        return this.parent ? ((this.parent.path() !== "/" ? this.parent.path() : "") + "/" + this.name) : this.name;
     }
 }
 
@@ -162,6 +163,7 @@ export interface FsContext {
     getItem(path: string): FsItem | null;
     ops: ContextFileSystem;
     projectHandler: ProjectDataStore;
+    type: FsType | undefined;
     setRoot: (root: FsDir) => void;
     setBaseFS: (base: BaseFileSystem) => void;
 }
@@ -208,6 +210,7 @@ export const FsContext = createContext<FsContext>({
     getItem: () => null,
     ops: DummyFsOps,
     projectHandler: new DummyProjectHandler(),
+    type: undefined,
     setRoot: notDefined,
     setBaseFS: notDefined
 });
@@ -224,8 +227,3 @@ export const FsActionsContext = createContext<FsActions>({
     showOpenProjectModal: notDefined,
     showSaveProjectModal: notDefined,
 });
-
-export enum FsType {
-    Tauri = 0,
-    WasmLocal = 1 // This is WASM but it does not directly write to the filesystem.
-}
