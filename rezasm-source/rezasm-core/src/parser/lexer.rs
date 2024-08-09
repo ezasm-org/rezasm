@@ -478,7 +478,6 @@ mod tests {
         assert_eq!(expected, actual);
     }
 
-    // Moved from Trevor's implementation in tests/core.rs
     #[test]
     fn test_text_to_number() {
         assert_eq!(

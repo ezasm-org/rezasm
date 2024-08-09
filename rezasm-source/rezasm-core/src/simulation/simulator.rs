@@ -289,7 +289,6 @@ mod tests {
 
     use super::*;
 
-    // Moved from Trevor's test in tests/core.rs
     #[test]
     pub fn test_simulator_instruction() {
         register_instructions();
@@ -312,7 +311,6 @@ mod tests {
         );
     }
 
-    // Moved from Trevor's test in tests/core.rs
     #[test]
     pub fn test_simulator_labels() {
         register_instructions();

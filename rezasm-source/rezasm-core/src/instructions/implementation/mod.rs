@@ -37,7 +37,6 @@ mod tests {
 
     use super::*;
 
-    // Moved from Trevor's implementation in tests/core.rs
     #[test]
     pub fn test_macro() {
         register_instructions();
@@ -69,7 +68,6 @@ mod tests {
         );
     }
 
-    // Moved from Trevor's test in tests/core.rs
     #[test]
     pub fn test_print_instructions() {
         register_instructions();
@@ -101,7 +99,6 @@ mod tests {
     }
 
     // FIXME: need to move this test elsewhere; it covers the parser I/O, not simulator I/O
-    // Moved from Trevor's test in tests/core.rs
     #[test]
     pub fn test_io() {
         register_instructions();

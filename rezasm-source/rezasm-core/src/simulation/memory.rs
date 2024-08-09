@@ -195,7 +195,6 @@ impl Memory {
 mod tests {
     use super::*;
 
-    // Moved from Trevor's test in tests/core.rs
     #[test]
     fn test_memory() {
         let mut memory: Memory = Memory::new();

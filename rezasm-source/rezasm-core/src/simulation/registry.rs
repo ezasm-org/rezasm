@@ -262,7 +262,6 @@ mod tests {
 
     use super::*;
 
-    // Moved from Trevor's test in tests/core.rs
     #[test]
     fn test_registry() {
         let mut registry: Registry = Registry::new(&DEFAULT_WORD_SIZE);
