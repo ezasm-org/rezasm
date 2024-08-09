@@ -1,8 +1,8 @@
-import {BaseFileSystem, type ContextFileSystem, directoryname, filename, FsDir, joinPath} from "./fsContext.ts";
-import {FsType} from "./fsShared.ts";
+import {type ContextFileSystem, directoryname, filename, FsDir, joinPath} from "./fsContext.ts";
+import {FsType, FileSystem} from "./fsShared.ts";
 import {ProjectDataEntry, ProjectDataStore} from "./projectData.ts";
 
-export default class WasmFs implements BaseFileSystem {
+export default class WasmFs implements FileSystem {
     readonly type = FsType.WasmLocal;
 
     private readonly rootDirectoryHandle: FileSystemDirectoryHandle;

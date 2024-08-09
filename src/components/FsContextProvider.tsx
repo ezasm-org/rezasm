@@ -1,5 +1,4 @@
 import {
-    BaseFileSystem,
     ContextFileSystem,
     directoryname,
     DummyFsOps,
@@ -11,14 +10,14 @@ import {
     joinPath,
     parts
 } from "../fsContext.ts";
-import {FsType} from "../fsShared.ts";
+import {FsType, FileSystem} from "../fsShared.ts";
 import {PropsWithChildren, useCallback, useEffect, useMemo, useState} from "react";
 import WasmFs, {initEmptyFs, WasmProjectDataStore} from "../wasmFs.ts";
 import {ProjectDataStore, TauriProjectDataStore} from "../projectData.ts";
 
 export default function FsContextProvider(props: PropsWithChildren) {
     const [root, setRoot] = useState<FsDir | undefined>(undefined);
-    const [fsProvider, setFsProvider] = useState<BaseFileSystem | undefined>(undefined);
+    const [fsProvider, setFsProvider] = useState<FileSystem | undefined>(undefined);
     const [projectDataStore, setProjectDataStore] = useState<ProjectDataStore | undefined>(undefined);
     const getItem = useCallback((path: string) => {
         if (!root || !path) {

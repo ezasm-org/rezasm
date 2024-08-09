@@ -1,8 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { createContext } from "react";
 import {ProjectDataStore} from "./projectData.ts";
-import {FileSystem} from "./tauri_file_system.ts";
-import {type FsType} from "./fsShared.ts";
+import {type FsType, FileSystem} from "./fsShared.ts";
 
 export abstract class AbstractFsFile {
     public name: string;
@@ -140,8 +139,6 @@ export function directoryname(path: string): string {
     return path.substring(0, path.lastIndexOf("/"));
 }
 
-export type BaseFileSystem = FileSystem;
-
 export interface ContextFileSystem {
     copyFile(from: FsFile, toParent: FsDir, toName?: string): Promise<FsFile>;
     createDir(parent: FsDir, path: string): Promise<FsDir>;
@@ -165,7 +162,7 @@ export interface FsContext {
     projectHandler: ProjectDataStore;
     type: FsType | undefined;
     setRoot: (root: FsDir) => void;
-    setBaseFS: (base: BaseFileSystem) => void;
+    setBaseFS: (base: FileSystem) => void;
 }
 
 const notDefined = () => {
