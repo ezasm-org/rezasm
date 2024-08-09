@@ -19,7 +19,11 @@ use rezasm_web_core::{
 use tauri::{Manager, Window};
 use tauri_reader::TauriReader;
 
-use file_system::HANDLER as file_system_handler;
+use crate::file_system::{
+    tauri_copy_file, tauri_create_dir, tauri_create_dir_with_parents, tauri_create_file,
+    tauri_read_dir, tauri_read_to_string, tauri_remove_dir, tauri_remove_dir_recursive,
+    tauri_remove_file, tauri_rename, tauri_write_file,
+};
 
 use crate::tauri_writer::TauriWriter;
 use std::{
@@ -31,7 +35,7 @@ lazy_static! {
     static ref WINDOW: Arc<RwLock<Option<Window>>> = Arc::new(RwLock::new(None));
 }
 
-pub const WINDOW_NAME: &'static str = "main";
+pub const WINDOW_NAME: &str = "main";
 
 pub fn get_window() -> Window {
     WINDOW
@@ -116,20 +120,16 @@ fn tauri_get_word_size() -> usize {
 fn tauri_receive_input(data: &str) {
     let mut simulator = get_simulator_mut();
     let reader = simulator.get_reader_mut();
-    reader.write(data.as_bytes()).unwrap();
-    reader.write(&[b'\n']).unwrap();
+    reader.write_all(data.as_bytes()).unwrap();
+    reader.write_all(&[b'\n']).unwrap();
 }
 
-fn main() {
-    register_instructions();
-    initialize_simulator(
-        Some(ReaderCell::new(TauriReader::new())),
-        Some(Box::new(TauriWriter::new())),
-    );
+type Handler = dyn Fn(tauri::Invoke) + Send + Sync;
 
-    tauri::Builder::default()
-        .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))
-        .invoke_handler(tauri::generate_handler![
+lazy_static::lazy_static! {
+    /// The tauri handler containing all file system methods
+    static ref EZASM_HANDLER: Box<Handler> =
+        Box::new(tauri::generate_handler![
             tauri_load,
             tauri_reset,
             tauri_step,
@@ -144,8 +144,48 @@ fn main() {
             tauri_get_memory_slice,
             tauri_get_word_size,
             tauri_receive_input,
-        ])
-        .invoke_handler(file_system_handler.as_ref())
+        ]);
+}
+
+fn main() {
+    let handler: Box<Handler> = Box::new(tauri::generate_handler![
+        tauri_load,
+        tauri_reset,
+        tauri_step,
+        tauri_step_back,
+        tauri_stop,
+        tauri_is_completed,
+        tauri_get_exit_status,
+        tauri_get_register_value,
+        tauri_get_register_names,
+        tauri_get_register_values,
+        tauri_get_memory_bounds,
+        tauri_get_memory_slice,
+        tauri_get_word_size,
+        tauri_receive_input,
+        // File system
+        tauri_copy_file,
+        tauri_create_dir,
+        tauri_create_dir_with_parents,
+        tauri_create_file,
+        tauri_read_dir,
+        tauri_read_to_string,
+        tauri_remove_dir,
+        tauri_remove_dir_recursive,
+        tauri_remove_file,
+        tauri_rename,
+        tauri_write_file,
+    ]);
+
+    register_instructions();
+    initialize_simulator(
+        Some(ReaderCell::new(TauriReader::new())),
+        Some(Box::new(TauriWriter::new())),
+    );
+
+    tauri::Builder::default()
+        .setup(|app| Ok(set_window(app.get_window(WINDOW_NAME).unwrap())))
+        .invoke_handler(handler)
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
