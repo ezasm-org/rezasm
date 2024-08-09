@@ -55,9 +55,10 @@ export default class WasmFs implements BaseFileSystem {
     }
 
     async createDir({path}: {path: string}): Promise<void> {
-        const parentHandle = await this.getDirectoryHandle(WasmFs.getParentPath(path));
+        const parentName = WasmFs.getParentPath(path);
+        const parentHandle = await this.getDirectoryHandle(parentName);
         const folderName = filename(path);
-        // console.debug(`Creating directory ${folderName} in ${parentHandle.name}`);
+        // console.log("Creating %s in %s", folderName, parentName);
         await parentHandle.getDirectoryHandle(folderName, {create: true});
     }
     async createDirWithParents({path}: {path: string}): Promise<void> {

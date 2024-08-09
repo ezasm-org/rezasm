@@ -106,6 +106,7 @@ export default function FsContextProvider(props: PropsWithChildren) {
         const readDir: ContextFileSystem["readDir"] = async (parent: FsDir): Promise<Map<string, FsItem>> => {
             // console.debug("Starting: ");
             // console.debug(parent);
+            console.log("Reading dir: %o", parent);
             const items = await fsProvider!.readDir({path: parent.path()});
             // console.debug(items);
             const map = new Map<string, FsItem>();

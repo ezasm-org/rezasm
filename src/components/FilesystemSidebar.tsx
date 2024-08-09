@@ -70,7 +70,16 @@ export default function FilesystemSidebar() {
                             console.log(3);
                             const baseFs = await initEmptyFs();
                             console.log(newFoldersToCreate);
-                            await Promise.all(Array.from(newFoldersToCreate).filter(folder=>!!folder).map((folder) => baseFs.createDir({path: folder})));
+                            // Order folders by number of slashes -- we need parent folders to exist before child folders
+                            // so this takes cares of that.
+                            const orderedFolders = Array.from(newFoldersToCreate).filter(folder=>!!folder && folder !== "/").toSorted((a, b) => {
+                                const aNumSlashes = a.split("/").length;
+                                const bNumSlashes = b.split("/").length;
+                                return aNumSlashes - bNumSlashes;
+                            });
+                            for (const folder of orderedFolders) {
+                                await baseFs.createDir({path: folder});
+                            }
                             console.log(4);
                             await Promise.all(filesArray.map(async (file) => {
                                 const properPath = file.webkitRelativePath.substring(file.webkitRelativePath.indexOf("/"));
