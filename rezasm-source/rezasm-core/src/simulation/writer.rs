@@ -1,9 +1,21 @@
 use crate::util::as_any::AsAny;
 use std::any::Any;
 use std::fmt::Debug;
-use std::io::Write;
+use std::io::{Stdout, Write};
 
 pub trait Writer: Write + AsAny + Sync + Send + Debug {}
+
+impl AsAny for Stdout {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+}
+
+impl Writer for Stdout {}
 
 pub type WriterBox = Box<dyn Writer>;
 

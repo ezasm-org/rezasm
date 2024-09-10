@@ -39,7 +39,9 @@ impl ReaderCell {
     /// # Examples
     ///
     /// ```
-    /// let reader_cell = ReaderCell::new(std::io::stdin());
+    /// use rezasm_core::simulation::reader::DummyReader;
+    /// use rezasm_core::simulation::reader_cell::ReaderCell;
+    /// let reader_cell = ReaderCell::new(DummyReader::new());
     /// ```
     pub fn new<R: Reader + 'static>(reader: R) -> Self {
         Self(Rc::new(RefCell::new(reader)))

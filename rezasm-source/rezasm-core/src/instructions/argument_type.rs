@@ -5,7 +5,7 @@ use crate::util::error::{InternalError, ParserError};
 use crate::util::raw_data::RawData;
 use crate::util::word_size::WordSize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ArgumentType {
     InputOutput(InputOutputTarget),
     Input(InputTarget),

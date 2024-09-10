@@ -12,7 +12,7 @@ use std::fmt::{Display, Formatter};
 
 use super::lexer;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Line {
     Instruction(&'static Instruction, Vec<ArgumentType>),
     Label(String),
@@ -20,7 +20,7 @@ pub enum Line {
 
 impl Line {
     pub fn new(
-        instruction: &String,
+        instruction: &str,
         args: Vec<String>,
         word_size: &WordSize,
     ) -> Result<Self, ParserError> {
@@ -123,5 +123,41 @@ impl Display for Line {
             )
             .as_str(),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::instructions::implementation::register_instructions;
+    use crate::instructions::instruction_registry::get_instruction;
+    use crate::util::raw_data::RawData;
+
+    #[test]
+    fn test_new_line() {
+        let word_size = WordSize::default();
+
+        register_instructions();
+        let expected = Line::Instruction(
+            get_instruction("add", 3).expect("Instruction not found"),
+            vec![
+                ArgumentType::InputOutput(InputOutputTarget::RegisterInputOutput(22)),
+                ArgumentType::Input(InputTarget::ImmediateInput(RawData::from_int(
+                    10, &word_size,
+                ))),
+                ArgumentType::Input(InputTarget::ImmediateInput(RawData::from_int(
+                    5, &word_size,
+                ))),
+            ],
+        );
+
+        let actual = Line::new(
+            "add",
+            vec!["$t0".into(), "10".into(), "5".into()],
+            &word_size,
+        )
+        .expect("Failed to create new line");
+
+        assert_eq!(expected, actual)
     }
 }

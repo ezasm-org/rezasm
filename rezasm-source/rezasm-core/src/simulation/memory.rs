@@ -190,3 +190,22 @@ impl Memory {
         Ok(out)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_memory() {
+        let mut memory: Memory = Memory::new();
+        let data = RawData::from_int(100, &DEFAULT_WORD_SIZE);
+        memory.write(memory.current_heap_pointer(), &data).unwrap();
+        assert_eq!(
+            memory
+                .read(memory.current_heap_pointer())
+                .unwrap()
+                .int_value(),
+            100
+        );
+    }
+}

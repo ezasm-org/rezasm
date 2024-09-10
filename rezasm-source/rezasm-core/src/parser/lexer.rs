@@ -149,20 +149,18 @@ pub fn parse_float_string(string: &String, base: u8) -> Result<f64, ParserError>
     Ok(result)
 }
 
-pub fn looks_like_label(token: &String) -> bool {
+pub fn looks_like_label(token: &str) -> bool {
     match token.rfind(':') {
         None => false,
         Some(index) => index == token.len() - 1,
     }
 }
 
-pub fn is_label(token: &String) -> bool {
+pub fn is_label(token: &str) -> bool {
     match token.find(":") {
         None => false,
         Some(i) => {
-            token.len() > 1
-                && i == token.len() - 1
-                && all_alphanumeric_underscore(&token.as_str()[..i])
+            token.len() > 1 && i == token.len() - 1 && all_alphanumeric_underscore(&token[..i])
         }
     }
 }
@@ -287,7 +285,7 @@ pub fn parse_line(line: &String, word_size: &WordSize) -> Option<Result<Line, Pa
 }
 
 // TODO ake the simulator use this
-pub fn parse_lines(lines: &String, word_size: &WordSize) -> Result<Vec<Line>, ParserError> {
+pub fn parse_lines(lines: &str, word_size: &WordSize) -> Result<Vec<Line>, ParserError> {
     let mut output: Vec<Line> = Vec::new();
     for s in lines.lines() {
         output.push(match parse_line(&s.into(), word_size) {
@@ -356,20 +354,19 @@ pub fn is_numeric(token: &String) -> bool {
         || decimal_pattern.is_match(lower.as_str())
 }
 
-pub fn tokenize_line(text: &String) -> Vec<String> {
+pub fn tokenize_line(text: &str) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();
-    let trimmed = match text.split("#").nth(0) {
-        None => text,
-        Some(first) => first,
-    }
-    .trim();
 
     let mut in_single_quotes = false;
     let mut in_double_quotes = false;
     let mut escape_next = false;
     let mut current: String = String::new();
 
-    for c in trimmed.chars() {
+    for c in text.chars() {
+        if c == '#' && !in_single_quotes && !in_double_quotes {
+            break;
+        }
+
         if escape_next {
             escape_next = false;
             current.push(c);
@@ -395,4 +392,136 @@ pub fn tokenize_line(text: &String) -> Vec<String> {
     }
 
     tokens
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::instructions::implementation::register_instructions;
+    use crate::instructions::instruction_registry::get_instruction;
+    use crate::test_utils::workspace_root;
+    use std::fs;
+
+    // Moved from Trevor's test in tests/core.rs
+    #[test]
+    fn test_tokenize_line() {
+        assert_eq!(
+            std::format!(
+                "{:?}",
+                tokenize_line(&String::from("add $t0 1 2 # this - is = a # comment"))
+            ),
+            "[\"add\", \"$t0\", \"1\", \"2\"]"
+        );
+    }
+
+    #[test]
+    fn test_parse_line() {
+        register_instructions();
+        let word_size = WordSize::default();
+
+        let add = get_instruction("add", 3).expect("Instruction not found");
+
+        let actual = parse_line(
+            &"add $t0 1 2 # this - is = a # comment".to_string(),
+            &word_size,
+        )
+        .expect("Parsing Empty")
+        .expect("Parsing Error");
+
+        let expected = Line::new(
+            "add",
+            vec!["$t0".into(), "1".into(), "2".into()],
+            &word_size,
+        )
+        .expect("New line failed");
+
+        assert_eq!(expected, actual);
+
+        let actual = parse_line(
+            &r#"move $s0 "This has a # character"  # and a # comment"#.to_string(),
+            &word_size,
+        )
+        .expect("Parsing Empty")
+        .expect("Parsing Error");
+
+        let expected = Line::new(
+            "move",
+            vec!["$s0".into(), r#""This has a # character""#.into()],
+            &word_size,
+        )
+        .expect("New line failed");
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_parse_lines() {
+        register_instructions();
+        let code = r#"
+            move $s0 "This has a # character"  # and an end of line comment
+            prints $s0  # and another end of line comment
+            # This is a full-line comment, and the next line is white space"#;
+        let word_size = WordSize::default();
+
+        let actual = parse_lines(code, &word_size).expect("Parsing Error");
+
+        let expected = vec![
+            Line::new(
+                "move",
+                vec!["$s0".into(), r#""This has a # character""#.into()],
+                &word_size,
+            )
+            .expect("New line failed"),
+            Line::new("prints", vec!["$s0".into()], &word_size).expect("New line failed"),
+        ];
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_text_to_number() {
+        assert_eq!(
+            match text_to_number(String::from("0x0010.8000")).unwrap() {
+                EZNumber::Integer(_) => f64::INFINITY,
+                EZNumber::Float(x) => x,
+            },
+            16.5
+        );
+    }
+
+    #[test]
+    fn test_parse_fibo() {
+        register_instructions();
+        let word_size = WordSize::default();
+
+        let workspace = workspace_root()
+            .to_str()
+            .expect("workspace_root to string failed")
+            .to_string();
+        let path = format!("{workspace}/example/fibonacci_jump.ez");
+
+        let code = fs::read_to_string(&path).expect(&format!("File {path}: read failed"));
+        let actual = parse_lines(&code, &word_size).expect("Parsing failed");
+
+        let expected_args = vec![
+            ("move", vec!["$a0".to_string(), "10".into()]),
+            ("move", vec!["$t0".into(), "0".into()]),
+            ("move", vec!["$t1".into(), "1".into()]),
+            ("move", vec!["$t3".into(), "0".into()]),
+            ("fib:", vec![]),
+            ("add", vec!["$t2".into(), "$t0".into(), "$t1".into()]),
+            ("move", vec!["$t0".into(), "$t1".into()]),
+            ("move", vec!["$t1".into(), "$t2".into()]),
+            ("add", vec!["$t3".into(), "$t3".into(), "1".into()]),
+            ("bne", vec!["$t3".into(), "$a0".into(), "fib".into()]),
+            ("move", vec!["$a1".into(), "$t1".into()]),
+        ];
+
+        let mut expected = vec![];
+        for (inst, args) in expected_args {
+            expected.push(Line::new(inst, args, &word_size).expect("Failed to create Line"));
+        }
+
+        assert_eq!(expected, actual);
+    }
 }
