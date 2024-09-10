@@ -6,7 +6,7 @@
 
 /* leave this until we rewrite the primary gui*/
 :root {
-  font-family: "JetBrains Mono";
+  font-family: "JetBrains Mono", monospace;
   font-weight: 400;
 
   color: #0f0f0f;

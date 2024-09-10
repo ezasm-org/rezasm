@@ -9,7 +9,7 @@ function Controls({state, setState, start, stop, step, stepBack, reset, load, er
     const isErrorState = error.current !== "";
 
     return (
-        <div className="mt-2 mb-2 row">
+        <div className="px-4 mt-2 mb-2 row">
             {state.current === STATE.RUNNING ?
                 <button className="btn-operation bg-red-500 hover:bg-red-700"
                     disabled={state.current !== STATE.RUNNING || isErrorState}

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v1.0.5/tooling/cli/schema.json",
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
@@ -19,6 +20,16 @@
       },
       "window": {
         "all": false
+      },
+      "dialog": {
+        "open": true
+      },
+      "fs": {
+        "all": true,
+        "scope": [
+          "$APPLOCALDATA/",
+          "$APPLOCALDATA/*"
+        ]
       }
     },
     "bundle": {

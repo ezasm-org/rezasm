@@ -35,24 +35,49 @@ const callWorkerFunction = (message: Message) => {
     });
 };
 
+function isValidWasmCommandString(str: string): str is ValidWasmCommandStrings {
+    // We could use an array, but this way if we add/remove a wasm function we will get a big error about it.
+    const wasmData: Record<ValidWasmCommandStrings, null> = {
+        "load": null,
+        "step": null,
+        "step_back": null,
+        "reset": null,
+        "stop": null,
+        "is_completed": null,
+        "get_exit_status": null,
+        "get_register_value": null,
+        "get_register_names": null,
+        "get_register_values": null,
+        "get_memory_bounds": null,
+        "get_memory_slice": null,
+        "get_word_size": null,
+        "receive_input": null,
+        "initialize_backend": null,
+    };
+    return str in wasmData;
+}
+
 // name is the name of the function in rust (without "tauri_" or "wasm_")
 // shape is an array describing the keys that are expected to be defined in props
-export const get_rust_function = (name: ValidWasmCommandStrings, shape?: string[]) => {
+export const get_rust_function = (name: string, shape?: string[]) => {
     shape = shape ?? [];
     const shapeSet = new Set(shape);
     return async (props: Record<string, unknown>) => {
         props = props ?? {};
         if (!setsEqual(shapeSet, new Set(Object.keys(props)))) {
-            throw new Error(`Function '${name} passed with unexpected shape'`);
+            throw new Error(`Function '${name}' passed with unexpected shape`);
         }
         // @ts-expect-error -- This is not always going to exist, but the compiler doesn't know that
         if (window.__TAURI_IPC__) {
-            return invoke(`tauri_${name}`, props);
+            return await invoke(`tauri_${name}`, props);
         } else {
+            if (!isValidWasmCommandString(name)) {
+                throw new Error(`Function '${name}' is not a valid wasm command`);
+            }
             while (! await isWasmLoaded()) {
                 // wait
             }
-            return callWorkerFunction({command: name, argument: props, shape: shape});
+            return await callWorkerFunction({command: name, argument: props, shape: shape});
         }
     };
 };
