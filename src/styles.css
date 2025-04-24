@@ -85,6 +85,17 @@ textarea {
 
 button {
   margin: 2px;
+  padding: 10px 15px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
 }
 
 .tab_content {
@@ -223,3 +234,139 @@ td {
 /*    background: #2f2f2f;*/
 /*  }*/
 /*}*/
+
+
+.menu_base{
+  color :blueviolet;
+}
+
+
+.save-button {
+  background-color: #4caf50;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.save-button:hover {
+  background-color: #45a049;
+}
+
+
+.load-button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.file-buttons label:hover {
+  background-color: #0056b3;
+}
+
+.file-dropdown-container {
+    position: absolute;
+    top: 30px; /* Adjusted to move the dropdown further down */
+    left: 10px;
+    z-index: 1000; /* Ensure it appears above other elements */
+    flex: 1; /* Allow it to grow/shrink evenly */
+    text-align: center;
+}
+
+.file-dropdown {
+    flex: 0; /* Prevent the dropdown from growing */
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+/* Parent container for the dropdown and buttons */
+.top-bar {
+    display: flex;
+    justify-content: space-evenly; /* Distribute elements evenly */
+    align-items: center; /* Align items vertically */
+    padding: 10px;
+    background-color: #f9f9f9; /* Optional: Add a background color */
+    border-bottom: 1px solid #ccc; /* Optional: Add a bottom border */
+}
+
+/* Style for the buttons */
+.controls-container {
+    flex: 3; /* Allow it to grow/shrink evenly */
+    display: flex;
+    justify-content: space-evenly; /* Space buttons evenly */
+}
+
+.file-name-input {
+    flex: 1; /* Allow the input to take up available space */
+    margin-right: 10px;
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.file-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px; /* Add spacing below the file controls */
+    padding: 10px;
+    background-color: #f9f9f9; /* Optional: Add a background color */
+    border-bottom: 1px solid #ccc; /* Optional: Add a bottom border */
+}
+
+.editor-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+    background-color: #f9f9f9;
+}
+
+.editor-scrollable {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; /* Single scrollbar for the container */
+}
+
+.line-numbers {
+    background-color: #eaeaea;
+    color: #333;
+    padding: 10px;
+    text-align: right;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    user-select: none;
+    border-right: 1px solid #ccc;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.editor-textarea {
+    flex: 1;
+    padding: 10px;
+    font-family: monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    border: none;
+    outline: none;
+    resize: none; /* Disable manual resizing */
+    overflow: hidden; /* Prevent scrollbars inside the textarea */
+}
